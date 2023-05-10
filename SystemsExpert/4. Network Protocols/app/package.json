@@ -1,0 +1,14 @@
+{
+  "name": "itsmyles",
+  "version": "1.0.0",
+  "description": "doesn't matter",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Myles Thomas",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
