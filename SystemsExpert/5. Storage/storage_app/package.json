@@ -1,0 +1,14 @@
+{
+  "name": "storage_app",
+  "version": "1.0.0",
+  "description": "for module 5 of systemsexpert on algoexpert.io",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Myles Thomas",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
