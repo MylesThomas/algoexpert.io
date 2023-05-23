@@ -914,117 +914,231 @@ Backward Proxy
     - When the client makes requests to the server, it has no idea that it is actually going to a backward proxy
     - Whereas forward proxy acts for client, backward proxy acts for the server ie. "On the server's team"
         - If the backward proxy has been configured correctly by the server/entity that owns the server, the request will go from client > reverse proxy > server
-            - The client will not know this
-            - 
-        - 
+            - The client will not know there are 2 entities
+            - The DNS query will return the address of the reverse proxy (not the actual server)
 
+When designing complex systems, proxies (especially reverse proxies) are very useful. How useful are proxies?
 
+- Reverse Proxies: 
+    - Best example of a reverse proxy: Load Balancers
+        - In a nutshell, Load Balaners can distribute 'request load' among servers
+            - Example: You have a very complex systems with multiple servers. Your load balancer/reverse server distributes requests among different servers according to a certain pattern
+                - Can ensure/deal with malicious clients that may be overloading a server with a ton of requests
+    - Other examples: 
+        - Filter out requests that you want to ignore
+            - Example: You don't want your system to deal with certain kinds of requests
+        - Logging system
+        - Grabbing metrics
+        - Cache certain things
+            - Example: HTML pages
 
+- Forward Proxies: 
+    - 
 
+Example: Node.JS server with NGinx
+- NGinx: a web server that can be used as a reverse proxy/load balancer
+    - This example sets up a reverse proxy that can overwrite/mutate the headers of a request
+        - It does not affect what the client/user gets on their screen, but whoever set up the server gets more information than they normally would:
+            - localhost3000: Client accesses Server (regular)
+            - localhost8081: Client accesses Load Balancer/Reverse Proxy, which appends values to the header, and then directs the client to the server at localhost3000 (new way)
+            
+Instructions on how to set this up: 
+https://docs.google.com/document/d/1xhDgzKvkTUhOFpDz2z2WZZqMcIG4sqCTSekGl32d_Pw/edit?usp=sharing
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Takeaways on Proxies:
+- Not that complicated
+- Very powerful!
 
 
 ---
 ## Lesson 10: Load Balancers 
 
+"Digital Traffic Cops"
+- Load Balancers act as watchful guardians for your system
+    - They ensure it operates at peak performance, day AND night
+
 ### Prerequisites:
 
-##### 
+##### Reverse Proxy
+- A server that sits between clients and servers and acts on behalf of the servers, typically for one of the following:
+    - Logging
+    - Load balancing
+    - Caching
 
 ### Key Terms:
 
-##### 
+##### Load Balancer
+A type of reverse proxy that distributes traffic across servers
+- Can be found in many parts of a system, including:
+    - DNS layer
+    - Database layer
+    - And more!
+
+##### Server-Selection Strategy
+How a load balancer chooses servers when distributing traffic amongst 2+ servers
+- Commonly used strategies: 
+    - Round-robin
+    - Random selection
+    - Performance-based section
+        - Examples: 
+            - Fastest response time
+            - Least amount of traffic
+    - IP-based routing
+
+##### Hot Spot
+When distributing a workload across a set of servers, that workload might be spread unevenly. 
+- This creates a hot spot!
+- How it occurs:
+    - Your sharding key is suboptimal
+    - Your hashing function is suboptimal
+    - Your workload is naturally skewed ie. some servers will receive a lot more traffic than others
+
+##### Nginx
+A very popular webserver that's often uses as a reverse proxy and load balancer
+- "engine-X" (https://www.nginx.com/)
 
 ### Notes from the video:
 
+Intro to Load Balancers
+- Extremely important
+- Used in almost every system
+- Comes up in nearly every system design interview
+
+Example using a very simple system:
+- Client: Sends/Issues requests to server
+    - We have 4+ clients, and one of the clients is issuing multiple requests to the server
+- Server: Receives requests from client ie. fetch from databases, sends responses
+    - Our server has limited resources to respond to requests (limited throughput)
+    - The more requests, the more likely we are to overloading ie. have more requests than it can handle, which leads to the following:
+        - Failure in our system
+        - Slowdowns in our system
+    - How do we improve our system? Scaling. What kinds of scaling?
+        - Vertically scaling: Increase the power in our 1 server
+            - This is limited because there is only so much we can do to boost the power/performance of 1 server
+        - Horizontally scaling: Add more machines/servers to our system
+            - Obvious solution - assuming each server has similar/same power, we can 4x the system's power
+            - This would assume each client is issuing similar # of requests/balanced distribution of requests, which is not always the case!
+                - This is where the load balancer comes in to save the day, allowing us to properly horizontally scale!
+- Load Balancer: Server that sits between set of clients and set of servers
+    - Job = balancing workload across resources/servers/rerouting traffic evenly
+        - Clients issues requests to load balancer, load balancer decides which server(s) get which tasks to do
+            - There are a number of ways/methods/common procedures to divvy up the work, more on this later
+    - Not only does it prevent a single server from getting overloaded, but it also makes overall system improve in the following ways:
+        - Better throughput: servers won't be overloaded
+        - Better latency: servers will be able to respond faster since they won't be bogged down
+        - Better use of resources: if you are adding servers, the load balancer will know to make use of these new resources
+    - It is a type of Reverse Proxy most of the time
+        - They act on behalf of the servers!
+
+    - Can be in multiple different places in a system, such as:
+        - Client > Load Balancer > Server
+        - Server > Load Balancer > Database
+        - Client > Load Balancer > DNS Server (dealing with websites - you type in algoexpert.io, browser makes DNS query to locate IP address for that domain name)
+            - DNS round-robin: A type of load balancing at DNS layer
+                - Single domain name gets multiple IP addresses, when DNS query is made to get IP addresses of that domain name, the multiple IP addresses associated w/ that domani name are returned in a load-balanced way
+
+Example w/ 2 Command Lines and the 'dig' command:
+Instructions on how to replicate this: 
+.......a
+zzalsdlkdjkl
+
+1. Terminal 1: 'dig' command to get IP address of google.com: dig google.com
+- IP = 172.217.10.14
+1. Terminal 2: 'dig' command to get IP address of google.com: dig google.com
+- IP = 172.217.10.238
+    - Why are they but google.com but different IP addresses?? 
+        - Use curl commands to see
+1. Terminal 1: 'curl' to find domain associated w/ the IP address: curl 172.217.10.14
+- We get google.com
+1. Terminal 2: 'curl' to find domain associated w/ the IP address: curl 172.217.10.238
+- We get google.com (again)
+- What does this mean?
+    - Load Balancing is in play!
+        - The same domain name (google.com) is associated with 2+ IP addresses
+        - 2 different terminals (different clients) got served 2 different IP addresses
+
+Quick note: software load balancers vs. hardware load balancer (they are very different)
+- Hardware load balancer: Physical machine dedicated to load balancing
+    - Limited the the hardware you are given (and hardware is expensive)
+- Software load balancer: Program dedicated to load balancing
+    - Main difference: You can do more with the software load balancer
+        - More power of custominzation, scaling 
+        - These are the load balancers we will focus on/go over today
+    
+How does the SOFTWARE load balancer distribute load/traffic to the servers? (algorithm, etc.)
+1. How does it know that it has servers to distribute traffic to?
+- Example: A new server is added - how does it know that this new server is something that it can route traffic to?
+- The owner/creator of system can configure so that the load balancer and server will register/de-register when adding/removing
+1. How does it select servers to send traffic to?
+- Lots of ways to do so, such as:
+    - Pure randomization: The easiest, exactly what it sounds like
+        - Pros: easy
+        - Cons: could cause problems with 1 server being overloaded 
+    - Round robin: method that goes through all servers in 1 order from top to bottom, then repeat (ie. 1 > 2 > 3 > 1 > 2 > 3 > ...)
+        - Pros: ideally, you equally distribute traffic across servers
+        - Cons: 
+    - Weighted Round robin: Round robin ordering, but you put weights on specific servers so that they get more/less traffic re-directed to them
+        - Pros: great for when you have 1 server that is more powerful than the other servers
+        - Cons: 
+    - Performance/load: 
+        - This strategy is a bit more involved 
+            - Load balancer performs 'health checks' on your server so it knows the following: 
+                - How much traffic the server is handling, at any given time
+                - How long it takes to respond to traffic
+                - How many resources the server is using
+        - Based on that, it will assign traffic accordingly
+            - Example: Load balancer sees a server is performing very well, it will re-direct more traffic to this server
+        - Pros: 
+        - Cons: 
+    - IP-based server selection: When load balancer gets IP address from client, it hashes the IP address
+        - Can help you maximize your cached requests
+        - Depending on the value of the hashed IP address, it re-directs traffic for you 
+            - Example: IP address of a client is hashed to 1, load balancer will direct traffic from this client to server 1 
+        - Pros: Can be very useful if you have caching going on 
+            - Imagine you are caching results of requests in your servers, it would make sense/be helpful to have requests from a specific client go to the server where their requests have already been cached!
+        - Cons: 
+        - If you ever want to deploy big changes to a service, it only affects servers that have to do with that service
+            - Example: If algoexpert wants to make changes to code execution engine, the changes only affect the server(s) handling the code execution engine
+                - Payment servers for example, are not affected, even if the code execution servers start failing
+1. As you can see, there are a lot of options for selecting a method of routing traffic through your load balancer to servers
+- When designing systems, you want to keep this in mind for your use-case
+    - This may be multiple load balancers that use different server-selection strategies
 
 
+Contrived Example:
+- Brand new system
+    - 3 clients 
+    - clients requests go to load balancer #1
+    - load balancer #1 sends requests to load balancers #2 and #3
+        - Load balancer #1 distributes to servers based on IP addresses
+            - Client 1 requests: LB #1 sends to top LB #2
+            - Clients 2-3 requests: LB #1 sends to bottom LB #3
+    - load balancers #2 and #3 distribute workload to servers 1-4 based on round-robin 
+        - Client 1 requests via Load balancer #2: sends to Servers 1-2
+        - Clients 2-3 requests via Load balancer #3: sends to Servers 3-4
+
+What happens if a load balancer itself gets overloaded?
+- This is where a 2nd/3rd load balancer can come in
+    - 2 and 3 can communicate with each other to decide how to re-route traffic
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Very Simple/Cool Example of Clement's Load Balancer using  (similar to Proxies example)
+- Using port variable from 'env', instead of hardcoding it 
+    - This allows use to set our port while making the curl call in command line ie. 'PORT=3000 node server.js'
+- 3 terminals windows:
+    - 1: PORT=3000 (has weight=3 ie. weighted-round robin method)
+    - 2: PORT=3001
+    - 3: PORT=8081
+        - When making requests to this port 8081, about 3x as many will get routed to Port 1/3000 than Port 2/3001
+    
+    - Instruction on how to do this: 
+    - Link: 
+    
+Takeaways - Load Balancers:
+- Load Balancers are the following:
+    - simple
+    - critical to large-scale systems 
+    - almost certainly will use them in systems design interviews!
 
 
 ---
@@ -1032,58 +1146,183 @@ Backward Proxy
 
 ### Prerequisites:
 
-##### 
+##### Hashing Function
+A function that takes in a specific data type (string, identifier, etc.) and outputs a number
+- Different inputs can have the same output potentially
+    - A good hashing function attempts to minimize this occuring (otherwise known as "maximizing uniformity")
+        - This is called a "hashing collision"
+
+##### Load Balancer
+a type of reverse proxy that distributes traffic across servers.
+- can be found in many parts of the system, such as: 
+    - DNS layer
+    - Database layer
+
 
 ### Key Terms:
 
-##### 
+##### Consistent Hashing
+A type of hashing that minimzes the number of keys that need to be remapped when a hash table gets resized
+- often used by load balancers to distribute traffic to servers
+    - it minimizes the number of requests that get forwarded to different servers when new servers are added (or when existing servers are brought down/removed)
+
+##### Rendezvous Hashing
+- A type of hashing that allows for minimal re-distribution of mappings when a server goes down
+- Also coined "highest random weight hashing"
+
+##### SHA (Secure Hash Algorithms)
+- collection of cryptographic hash functions used in the industry nowadays
+    - SHA-3 is currently a popular choice to use in a system
 
 ### Notes from the video:
 
+Types of hashing:
+1. Original Hashing
+1. Consistent Hasing
+1. Rendezvous Hasing
+
+Intro to Hashing
+- To put it simple, hashing turns data into an integer value
+    - It can be IP address, HTTP requests, and more
+
+Example:
+- 4 clients
+    - makes a lot of computationally expensive requests
+- 1 load balancer
+    - server selection strategy: round-robin
+- 4 servers
+    - servers are caching requests received
+        - everytime it gets a request, server checks if the cached value exists:
+            - yes? skip the process + return cached value
+            - no? run the process, cache the value + return the cached value
+        - solid method to choose if you know your clients are going to be sending computationally expensive requests 
+
+- Problem with this example: 
+    - If are using a round-robin approach with computationally expensive requests, it is likely you will have the load balancer route the request to the wrong server
+        - example: 
+            - client 1 makes requests that LB routes to Server A (server A has never seen this request before, so runs it and caches result)
+            - client 1 makes the SAME request, now LB routes to Server B (server B has never seen this request before, so process gets ran again and cached)
+                - See the issue? We would hope that this long process never has to be repeated again!
+- Solution to this example: 
+    - Hashing! 
+- How does hashing work with this example: 
+    - Hash the requests that come into the load balancer
+        - Based on the hash, bucket the requests (based on the position of the servers)
+    - Once requests have been hashed, bucket the requests in the servers with a little business logic
+
+Example: 
+1. We are hashing the clients names themselves: (remember: hashing function turns data into fixed size value)
+    - Request from Client 1: 11
+    - Request from Client 2: 12
+    - Request from Client 3: 13
+    - Request from Client 4: 14
+2. 'Mod' these hashes by the number of servers we have 
+- modulo operator (%)
+- in action, with 4 servers: 
+    - Client 1 (11): 11 % 4 = 3 (11/4=2.75=2+(3*1/4))
+    - Client 2 (12): 12 % 4 = 0
+    - Client 3 (13): 13 % 4 = 1
+    - Client 4 (14): 14 % 4 = 2
+        - We now have numbers for each client's requests to be routed to: 
+            - Example: Client 1's 11 gets routed to 3, so Client 1's requests go to server 3 (Server D; since 0 goes to Server A)
+- using this hashing function, we are maximizing our probability of 'cache hits'
+    - if Client 1 goes to Server A, there is a 100% probability of a cache hit
+
+
+Problems/Downsides of this method: 
+
+- This is a large-scale distributed system, where a lot of things can happen/go wrong! 
+* These are some of the things that can happen:
+    - Servers can die
+
+        * Server A dies
+
+    - Servers experience too much traffic, to the point we need to add more
+        * Server A is overloaded, we need to introduce Server E
+            - if we do this, we cannot continue to modulate servers by 4, must update that number to 5
+                - Updating this number has 2 issues:
+                    - The in-memory cache of the servers is useless 
+                    -  Not all of the servers are guaranteed to be used
+
+Note: When dealing with a hashing function, it is important that the hashing function has 'uniformity'
+- We did not distribute evenly 'by chance', that is the point of the hashing function doing a good job 
+- Typically you do not make your own hashing function, you use an industry-grade one such as: 
+    - Mv5
+    - B cript hashing (idk what he said...)
+
+What do we do when we need to hash?
+1. Constistent Hashing
+- In a nutshell: Preserves the cache hits
+- Instead of organizing servers in a vertical line, visualize them on a circle plane that loops around:
+
+    ![Alt text](photos/2.png)
+
+    - The way you place the servers on the circle is with a hashing function
+        - If it is a good/uniform hashing function, it will be uniform
+    - Now that servers/client are on the circle, how do we decide which clients get routed to which servers?
+        * Go to each client, and from each client, move clockwise (counter-clockwise is possible too) and the first server you encounter is the server that the load balancer will re-route the requests to
+            - Somewhat uniformly distributed
+        - What does this accomplish?
+            - Example: Server C dies
+                - Client 2 now re-routes to Server D
+
+                ![Alt text](photos/3.png)
+
+            - Example: We add a new server E
+                - Client 1 now re-routes to Server E
+
+                ![Alt text](photos/4.png)
+
+    - What this method accomplishes: 
+        - If we add/remove a server, we maintain most of the mappings
+            - Only a few will change, preserving the cache hits
+    
+    - Another possibility with consistent hashing:
+        - has the potential to pass servers through multiple hashing functions, and place the hashes you get on the circle (ie. Server A has 2+ spots on the circle)
+
+        ![Alt text](photos/5.png)
+            
+        - This is especially powerful if one of your servers is more powerful than the others
+            - Example: Server A is more powerful
+                - Pass server A through more hashing functions
+                    - Server A will end up with more locations on the circle (higher likelihood of the client ending up on Server A)
+
+                    ![Alt text](photos/6.png)
 
 
 
+1. Rendezvous Hashing
+- Code example to see strategy in action - link to instructions: 
 
+Example Instructions: 11 - Hashing
 
+1. Directory Setup
+- mkdir/cd in
+- npm init -y
+- npm install express
 
+2. Code
+- write all code into file named 'hashing_example.js' and 'hashing_utils.js'
 
+3. Run the example
+- node hashing_example.js
 
+- How it works: 
+    - For every client/username, it is going to calculate a score/ranking of the destinations
+        - Example: username 0 - I will rank the servers and pick the best/highest ranking server
+        - If a username's highest ranking server is removed, route it to its 2nd favorite server
+    - How are these scores/rankings calculated?
+        - 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Takeaways from Hashing:
+Hashing Methods Ranked: 
+1. Rendezvous Hashing
+1. Consistent Hashing
+    - they are fairly interchangeable (both accomplish the same thing)
+    - Rendezvous Hashing does the best job of keeping clients directed to the same servers (consistency, even when servers are added/removed)
+1. Naive hashing
+- This method using the modulator is not fit for large-scale systems
+    - especially if in-memory caching is used in the system
 
 
 ---
@@ -1091,117 +1330,362 @@ Backward Proxy
 
 ### Prerequisites:
 
-##### 
+##### Databases
+Programs that either use disk or memory to do the 2 following things:
+1. Record data
+1. Query data
+- In general, they are servers that are long-lived and interact with the rest of your application through networks. These network calls use protocols on top of TCP, or even HTTP.
+- Some databases: only keep records in memory (users must be aware that these records can be lost forever if the machine/process dies)
+- Most databases: have/need persistence of records (uses disk instead of memory)
+    - Since machines often die in large scale systems, special disk partitions or volumes are used by the database processes 
+        - These volumes can get recovered even if the machine goes down permanently 
+
+##### Disk
+Data written to disk will persist through power failures and general machine crashes
+- "non-volatile storage"
+
+2 types: 
+1. HDD/Hard disk drive
+- Slower, less expensive (used for data that is rarely accessed/updated)
+1. SDD/Solid state drive
+- Faster, more expensive (used for data that's frequently accessed/updated)
+
+##### Memory
+Data stored in memory will be lost forever when the process that has written that data dies
+- Short for Random Access Memory (RAM)
 
 ### Key Terms:
 
-##### 
+##### Relational Database
+A type of structured database in which data is stored following a tabular format
+- Often supports SQL for powerful querying
+
+##### Non-Relational Database
+A type of database that is fre of imposed/tabular-like structure
+- Often referred to as NoSQL
+
+##### SQL (Structured Query Langauge)
+-relational databases can be used using a derivative of SQL ie. PostgreSQL
+
+##### SQL Database
+Any database that supports SQL
+- Often used synonymously with "Relational Database"
+    - In practice, not all relational databases supports SQL!
+
+##### NoSQL Database
+Any database that is not SQL-compatible
+
+##### ACID Transaction
+A type of database that has the following 4 important properties:
+1. Atomicity: The operations that constitute the transaction will either ALL succeed or ALL fail (there is no in between)
+1. Consistency: The transaction cannot bring the database to an invalid state
+- After the transaction is committed/rolled back, the rules for each record will still apply
+- All future transactions will see the effect of the transactions
+- Also known as "Strong Consistency"
+1. Isolation: The execution of multiple transactions concurrently will have the same effect as if they had all been executed sequentially
+1. Durability: Any committed transaction is written to non-volatile storage 
+- It cannot be un-done by a crash/power loss/network partition
+
+##### Database Index
+A special auxiliary data structure that allows your databse to perform certain queries much faster
+- Indexes can typically only exist to reference structured data ie. relational databases
+    - In pratice, you create an index on one or multiple columns in your database to great speed up read queries that you run very often
+    - Downside: It takes slightly longer writes to your database (this is because writes have to also take place in the relevant index)
+
+##### Strong Consistency
+Refers to the consistency of ACID transactions
+- opposite: "Eventual Consistency"
+
+##### Eventual Consistency
+In this model, reads might return a view of the system that is stale 
+- An eventually consistent datastore will give guarantees that the state of the database will eventually reflect writes within a time period (10 seconds, 10 minutes, etc.)
+- A consistency model which is unlike Strong Consistency
+
+##### Postgres
+A relational database that uses a dialect of SQL called PostgrSQL
+- Provides ACID transactions
+- https://www.postgresql.org/
+
 
 ### Notes from the video:
 
+Relatinal databases
 
+Remember from storage video:
+- 100's of databases
+    - Some more optimal for certain use cases than others
+        - functionality
+        - guarantees
+        - properties
+    - it is hard to categorize databases into buckets
+        - Structure: the only good way to do this
 
+Structure of Databases:
+- Relational vs. Non-Relational
+- Relational:
+    - Rigorous/well-defined/Very strict Table-like structure
+    - SQL (most, not all support this programming/query langauge)
+    - Rows = instance of entity
+    - Columns = attributes of the entity
+    - Defined schemas across tables
 
+- Non-Relational:
+    - Don't impose tabular structure
+        - They may have structure, but not necessarily table
+    
+SQL
+- People pick relational databases because of SQL capability
+- Relational database and SQL database are interchangeable
+- Entire course could be on SQL, it is not necessary to be an expert though
+- Key points:
+    - a
+    - a
+NoSQL
+- Will oftentimes support their own querying language instead of SQL 
 
+Example: Google Cloud Data Store
+- NoSQL Database
+- Ran into a lot of issues with querying 
+    - This affected operations negatively
+    - More specifically, could not make complex queries
+    - Example: 
+        - Algoexpert storing 'user events' in google cloud data store
+            - logging in/running code/purchasing algoexpert
+        * When attempting even simple queries, they wouldn't work with Datastore's querying language
+            - could work: "Get all events where user ran code after December 1, 2017"
+            - could not work: "Get all events where user ran code after December 1, 2017 AND the user was logged into the platform"
+- Ended up changing to PostgreSQL
 
+Why don't we do this with a Python/Javascript script?
+- Answer: We must assume we are dealing with a large-scale distributed system
+    - You might have terabytes of data, which is non-trivial/damn near impossible to load into memory
+        - need to load in-memory to use pandas/
+            
+More about SQL Databases:
 
+Transaction/operations in a database with 4 properties
 
+ACID Transactions:
 
+4 properties:
 
+    - Atomicity: If a transaction has multiple sub-operations, it is either all or nothing
 
+        - Example: transfer funds from 1 bank account to another
+            1. deduct funds from bank account #1
+            1. deposit funds into bank account #2
+                - If 1 of these fails, neither will happen!
 
+    - "If 1 sub-operations fails, everything is rolled back"
 
+    - Consistency: Any transaction/operation will conform to/abide by the rules of the database
+        - Any future transaction in the database will take into account the past transactions
+            - There will be no "stale" state/ ie. one transaction has executed but another transaction doesn't know about the first one happening!  
 
+    - Isolation: Multiple transactions can occur at the same time; but, ultimately it will execute as if they were done 1 by 1 in a queue
 
+    - Durability: When you make a transaction in the database, the effects are permanent
+        - In other words: data is stored on disk
 
+- It can be tough to remember an acronym like ACID, here is how to remember: 
+    - if you forget most of the knowledge you remember about databases, the things that most people think of when they think about databases 
+        - pretend you don't know systems design/CS
+        - most people's naive image of a database conforms to ACID
+    - remember that 1 transactions is multiple operations under the hood!
 
+Final thing about Relational Databases before code example: 
+- Database Index:
+    - "Table of contents"
+        - Makes it easy to search for things faster
+        - Best to use if you know you will be searching for a given thing more than a few times for a table!
+    - Very complex, but here is a high level overview
+    - There are a lot of different types 
+- Idea is to create auxiliary data structure that is optimized for searching a given attribute
+    - Loose Example to explain why it speeds it up: Finding the largest 'amount' for transaction in the table of a database
+        - O(n) time operation
+            - very slow if you have a ton of data
+            - DB index can make it O(log(n)) OR O(1)
+        - Sorts data: 10, 45, ..., 8000
+        - Points to relevant records rows
+    - Pros: 
+        - READ operations are a lot faster
+    - Cons: 
+        - WRITE operations are slower
+            - Takes up more space
+                - You have to write to the database AND the database index
+                - It is effectively an auxiliary data structure
 
+Example using SQL/Coding Example: 
 
+Summary:
 
+SQL Tables:
+1. Payments
+- mock values
+1. Balances 
+- accounting
+1. large table
+- 1 column with random integers 
+    - gigantic table w/ 50 million rows and integers up to 50 billion
+        - will show power of database indexes!
 
+SQL Queries:
+- Simple/medium complexity 
+    - some business knowledge
+    - shows power of SQL
 
+SQL Transactions
+- Shows how to do transactions in SQL
+    - ACID in practice
+    - Postgres updates values in the table
+- Logic: 
+    1. Begin transaction
+    1. Make changes
+    1. Commit
 
+Database Indexes:
+- Select 10 largest integers
+    - remember, the 10 largest are huge numbers and come from an array of 50 million rows
+    - this command will take a long time (Clement took 16 seconds - this is expected)
+- What if we had an index on the random integers?
+    - CREATE INDEX ...
+        - this will take a bit
+    - now, if you run same command as above, it is executed INSTANTLY!
 
+Instructions on how to set this up Link:
 
+https://docs.google.com/document/d/1oDHYfrhRBGkUAqxzo9dXyCk1-yWwofNOz8_2AHHjrWY/edit?usp=sharing
 
+Relational Databases in a nutshell
+- Complex field
+    - Need to know: 
+        * relational db vs. non-relational db
+        - power of SQL
+        - ACID transactions
+        - database indexes
 
+    - Don't need to know: 
+        - everything
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    - Final takeaway:
+        - database selection in system design is very important
+            - remember: algoexpert used to use google Cloud Datastore, had to switch to PostgreSQL because 
+                - Problem #1: No powerful queries
+                - Problem #2: Database that only has 'eventual consistency'
+                    - stale data (non-ACID) was bad
+                    - needed strong consistency for functionality of that part of the system
+                
 
 ---
 ## Lesson 13: Key-Value Stores 
 
+One of the most commonly used NoSQL paradigms today is key-value store
+- bases its data model on the associative array data type
+- Why?
+    - Fast/flexible storage machine 
+    - Resembles a hash table
+
 ### Prerequisites:
 
-##### 
+##### Relational Database
+Structured database 
+- data in tabular format
+- often supports SQL
+
+##### Non-Relational Database
+Exact opposite of Structured database (Referred to as "NoSQL")
+- data NOT in tabular format
+- supports their own querying languages
 
 ### Key Terms:
 
-##### 
+##### Key-Value Store
+Flexible NoSQL database that's often used for caching and dynamic configuration
+- Popular options include the following:
+    - DynamoDB
+    - Etcd
+    - Redis
+    - ZooKeeper
+
+##### Etcd
+Strongly consistent/highly available key-value store
+- Often used to implement leader election in a system
+    - Leader election: 
+https://etcd.io/
+
+##### Redis
+An in-memory key-value store
+- Typically used as a really fast/best-effort caching solution
+    - Offers some persistent storage options 
+- Often used to implement 'rate limiting'
+    - Rate limiting: a strategy for limiting network traffic (It puts a cap on how often someone can repeat an action within a certain timeframe)
+https://redis.io/
+
+##### ZooKeeper
+Strongly consistent/highly available key-value store
+- Often used for the following:
+    - store important configuration 
+    * perform leader election
+https://zookeeper.apache.org/
 
 ### Notes from the video:
 
+Key-Value stores
+
+Intro
+- Relational databases are great 
+    - BUT can be difficult/unnecessary at times
+- NoSQL is good when we don't need tabular data
+
+Key-Value pairs:
+- Database that has keys that map to arbitrary values 
+    - Just like a hash table
+
+- Comes with the following attributes:
+    - Flexible: They don't have any imposed structure
+    - Simple: Nothing is more simple that a key-value mapping conceptually!
+
+Use Cases
+- Use Case #1: Caching
+    - Lends itself perfectly because typically you are storing values as a response to a given request 
+        - Example: Response to a network request
+            - Key=Hash/IP address/username
+            - Value=Response
+
+- Use Case #2: Dynamic Configuration
+    - Sometimes you need special parameters/constants to rely on 
+        - Example: Algoexpert "SystemsExpert is launched"
+            - Key: systemsExpertIsLaunched
+            - Value: boolean true/false
+
+Pros about Key-Value pairs: 
+- Speed: 
+    - Accessing values directly through keys is fast
+        - Improved throughput
+        - lower latency
+    - You don't need to search
+
+- Comes in various shapes and flavors (can cater to many use-cases)
+    - Just like other databases, there are a lot of options out there
+        - DynamoDB
+        - Redis
+        - ZooKeepe
+    - Different ones behave differently
+        - Example: 
+            - Memory vs. Disk
+                - Redis uses memory, others use Disk
+                - Depending on the system ie. cache hits, it is okay to lose these to memory
+            - Strong Consistency vs. Eventual Consistency
 
 
+Example:
+(using the same code from lesson 8 caching essentially)
+Link: 
+https://docs.google.com/document/d/1oWCzLemIzCDQnWpOI6nY3xRxZ643rYFMz0LCJoHV2yY/edit?usp=sharing
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Final Thoughts: 
+- Key-Value store is very useful
+- You will probably use it in a lot of systems you design!
 
 
 ---
