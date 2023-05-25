@@ -2654,7 +2654,7 @@ Note: Streaming is not necessarily better than polling!
 
 Example of polling and streaming side-by-side:
 Link:
-
+https://docs.google.com/document/d/1yhxxFkK9-yeNTcATguGgDyXn__2cGTgjEM0iGTU-bQc/edit?usp=sharing
 
 Takeaways
 - polling and streaming are both very powerful
@@ -2770,6 +2770,7 @@ Key Takeaways:
 
 Code example: 
 Link:
+https://docs.google.com/document/d/1FFWrngDZbDLLw8s-8sSDjuMJktv-EL_jbGxJSSDH6qs/edit?usp=sharing
 
 Takeaways from Configuration Lesson: 
 - simple, yet powerful/important
@@ -2778,326 +2779,1104 @@ Takeaways from Configuration Lesson:
 ---
 ## Lesson 20: Rate Limiting 
 
+Too many pokes, and you will get rate-limited!
+
 ### Prerequisites:
 
-##### 
+##### Availability: 
+The odds/probability of a particular service/server being up and running at any point in time 
+- Measured in percentages i
+- A server with 99% availability will be operational 99% of the time you interact with it 
+    - This would be describes as having 2 "Nines" of availability 
+
+##### Key-Value Store
+Flexible NoSQL database that's often used for caching and dynamic configuration
+- Popular options include the following:
+    - DynamoDB
+    - Etcd
+    - Redis
+    - ZooKeeper
+
 
 ### Key Terms:
 
-##### 
+##### Rate Limiting 
+The act of limiting the number of requests sent to/from a system
+- Most often used: limit the # of incoming requests to prevent DoS attacks
+
+- Can be enforced at the following levels: 
+    - IP address
+    - User-account
+    - Region
+
+- Can be enforced at the following tiers: 
+    - 1 per 1 second
+    - 5 per 10 seconds
+    - 10 per 1 minute
+    - etc.
+
+##### DoS Attack (Denial-of-service attack)
+An attack where a malicious user tries to bring down/damage a system in order to render it unavailable to users
+- Most of the time: Done by flooding it with traffic
+    - so that the system can't handle all the requests
+
+- Some of the time: Easily preventable with rate limiting
+    - Not always the case, it gets far trickier
+
+##### DDos Attack (Distributed Denial-of-service attack)
+A DoS attack in which the traffic flooding the target system comes from many different sources
+- Example: 1000's of machines 
+    - These are much harder to defend against!
+
+##### Redis
+An in-memory key-value store
+- Typically used as a really fast/best-effort caching solution
+    - Offers some persistent storage options 
+- Often used to implement 'rate limiting'
+    - Rate limiting: a strategy for limiting network traffic (It puts a cap on how often someone can repeat an action within a certain timeframe)
+https://redis.io/
+
 
 ### Notes from the video:
 
+In a nutshell:
+- Setting a threshold that will end up giving errors
+    - Limiting the # of operations that can be done in a given amount of time
 
+    - Example: 2 requests every 10 seconds
+        - 1 and 2: Client > Server > Database > Server > Client
+            - client receives data
+        - 3 and on: Client > Server > Client 
+            - client receives error messages
 
+If you don't rate limit, malicicous actors will ruin your throughput
+- DoS Attack
 
+Rate Limiting Implications: 
 
+- security: 
+    - hackers can bring down your system 
 
+- performance: 
+    - expensive tasks will create a bottleneck
 
+Note: Rate limiting is not 
+- Distributed DoS Attacks circumnavigate the rate limiter
+    - You need more than rate limiters for these 
 
+Example in Action: 
+- rate limiting to 1 operation per 5 seconds
+Link:
+https://docs.google.com/document/d/1ywzM3z0zAlDyvJcccuNkIZRT1bIfvssb-IOX-VEFjBw/edit?usp=sharing
 
+More on Rate Limiting
+- In our example, we were storing 'accesses' in local server's memory
+    - Rate limiting would fall apart using this in a large distributed systems
 
+    - Remedy: A separate database/server that handles this 
+        - Popular option - Redis!
 
+Simple system:
+- Client interacts wih server
+- Server interacts with database
+    - checking redis 
+        - Fine? keep going up to database
+        - Not fine? go back to client w/ error
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Depending on use case, rate limiting needs to be different
+- Some need simple rate limiting, others could need advanced rate limiting!
+- Example: algoexpert code button
+    - You want to limit it, but you don't want to spam it non-stop
+    - They can still spam it this way...
+        - Add another for 1 every 1 seconds, 10x in 1 minutes, 
 
 
 ---
 ## Lesson 21: Logging and Monitoring
 
+In order to properly understand issues in a system, it's critical to create trails of events in place
+
 ### Prerequisites:
 
-##### 
+##### JSON
+A file format heavily used in APIs and configuration
+- JSON = JavaScript Object Notation
 
 ### Key Terms:
 
-##### 
+##### Logging
+The act of collecting and storing logs
+- Logs = useful information about events in your system
+- Typically: Programs will output log messages to one of the following:
+    - STDOUT
+    - STDERR
+- From there, they are aggregated into a centralized logging solution
+
+##### Monitoring
+Having visibility into a system's key metrics
+- typically implemented by collecting important events
+    - then, aggregate into human-readable charts
+
+
+##### Alerting
+Process of notifying system administrators of critical system issues
+- Can be set up by defining specific thresholds on monitoring charts
+    - These alerts can then be sent via text/Slack/etc.
+
 
 ### Notes from the video:
 
+Logging and Monitoring
+- simple
+- important as your system gets bigger and bigger
+    - Allows you to debug issues at scale 
+
+Logging Example
+- As system grows larger and larger, things won't work
+    - example: someone bought algoexpert, credit card was charged, but no access granted
+        - edge case issue
+        - logging can help you debug this issue!
+            - It will show you what happened when that user bought the product
+
+Logging
+- Put log statements in your code
+    - languages have libraries to help:
+        - 
+        - JSON
+    - Products to help
+        - Google Stackdriver (now called Cloud Operations suite)
 
 
 
+Monitoring 
+- A tool/thing that makes managing your system a lot easier and/or better
+    - Example: You grew AlgoExpert
+        - You want to gather metrics on different operations
+
+        - Example: Code execution engine
+            - are users getting errors?
+            - are users dealing with latency?
+
+        - Example: Authentication
+            - which login is most popular?
+                - google
+                - github
+                - facebook
+
+Ways to gather metrics: 
+1. Prebuilt tools that scrape logs
+    - limiting factor: you need robust logs in place
+        - if you change your logs, you could break this metrics / monitoring system
+
+2. Time series database
+- database specifically tailored for data measured over time 
+- examples: 
+    - Prometheus (algoexpert uses this)
+    - InfluxDB
+    - Graphite
+- These specialized databases receive metrics/data from your server
+    - Query data in this database
+    - Create graphs 
+        - Grafana (https://grafana.com/docs/grafana/latest/panels-visualizations/visualizations/time-series/)
+
+- Gives ability to create robust monitoring services 
+    - Not tied to your logging system
 
 
+Alerting
+- You want monitoring to be useful
+- Get notified when specific thresholds are broken 
+    - Example: Error rate increases past 10%
+        - When something goes past this threshold, you get a message to go check it out!
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Takeaways: 
+- Logging and Monitoring are simple yet important
+    - Irrelevant at first
+    - Quickly become important as your system scales
+- Might not be most important part of system, but important for constant improvement 
 
 
 ---
 ## Lesson 22: Publish/Subscribe Pattern 
 
+Publish/Subscribe
+Press/Tug
+Produce/Consume
+Push/Pull
+Send/Receive
+Throw/Catch
+Thrust/Receive 
+
+*3 can be used interchangeably in the context of systems design*
+
 ### Prerequisites:
 
-##### 
+##### Polling
+The act of fetching a resource/piece of data regularly
+- at an interval to make sure your data is not too stale
+
+##### Streaming
+In networking, it refers to the act of continuously getting a feed of information from a server
+- does this by keeping an open connections between the two machines/processes 
+
+##### Persistent Storage: 
+- Usually a reference to disk
+- In general, any form of storage that persists if the process in charge of it dies
+- Good to know: Disk vs. Memory
+    - Memory is what the computer stores temporarily
+        - When you save a file, it transfers from being 'Memory' into being 'Disk/Storage'
+    - Disk is permanent storage
 
 ### Key Terms:
 
-##### 
+##### Publish/Subscribe Pattern (Pub/Sub)
+Popular messaging model that consists of publishers and subscribers 
+- Publishers: 
+    - Publish messages to special topics/channels 
+        - Without care/knowledge of who will read the messages
+
+- Subscribers: 
+    - Subscribe/read messages coming from publishers 
+
+- These pub/sub systems usually come with very powerful guarantees, such as: 
+    - At least once delivery
+    - Persistent storage
+    - Ordering of messages
+    - Replayability of messages
+
+
+##### Idempotent Operation
+Operation that has the same ultimate outcome, regardless of how many times it is performed (If the operation can be performed multiple times without changing its effect)
+- Operations in a pub/sub messaging system are usually idempotent
+    - These systems allow you to consume/read the same messages over and over
+
+    - Example: Increasing an integer value in a database
+        - NOT idempotent; repeating this operation does not have the same effect vs. doing it just 1x
+
+    - Example: Setting a value to 'COMPLETE'
+        - idempotent; repeating this operation 100x does the same as 1x, the value is marked complete and stays.
+
+##### Apache Kafka 
+A distributed messaging system created by LinkedIn
+- very useful when using the streaming paradigm (instead of polling)
+- "event streaming platform"
+https://kafka.apache.org/
+
+##### Cloud Pub/Sub
+A highly scalable Pub/Sub messaging service created by Google
+- Guarantees at least once delivery of messages 
+- Supports "rewinding" in order to reprocess messages 
+https://cloud.google.com/pubsub/
+    
 
 ### Notes from the video:
 
+Publish/Subscribe Pattern
+- very important concept/paradigm
+- in order to understand, we have to remember streaming:
+    - streaming we showed how to make a simple chat application
+    - how would we improve that system?
+        - network partitions: what happens to messages if they disappear? 
+        
+
+Stocks Example: 
+- Clients listen to server for stock prices 
+
+- What happens if a network partition?
+    - We don't want to lose access the stock prices 
+        - Need persistent storage 
+
+Server-level storage solution:
+- Separation of duties 
+    - need a new storage solution
+
+Pub/Sub Model
+- General gist: 
+    - Publishers post data/message to topics
+    - Clients become subscribers as they subscribe to a topic
+    - As messages are sent into a topic, they are sent to subscribers
+
+    - Notes; 
+        - Publishers/Subscribers don't know about each other 
+        - All messages published to topics are persistent information
+            - guaranteed delivery of messages at least 1x
+                - Under the hood: Each messages checks that each subscriber's ID consumed the message 
+
+                - Sometimes: messages sent more than 1x
+                    - That is OK because receiving a message more than 1x won't hurt anyone 
+
+1. Publishers (the servers)
+- job: publish data to the topics 
+
+1. Subscribers (the clients)
+    - clients subscribe to topics 
+
+1. Topic
+- channels of specific information
+
+1. Message 
+- the data itself
+
+![Alt text](photos/10.png)
 
 
+Idempotent
+- If you perform an operation 1x, it has some outcome as 100x
+    - Example: Binary variables 
+        - Setting status to 'done' or 'complete'
+
+    - Bad Example: Numerics
+        - Number of times watched
+        - Minutes spent watching video 
+
+Ordering of messages
+- Messages/Data are going to be sent to clients seqentially
+    - kind of like a queue
 
 
+Replaying of messages
+- Functionality to rewind to previous snapshots in time 
 
 
+Why do we have multiple topics?
+- Database Solution: Each topic is essentially its own database 
+    - This helps the system designer
+        - separation of concerns
+        - content based filtering 
+            - example: tech company stock prices only 
+        - no need to send data to people who don't want to see it 
+
+Pub/Sub Solutions ready out of the box: 
+- Many comes with a ton of features from day 1: 
+    - Pairing these with pub/sub system makes them great for systems design interviews
+
+- Examples: 
+
+    - Apache Kafka
+        - 
+
+    - Google Cloud Pub/Sub
+        - topics will scale automatically
+
+    - AWS
+        - end to end encryption
 
 
+Code Example: Isolation Aspect of Pub/Sub pattern
+Multiple Subscribers subscribing to various topics 
+- we will not implement the storage system ie. out of box product like apacha kafka - takes a lot of work to set up and is not in the scope of these interviews
+    - we just need to know that we CAN use these 
+
+Notes on this:
+- message api endpoints have topicId's 
+- server takes messages 
+    - also creates socket and checks if we have topicSockets
+- 
+
+Link: 
 
 
+Takeaways: 
+- Isolation of data
+    - When you subscribe to a topic, you only see that data/messages
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+- Knowledge of underlying persistent storage
+    - We did not implement 1, but we know of Apache Kafka and Google Cloud Pub/Sub
+    - Very powerful to have persistent storage !
 
 
 ---
 ## Lesson 23: MapReduce
 
+Programming Model for processing and generating big datasets with a parallel, distributed algorithm on a cluster 
+- confusing wiki definition
+
+
 ### Prerequisites:
 
-##### 
+##### File System
+An abstraction over a storage medium that defines how to manage data 
+- There are many different types of system files
+    - Most follow a hierarchical structure that consists of directories/files
+        - Example: Unix file system's structure (I use Unix)
+
+##### Idempotent Operation
+Operation that has the same ultimate outcome, regardless of how many times it is performed (If the operation can be performed multiple times without changing its effect)
+- Operations in a pub/sub messaging system are usually idempotent
+    - These systems allow you to consume/read the same messages over and over
+
+    - Example: Increasing an integer value in a database
+        - NOT idempotent; repeating this operation does not have the same effect vs. doing it just 1x
+
+    - Example: Setting a value to 'COMPLETE'
+        - idempotent; repeating this operation 100x does the same as 1x, the value is marked complete and stays.
+
 
 ### Key Terms:
 
-##### 
+##### MapReduce
+A popular framework for processing very large datasets, for these reasons/attributes: 
+- Efficiency
+- Quickly
+- Fault-tolerant manner
+
+Comprised of 3 main steps:
+
+1. Map: Runs a map function on the various chunks of the dataset 
+- Transforms these chunks into intermediate key-value pairs 
+
+2. Shuffle: Re-organizes the intermediate key-value pairs
+- Pairs of the same key are routed to the same machine in the final step
+
+3. Reduce: Runs a reduce function on the newly shuffed key-value pairs
+- Transforms them into more meaningful data 
+
+When dealing with a MapReduce library:
+- Engineers and system administrators worry about: 
+    - Map/Reduce
+    - Inputs/Outputs
+
+- All other things (MapReduce Implementation takes care of):
+    - Parallelization of tasks
+    - Fault tolerance of the MadReduce job 
+
+
+##### Distributed File System
+An abstraction over a (usually large) cluster of machines that allows them to act like 1 large file system
+- 2 popular examples of DFS: 
+    - Google File System
+    - Hadoop Distributed File System
+
+- Other attributes:
+    - DFSs take care of the classic availability and replication guarantees, the ones that are tricky to have in a distributed-system setting.
+
+    - Overarching idea: 
+        - files are split into chunks (of a certain size; 4mb, 64mb)
+        - those chunks are sharded across a large cluster of machines
+        - central control plane is in charge of deciding where each chunk resides 
+            - then, routing reads to the right nodes, and handling communication between machines 
+
+Different DFS implementations have slightly different APIs/semantics, but at the end of the day, they all acheive the same common goal: Extremely large-scale persistent storage.
+
+
+##### Hadoop
+A popular, open source framework that supports MadReduce jobs (and many other kinds of data-processing pipelines)
+- Central component: Hadoop Distributed File System (HDFS)
+    - many other technologies have been developed from HDFS
+https://hadoop.apache.org/
+
 
 ### Notes from the video:
 
+MapReduce
+- simple at face value, but gets complicated
+    - straightforward for interviews
+
+Go back in history when google engineers were faced with a challenge 
+- Huge amounts of large data sets that they had to process
+- There is only so much vertical scaling you can do 
+- You have to eventually horizontally scale (add systems)
+    - When dealing with distributed systems, things like processing a dataset becomes hard
+        - handling failures, network partitions, etc.
+    - Whitepaper for MadReduce released in 2004
+
+MapReduce Whitepaper
+- Premise: The majority of tasks can be split into 2 steps: 
+    - Map: 
+    - Reduce: 
+
+    - Created a library to allow Terabytes of data to be spread across 1000s of machines 
+
+Simple Example: 
+- Important thing about MapReduce/Assumptions:
+    1. Distributed system (of 4 machines here)
+        - large data split into chunks across machines
+        - central control plane exists that knows inputs/outputs/etc. 
+
+    2. We don't want to move the large dataset 
+        - let them live where they live
+        - send the map functions to the data 
+
+    3. Key-value pairs structure (intermediate step) is very important
+        - When you reduce multiple chunks from the same large dataset, you are likely looking for commonality 
+            - This is why the key-value pairs
+                - Some keys will be common, can be aggregated and reduced to 1 common value for that key 
+
+    4. Handling failures is built in
+        - The map OR reduce will be repeated if there is a network partition/error
+            - Central control partition 
+                - Assumption: Map function and Reduce function are both Idempotent (same outcome 1x or 100x)
+
+    5. Systems Engineer/Admin needs to care about Map Function, Reduce Function, and Inputs/Output
+        - Flow of MapReduce: 
+            - Map Function => Input => (Intermediates) => (Shuffle) => Reduce Function => Output 
+
+        - No need to worry about other things
+            - MapReduce takes over
+            - Implementations are already in place!
+
+Steps
+
+1. Map
+    - Data is tranformed into intermediate values
+
+2. Shuffle
+    - 
+
+3. Reduce
+    - 
 
 
+Canonincal example of MapReduce - Counting the number of occurrences of words in a large text file: 
+- Ends up being some sort of loop that counts the values
+    - All of these operations happen in parallel
+
+- This example has 4 machines, hence how input has 1,2,3,4
+
+Map Step - Data:
+1. - {a: 2}
+2. - {a: 1, b: 1}
+3. - {a: 2, c: 1}
+4. - {b: 3}
+
+Shuffle Step - Intermediate key-value pairs:
+1. - {a: 2}
+2. - {a: 1, b: 1}
+3. - {a: 2, c: 1}
+4. - {b: 3}
+=>
+1. - {a: 2}
+2. - {a: 1}; {b: 1}
+3. - {a: 2}; {c: 1}
+4. - {b: 3}
+=>
+a's: {a: 2}, {a: 2}, {a: 1}
+b's: {b: 1}, {b: 3}
+c's: {a: 1} 
+
+Reduce Step - Output:
+a's: {a: 2}, {a: 2}, {a: 1}
+b's: {b: 1}, {b: 3}
+c's: {a: 1} 
+=> 
+{a: 5, b: 4, c: 1}
 
 
+Example: Youtube Videos in a Dataset
+- MapReduce
+
+Example: Logs across systems
+- Total number of logs across jobs 
+
+Note: SO many ways that you can use MapReduce Model!
 
 
+Another Example: 
+Dataset: Latencies on AlgoExpert
+- 2 text files: 
+    - host1
+    - host2
+        - These are both on local here, but in reality would be 2 different machines!
 
+- End Goal: Counting # of latencies...
+    - over_10_seconds: 136
+    - under_10_seconds: 64
+        - out of 200 total!
 
+1. Input: 
+    - host1 directory: 
+        - latencies.txt: list of latencies (100, 345, ..., 2999)
+    - host2 directory: 
+        - latencies.txt: list of latencies  (100, 345, ..., 2999)
 
+2. Intermediate: 
+    - host1: 
+        - over_10_seconds.txt: list of 1's (70 rows)
+        - under_10_seconds.txt: list of 1's (30 rows)
+    - host2: 
+        - over_10_seconds.txt: list of 1's (66 rows)
+        - under_10_seconds.txt: list of 1's (34 rows)
 
+3. Shuffle: 
+    - map_results: 
+        - over_10_seconds.txt: list of 1's (70+66=136 rows)
+        - under_10_seconds.txt: list of 1's (30+34=66 rows)
 
+4. Reduce:
+    - reduce_results:
+        - results.txt: {
+            over_10_seconds: 136,
+            under_10_seconds: 64
+        }
+    
 
+Note: He uses .sh file to run a bunch of command line stuff in sequence!
+- bash run.sh
+    - how to do this in Ubuntu: https://askubuntu.com/questions/38661/how-do-i-run-sh-scripts 
 
+Link to all instructions on how to replicate this:
+Link: 
+https://docs.google.com/document/d/1LmyVXNc9RCx5D4ZP4jqws8BxOJGNXoqYjsdaLwynrRU/edit?usp=sharing
 
+Note: 
+- This is a great script to look at - it is the first time I have used run.sh, and .sh files let you run a bash script
+    - Help with this: https://www.andrewcbancroft.com/blog/musings/make-bash-script-executable/
 
+Takeaways: 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+MapReduce
+- incredible useful!
+- makes more sense when using example on multiple systems...
 
 ---
 ## Lesson 24: Security and HTTPS
 
+Network security is of critical importance to any system
+- Beyond scope of most systems design interviews
+    - Having a basic/cursory understanding of a few concepts can help you 'secure' that job offer!
+
 ### Prerequisites:
 
-##### 
+##### Client
+A machine or process that request data or service from a server
+- Single machines or piece of software can be both a client and a server at the same time
+    - Example: A Single machine could act as a server for end users and as a client for a database
+
+##### Server
+A machine or process that provides data or a service for a client, usually by listening for incoming network calls
+
+##### IP Packet - Network Packet: 
+- Besides bytes, is effectively the smallest unit used to describe data being sent over IP
+- Consists of the following:
+    - IP Header, which contains: 
+        - source IP address
+        - destination IP address
+        - Other information related to the network
+    - Payload: the data being sent over the network
+
+##### HTTP - HyperText Transfer Protocol: 
+- Very common
+- Implemented on top of TCP
+- How it works:
+    - Clients make HTTP requests, with schema such as:
+        - Host: string ie. algoexpert.io
+        - Port: integer ie. 80/443
+        - Method: string ie. GET/SET/PUT/DELETE
+        - Headers: pair list ie. "Content-Type" -> "application/json"
+        - Body: opaque sequence of bytes
+    - Servers respond with one of these responses, such as:
+        - Status code: integer ie. 200/401
+        - Headers: pair list ie. "Content-Length" -> 1238
+        - Body: opaque sequence of bytes
 
 ### Key Terms:
 
-##### 
+##### Man-In-The-Middle-Attack
+An attack in which the attacker intercepts a line of communication (a line of communication that the 2 parties thought was private)
+- MITM attacks are the primary threat that encryption and HTTPS aim to defend against
+
+    - if a malicious actor intercepted and mutated an IP packet on its way from a client to a server, this is an example of man-in-the-middle attack
+
+
+##### Symmetric Encryption
+A type of encryption that relies on the following: 
+- 1 single key
+    - Used to encrypt AND decrypt data 
+
+    - The key must be known to all parties involved in communication 
+        - Therefore, it has to be shared at some point
+
+- Symmetric-key algorithms are faster than assymetric
+    - Most widely used symmetric-key algo: Advanced Encryption Standard (AES)
+
+
+##### Asymmetric Encryption
+Public-key encryption
+- Relies on the following:
+    - Public key
+        - Can be openly shared
+
+    - Private key
+        - Must be kept secure 
+
+- The keys are generated using cryptographic algorithms 
+- They are mathematically connected such that data encrypted with the public key can only be de-crypted with the private key
+
+- Slower than symmetric counterparts
+
+
+##### AES (Advanced Encryption Standard)
+Known as the "gold standard" in encryption
+- Used by the US National Security Agency to encrypt top secret info
+
+- Widely used encryption standard that has 3 symmetric key algorithms: 
+    - AES-128
+    - AES-192
+    - AES-256
+
+##### HTTPS (HyperText Transfer Protocol Secure)
+Used for secure communication online
+- Requires servers to have trusted certificates 
+    - Usually this means SSL certificates 
+
+- Encrypts data communicated between client/server with the Transport Security Layer (TLS), a security protocol build on top of TCP
+
+
+##### TLS (Transport Layer Security)
+What HTTP runs in order to achieve secure communication online
+- HTTP over TLS is where HTTPS comes from
+
+
+##### SSL Certificate (Secure Socket Layer Certificate)
+A digital certificate granted to a server by a certificate authority
+- contains the server's public key
+    - public key is used as a part of the TLS handshake in an HTTPS connection
+
+- effectively confirms that a public key belongs to the server claiming that it belongs to them
+    - crucial defense against man-in-the-middle attacks
+
+
+##### Certificate Authority
+A trusted entity tat signs digital certificates
+- namely, SSL certificates that are relied upon for HTTPS connections 
+
+##### TLS Handshake
+The process through which a client and server communicating over HTTPS, exchange encryption-related information and establish a secure connection
+- Typical steps: 
+    1. Client sends a 'client hello', or a string of random bytes, to the server
+
+    2. Server responds with a 'server hello', another string of random bytes, as well as its SSL certificate, which contains its public key
+
+    3. Client verifies that the certificate was issued by a certificate authority, and sends a premaster secret (another string of random bytes - encrypted with the server's public key) to the server
+
+    4. The client and server use the client hello, server hello, and the premaster secret to generate the same 'symmetric-encryption' session keys, which are used to encrypt and decrypt all data communicated during the remainder of the connection
+
 
 ### Notes from the video:
 
+Security and HTTPS - 2 quick flags
+1. unlike other concepts, Security is not actually needed in a systems design interview 
+    - not going to be expected to know
+    - still good to be familiar with it 
+        - depending on interview, it could lead into security and being familiar will give you brownie points
+
+2. Security is domain expertise heavy
+- you don't need this 
+    - we will not go into advanced topics
 
 
+HTTP
+- Remember: in modern systems, most talk over HTTP
+    - internet runs on it
+- Although there is not security in HTTP, we have an implied assumption of privacy between client/server
+    - malicious actors can intercept IP packets and eavesdrop OR change the packets
+        - breach of privacy (man-in-the-middle attack, MITM attack)
+            - we are trying to prevent the consequences of these ie. having a 3rd party intercept communication between client/server
+                - this is where encryption comes in (to hide messages)
+
+Encryption
+- turn the data into a form that is encrypted/not legible 
+    - it needs to be able to be de-crypted
+
+- 2 systems we will talk about at a high level: 
+
+    - Symmetric (1 key - AES)
+        - Symmetric key algorithms 
+            - cryptographic algo that uses 1 key to encrypt AND de-crypt the data
+
+            - Simple example showing how (symmetric) encryption works with AES-256:
+            - Link: https://docs.google.com/document/d/1qHtZ8bNQnDY5PVkX6811gM-2CNnGeJSLpaioxGWNXFg/edit?usp=sharing
+
+            - ![Alt text](photos/11.png)
+
+        - Very Fast!
+        - Because it relies on 1 key, you need to share it with both parties
+            - HTTP is still vulnerable 
+            - Examples of client/server communicating over network, how do you communicate the key without having a MITM attacker intercept the key?
+                - Assymetric Encryption!
 
 
+    - ASymmetric (2 keys)
+        - Public key encryption
+
+        - Pairs of keys: 
+            - Generated mathematically using cryptography
+                - If you encrypt with public key,  message can only be de-crypted using the private key (Mathematically bound)
+
+            - Public Key: anyone can see it/encrypt messages
+            - Private Key: only the server can see it/decrypt messages
+
+        - Slower!
+        - More secure
+        - How do we make HTTP secure?
+            - HTTPS!
 
 
+HTTPS
+- extension of HTTP running on TLS (Transport Layer Security)
+    - the 'S' in HTTPS is for security
+    - "HTTP on top of using TLS"
+        - information is secured using TLS
+
+- Assume we have a client and server communicating over HTTPS: 
+    - How is connection secure? 
+        TLS Handshake
+        - process that established secure connection between client and server 
+        - steps: 
+            1. client hello: random string of bytes (sent by client)
+
+            2. server hello: random string of bytes AND ssl certificate (sent by server)
+                - server's public key is somewhere in this ssl certificate
+                    - client now has public key 
+
+            3. premaster secret: random string of bytes (sent by client)
+                - this time, the bytes are encrypted using the public key that 
+
+            4. symmetric encryption key: server generates session key
+                - key is only used in this session
+                    - once the session ends, 
+                    - under hood: 4 session keys are created by server
+
+                - because server has the private key, it can decrypt the message!
+                    - server is only entity with the private key 
+                    - it was encryted with the public key, so private key can decrypt
+
+            5. final message between server/client using those session keys 
+            - this message is encrypted
+            - it is used to signal we are done
+
+                - "done, everything is good"
+                    - secure connection has been established
+                
+                - "problem"/"mismatch"
+                    - secure connection has failed 
 
 
+- What is the SSL Certificate all about?
+    - vulnerability: if server returns public key and server hello, this communication can be intercepted by a fake client who replaces with their own public key
+        - would encrypt the premaster secret with their own public key 
+        - could then de-crypt the premaster secret/entire communication channel
+            - How does the client know the public key comes from the server/How can the client trust the server?
+                - SSL Handshake!
 
+SSL Certificate
+- General idea: Granted by a trusted 3rd party (certificate authority - CA)
+    - Developers have agreed to trust CA's
+    - They give out SSL Certificates
+        - Digital item that CA has signed, and assured the client that the server is who they say they are
 
+- Example: 
+    - Rectangle = certificate
+        - contains the following:
+            - public key of server
+                - public key was given by the certificate authority 
+            - name of entity that owns the public/private key pair
+                - "server" for now
+            - Assurance
+                - "I am a trusted 3rd party, assuring that this public key belongs to this server, and this SSL certificate proves this server is who they say they are" 
 
+            - Signed by a private key from the the 3rd party certificate authority 
+                - Client verifies this "digital signature" with the public key of the certificate authority
 
+Re-iterate those steps: 
+1. SSL Certificate is signed by the private key from CA
+2. Certificate can be verified with public key of CA
+- Chrome has public keys of all CA's
+    - You can verify SSL Certificates very quickly
+        - If you go on a website that it HTTP instead of HTTPS, Chrome will flag it for not being secure!
 
+Overview of entire TLS Handshake process:
+1. Client hello: Client reaches out w/ random bytes
 
+2. Server hello: Server responds w/ random bytes AND SSL certificate (has public key, info about itself, and a signature from the certificate authority)
 
+3. Premaster secret: Client verifies the SSL Certificate using corresponding Public key, then gets public key from certificate, encrypts message, sends back to server 
 
+4. Session keys are created and used for the session
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+5. Session keys are thrown out (process repeats when a new connection needs to be established)
 
 
 ---
 ## Lesson 25: API Design 
 
+You have mastered all of the lessons on SystemsExpert
+- feeling confident to ace the systems design interview
+- what about API design interviev? 
+
+Let's dive into the last piece of the puzzle.
+
 ### Prerequisites:
 
-##### 
+##### HTTP - HyperText Transfer Protocol: 
+- Very common
+- Implemented on top of TCP
+- How it works:
+    - Clients make HTTP requests, with schema such as:
+        - Host: string ie. algoexpert.io
+        - Port: integer ie. 80/443
+        - Method: string ie. GET/SET/PUT/DELETE
+        - Headers: pair list ie. "Content-Type" -> "application/json"
+        - Body: opaque sequence of bytes
+    - Servers respond with one of these responses, such as:
+        - Status code: integer ie. 200/401
+        - Headers: pair list ie. "Content-Length" -> 1238
+        - Body: opaque sequence of bytes
+
+##### JSON
+A file format heavily used in APIs and configuration
+- JSON = JavaScript Object Notation
+
+##### YAML
+A file format mostly used in configuration
+
+##### ACL (Access-Control List)
+A term used to refer to a permissioning model ie. Which users in a system can perform which operations
+- Example: APIs often come with ACLs defining which users can do the following with certain entities: 
+    - Delete
+    - Edit
+    - View
 
 ### Key Terms:
 
-##### 
+##### Pagination
+Often used when designing list endpoints
+- When a network request potentially warrants a really large response, the relevant API might be designed to return only a single page (limited response) instead of multiple pages or the full response 
+- Is accompanied by an identifier or token for the client to request the next page (if they want to)
+
+- Example: 
+    - An endpoint to list videos on the YouTube Trending page could return a huge list of videos
+        - This would not perform well on mobile devices due to lower network speeds
+            - (would not be optimal since most users will only scroll through the first 10-20 anyways!)
+
+        - API could be designed to respond with only the first few videos of the lsit
+            - We would say "the API Response is paginated"
+
+##### CRUD Operations
+Create, Read, Update, Delete
+
+- These 4 operations often serve as the bedrock of a functioning system 
+    - they are at the core of many APIs
+
+- Note: the term CRUD will very likely come up in interviews!
 
 ### Notes from the video:
 
+First thing to note:
+- API design is distinct from SystemsDesign
+    - it is not a subset, but a sibling
+
+    - Why do we cover it then?
+        1. Convenience
+            - not much to cover
+
+        2. Shares a lot of similarities!
+            - bundling it makes sense
+
+Why do API Design interviews event exist? (Systems make sense since they are complex, is designing an API even that important)
+- All products and services you use are back by 1 or more APIs
+    - Without that API, most functionality would be gone
+
+    - Example: Stripe
+        - Used for payments processing services
+            - One of their core products IS an API
+                - Selling access to an API is a potential product
+
+    - When dealing with API, there is a sense of "permanance"
+        - Making changes to an API is impossible/difficult
+            - Designing an API is very important from the start
+                - Even the most trivial details become important!!
+                - Google has high-level engineers dissect API's in review
+
+What API Design interview is like:
+- Intro:
+    - First 10 minutes are similar to Systems Design
+        - Example: "Design Stripe's API" 
+            - Need to know more information to answer properly: 
+                - What part of the service
+                - Who's consuming the API
+
+- After you get information/Meat of interview:
+    - Systems: Draw out diagrams, SQL tables, etc.
+
+    - API Design: Not drawing out diagrams
+        - Writing out an outline of the API
+            - Example: Stripe payment entity
+                - Outline for API things: 
+                    - endpoints
+                    - parameters
+                    - responses returned
+
+                - Not: 
+                    - writing out logic
+                    - implementing the actual endpoints
+
+        - Lesson: There still is not a right/wrong answer
+            - The API design choices need to be defensible 
+                - If so, they are fair game 
+                - Might be completely different, you just need to be able to have a conversation
+                    - Be open to criticism!
+
+- End of API Design Interview - API Definition (Outline):
+    - Entity Definitions: 
+
+    - Endpoint Definitions: 
+
+    - a
+
+        - Example: Stripe API Outline
+            - ![Alt text](photos/12.png)
+
+            - 
+
+Format of writing API outline: 
+- Swagger - An interface description language (format to describe API's)
+    - Verbose
+    - Can be written in .json or .yaml
+        - "Are you fine with plain bullet points or do you want _"
+
+How to study for these:
+
+1. Questions on SystemsExpert
+
+2. Go online and find product with publicly available API
+- look through API documentation
+- examples online: 
+    - nice to see that it is not a blackbox
+    - gives tricks/patterns
+
+Example: Stripe API (https://api.stripe.com)
+- Core Resources: 
+    - Charges
+        - Charge Object itself
+            - has description of parameters
+        - CRUD: 
+            - Create a Charge: 
+            - Read a Charge: 
+            - Update a Charge: 
+            - Delete a Charge: you cannot...
+            
+    - Customer 
+    - etc.
+- 
+
+Example: Google Cloud Platform IoT Core (cloud.google.com/iot/docs)
+- Notes: 
+    - has non-CRUD endpoints
+    - list endpoint: 
+    - fieldMask
+        - maybe you don't want all of these properties shown 
+            - "Field masks are a way for API callers to list the fields that a request should return or update. Using a FieldMask allows the API to avoid unnecessary work and improves performance. A field mask is used for both the read and update methods in the Google Slides API." (https://developers.google.com/slides/api/guides/field-masks)
 
 
 
+##### End of Notes on SystemsExpert
 
+Good work!
 
-
-
-
-
-##### Ending Notes on SystemsExpert
-
-
-
-
-# VSCode Stuff
+---
+# Bonus! VSCode Stuff
 
 Guide for Markdown in VSCode:
 
