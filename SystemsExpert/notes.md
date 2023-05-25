@@ -1691,680 +1691,2192 @@ Final Thoughts:
 ---
 ## Lesson 14: Specialized Storage Padadigms 
 
+Nope, there's more videos about storage...
+
 ### Prerequisites:
 
-##### 
+##### Relational Database
+A type of structured database in which data is stored following a tabular format
+- Often supports SQL for powerful querying
+
+##### Non-Relational Database
+A type of database that is fre of imposed/tabular-like structure
+- Often referred to as NoSQL
+
+##### SQL (Structured Query Langauge)
+-relational databases can be used using a derivative of SQL ie. PostgreSQL
+
+##### SQL Database
+Any database that supports SQL
+- Often used synonymously with "Relational Database"
+    - In practice, not all relational databases supports SQL!
+
+##### NoSQL Database
+Any database that is not SQL-compatible
+
+##### Key-Value Store
+Flexible NoSQL database that's often used for caching and dynamic configuration
+- Popular options include the following:
+    - DynamoDB
+    - Etcd
+    - Redis
+    - ZooKeeper
+
+##### Database Index
+A special auxiliary data structure that allows your databse to perform certain queries much faster
+- Indexes can typically only exist to reference structured data ie. relational databases
+    - In pratice, you create an index on one or multiple columns in your database to great speed up read queries that you run very often
+    - Downside: It takes slightly longer writes to your database (this is because writes have to also take place in the relevant index)
+
+##### Postgres
+A relational database that uses a dialect of SQL called PostgrSQL
+- Provides ACID transactions
+- https://www.postgresql.org/
 
 ### Key Terms:
 
-##### 
+##### Blob Storage
+Widely used kind of storage in small AND large scale systems
+- Don't really count as databases because they only allow the user to store/retrieve data based on the name of the blob
+    - Sort of like a key-value store
+    - The differences:
+        - usually, blob stores have different guarantees 
+        - might be slower than Key-Value stores
+            - values can be huge ie. megabytes (or even GB)
+                - used to store things like the following:
+                    - Large binaries
+                    - Database snapshots
+                    - Images
+                    - Other static assets a website may have!
+
+- Complicated to have on premise
+    - Only giant companies like Google/Amazon have infrastructure that supports it
+    - Context of systems design interviews: 
+        - Assume you can use GCS or S3
+        - Costs depend on these 2: 
+            - how much storage you use
+            - How often you store/retrieve blobs from that storage
+
+My notes on GCS vs. S3:
+- GCS: Google (2012)
+    - Hierarchy Model Storage w/ free access to cloud computing
+        - Information is stored using files that are moved into folders
+        - Folder themselves are organized into directories/sub-directories
+            - FUSE adapter to store files in buckets (later converting them to file system)
+            - Newer and easier than Object storage found in S3
+    - 
+- S3: Amazon (2006)
+    - Object Storage w/ high functionality and scalability
+        - Object storage = Data is manipulated into units stored in a flat environment without organinzatin or hierarchy
+        - Object will have unique name/ID to help the user navigate the data once it is stored
+            - Example: You upload documents/images/videos and they are transformed into an object that remains stored on S3
+
+##### Time Series Database (TSDB)
+Special kind of database optimized for storing/analyzing time-indexed data
+- Data points that specifically occur at a given moment in time
+- Examples: 
+    - InfluxDB
+    - Prometheus
+    - Graphite
+
+##### Graph Database
+A type of database that stores data following the graph data model
+- Data entries in a graph database can have explicitly defined relationship (kind of like ndoes in a graph have edges)
+- Graph databases take advantage of their underlying graph structure to perform complex queries on deeply connected data, fast
+- Graph databses are often preferred to relational databases when dealing with systems where data points naturally form a graph and have multiple levels of relatioships
+    - Example: Social networks
+
+##### Cypher
+Graph query language originally developed for the Neo4j graph database
+- Since, has been standardized to be used with other graph databases
+- "The SQL for graphs"
+- Often are much simpler queries than SQL queries
+    - Example: This query finds data in Neo4j (a popular graph database): 
+        - MATCH (some_node:SomeLabel)-[:SOME_RELATIONSHIP]->(some_other_node:SomeLabel{some_property:'value'})
+
+##### Spatial Database
+A type of database optimized for storing/querying spatial data ie. Locations on a map 
+- Rely on spatial indexes to quickly perform spatial queries
+    - Example Query: find all locations in the vicinity of a region
+    - Example indexes: Quadtrees
+
+##### Quadtree
+A tree data structure that is most commonly used to index 2-dimensional spatial data
+- contains spatial data
+- each node in a quadtree has either 0 children nodes OR 4 children nodes
+    - example: locations on a map 
+        - maximum capacity of 'n'
+        - 0: if you are not at capacity, remains leaf nodes w/ 0 children
+        - 4: once at capacity (n), given 4 children nodes, data entries are split across those 4 children
+
+- lends itself well to storing spatial data because it can be represented as a grid filled with rectangles 
+    - recursively sub-divided into four sub-rectangles
+        - each quadtree node is represented by a rectange 
+            - each rectangle is represents a spatial region 
+
+    - assuming we're storing locations in the world, imagine a quadtree with maximum node-capacity 'n':
+        - Root node: outermost rectangle (entire world)
+            - Entire world has more than n locations, so the outermost rectangle is split into 4 quadrants (each represent a region of the world)
+                - If a region has 'n' locations, its corresponding rectangle is subdivided into 4 qudarants (the corresponding node in the quadtree is given 4 children)
+                - Regions with less than 'n' locations are undivided rectangles (leaf nodes w/ 0 children)
+                    - The parts of the grid that have many subdivided rectangles represent densely populated areas (ie. cities)
+                    - The parts of the grid that have fewe subdivided rectangles represent sparsely populated areas (ie. country/rural areas)
+
+- Finding a given location in a perfect quadtree is extremely fast!
+    - Log 4 (x) time
+        - x = total number of locations
+        - 4 = represents the 4 children nodes 
+
+##### Google Cloud Storage
+GCS is a blob storage service by Google
+https://cloud.google.com/storage
+
+##### S3
+S3 is a blob storage service by Amazon (via AWS - Amazon Web Services)
+https://aws.amazon.com/s3/
+
+##### InfluxDB
+A popular open-source time series database
+https://www.influxdata.com/
+
+##### Prometheus
+A popular open-source time series database
+- Typically used for monitoring services
+https://prometheus.io/
+
+##### Neo4j
+A popular graph database
+- consists of the following: 
+    - nodes
+    - relationships
+    - properties
+    - labels
+https://neo4j.com/
+
 
 ### Notes from the video:
 
+Despite covering a lot, the field of storage is very fast
+- There is too much for any 1 person to know 
+- There are a few that we should know because their use-cases will show in systems design interviews
 
 
+Blob Storage
+- BLOB = Binary Large Object
+    - Arbitrary piece of unstructured data ie. data that doesn't fit into a Tabular/SQL database
+        - unstructured data: video/photo/text file
+
+- Properties of blob storage:
+    - Most common (you will frequently find yourself using these)
+    - Most straight forward
+
+- Specialized/Optimized in storing/retrieving large amounts of data
+    - Not easy to implement
+    - You will always use an existing product from a large tech company
+    - Similar, but not the same as key-value store
+        - Key-value store might be different because:
+            - might not be able to store same size of data
+            - optimized for latency
+            - not optimized for durability
+
+- Most commonly used Blob Stores: 
+    - GCS
+    - S3
+    - Azure
 
 
+Time Series Database
+- less likely to see time series data than large unstructured
+- still important to know 
+- used for data every seconds/millisecond/etc.
+    - often used for the following:
+        - monitoring events that happen at a given timestamp
+        - iot system: millions of devices capturing 
+        - stock prices: changing every second/minute
+
+- examples of already existing products: 
+    - InfluxDB
+    - Prometheus
 
 
+Graph Database
+- nice bridge between data structures/algos
+- what is it?
+    - data is stored in non-tabular format
+    - data is in relationships, 
+        - if you have a lot of SQL tables based on relationships, things get complicated fast with joins
+        - core concept: data is connected via data model 
+            - in tabular data, it is implied
+
+- Most popular product:
+    - Neo4j
+        - Example: SWE's interviewing at Google
+            - Out of all interviewers who have interviewed 'Clement' and happened to fail 'Clement', which have interviewed at Facebook and were rejected by Facebook?
+                - SQL:
+                    - complicated!
+                    - 2 joins
+                    - tough to reason
+                    - may be expensive with large amounts of data
+
+                - Cypher: 
+                    - create data nodes AND relationships 
+                        - ie. between interviewers/candidates
+                    - MATCH/WHERE/RETURN
+                        - traverses code quickly and returns the 1 person's name (Molly)
+                        - no more complex joins
+
+Replicate this example with Neo4j sandbox: 
+Link: 
+https://docs.google.com/document/d/16hHTc-1eVeNZrWAFVZZf_heGn1db0_Q1jzYTKEhHemE/edit?usp=sharing
+
+- Remember: Storing data in graph-like matter makes a lot more sense for some use-cases:
+    - social networks
+    - anything with a lot of connections between data nodes
 
 
+Spatial Data 
+- Very complicated
+    - Will focus on Quadtree
 
+- Examples: 
+    - Restaurants
+    - Hotels
 
+- How does it work?
+    - Spatial Indexes
+        - Remember: Database index with standard data
+        - If you are relying on 2 variables (ie. 2 locations)
+        - Types of spatial indices: 
+            - Quadtree
+            - Lots of other trees!
 
+- Quadtree: tree that has 4 children nodes or 0 
+    - Think binary tree, but 4 instead of 2
 
+    - Think of quadtree as a grid
+        - outer square (the world)
+        - dots represent locations
+        - keep sub-dividing until you can no longer split it up 
+            - ones keep going if you have more than a certain number x locations
+            - "keep dividing if the sub-division has more than 5 locations"
+        - You can traverse through this grid VERY fast
+            - optimized for these queries
+            - Log4(x)
 
+        - Green dots: have system return top 10-25 restaurants
+            - The rest get returned in a future query
 
+    - You may implement a quadtree in memorry
+        - Example: location based system
+            - don't want to query database all the time
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Closing Note: 
+Lots of databases are smart and you can use classic databases usually
+- Example: Postgres
+    - Provides classic/out of the box solutions for spatial data
+    - Depends what your interviewer is looking for 
+        - Hopefully interviewer guides you along 
+        - "What are you looking for here?"
+        - "We could optimize with a...
+            - "special spatial database"
+            - "implement our own spatial index in memory"
 
 
 
 ---
 ## Lesson 15: Replication and Sharding 
 
+A system's performance is often only as good as its database's
+- Optimize the database, the system will improve!
+
+- Data redundancy/data partitioning techniques can be used to enhance a system's following attributes: 
+    - fault tolerance
+    - throughput
+    - overall reliability
+
 ### Prerequisites:
 
-##### 
+##### Availability: 
+The odds/probability of a particular service/server being up and running at any point in time 
+- Measured in percentages i
+- A server with 99% availability will be operational 99% of the time you interact with it 
+    - This would be describes as having 2 "Nines" of availability 
+    
+##### Latency
+- The time it takes for a certain operation to complete
+    - ie. data to go from point a to point b 
+- This is often measured in time duration
+
+##### Throughput
+- The number of operations that a system can handle properly per time unit
+    - Can be measured in requests per second (RPS/QPS)
+
+##### Redundancy: 
+The process of replicating parts of a system, in order to make it more reliable
+
+##### Databases: 
+Programs that either use disk or memory to do 2 cores things:
+1. Record Data
+1. Query Data
+- Databases are long-lived and interact with the rest of your application through network calls (with protocols on top of TCP, or even HTTP)
+- Some databases: Keep records in memory
+    - The users of these Databases are aware that those records could disappear forever
+- Most databases: Write to Disk
+    - Anything written to disk will remain through power loss, network partitions (pretty much will keep it permanently no matter what)
+    - Machines die pretty often in a large scale system, so special disk partitions or volumes are used by the databases processes
+        - Those volumes can get recovered even if the machine goes down permanently
+
+##### Reverse Proxy
+A server that sits between a client and servers and acts on behalf of the servers
+- Typically, used for the following: 
+    - Logging
+    - Load balancing
+    - Caching
 
 ### Key Terms:
 
-##### 
+##### Replication
+The act of duplicating the data from one database over to another/others
+- Sometimes: used to increase the redundancy of your system
+    - helps tolerate regional failures
+- Other times: used to move data closer to your clients    
+    - reduces latency of accessing that data 
+
+##### Sharding
+The act of splitting a database into 2+ pieces (shards)
+- also called data partitioning
+- What is sharding for?
+    - increase throughput 
+- Popular sharding strategies based on:
+    - client's region
+    - type of data being stored
+        - ie. user data in shard 1, payments data in shard 2, etc.
+    - the hash of a column (applies to structured data only)
+
+##### Hot Spot
+While distributing a workload acrosss a set of servers, when some servers receive a lot more traffic/workload than others
+- causing a potential issue or Hot Spot 
+
+- When does this occur? 
+    - sharding key is suboptimal
+    - hashing function is suboptimal
+    - workload is naturally skeweed
+
 
 ### Notes from the video:
 
+Replication + Sharding
+- Other videos: Because database is so essential to a system, 
+    - If system database has high latency/low throughput, the entire system will too!
+    - Your database can cause the entire system to fall apart
+
+Replication
+- improves database/systems following attributes: 
+    - availability
+    - latency
+    - 
+
+Example - Availability: 
+- main database that handles all reads/writes fails
+    - We cannot read/write data to database, so the entire system is down now!
+- Remedy: Replication!
+    - On standby, we have a replica that takes over if the main fails
+    - When the main starts working again, replica database updates the main that was down, and roles are traded back to normal
+        - replica must be up to date with main database
+            - sync: whenever a WRITE occurs on main, it happens to the replica database as well
+
+Example - Latency: 
+- Product has a lot of users in USA/India
+    - latency increases as distance increases
+- Remedy: Replication!
+    - Have 2 databases: 
+        - USA database 
+        - India database 
+    
+    - Need to replicate the posts you make 
+        - doesn't need to be instant (can be asynchrous)
+            - asynchrously update every 1/5/10 minutes
+            - all updates from USA go onto India, vice versa
+                - this is not the only way, but this is 1 
+
+Note: there are many products/services where replication is not viable!
+
+Example: 
+- You work at google and have a piece of software that is used across the world
+    - deploy the change (new binary/container image) locally to 1 database
+    - later, it goes to the other
 
 
+Example: 
+- 1 main database
+    - deals with 10000000 requests
+    - bottleneck with throughput 
+    - Remedies: 
+        - scale vertically (make server better - limited)
+        - scale horizontally (add more servers!)
+            - having 5/10/20 increases the throughput 
 
+- What if we have tons of data?
+    - we may not want to have this data stored in a ton of places all over
+        - not optimal for space
 
+    - Remedy: split up and store parts in different servers
+        - Sharding: Splitting up/partitioning data 
+        - main data becomes shards
 
+        - How to know where to put the data?
 
+        - Options: 
+            - relational data: store certain rows in some shards
+                - example: shard transaction data based on customer name (shards for A-E, F-J, etc.)
+                - example: shard transaction data based on customer name (shards for USA/Europe/etc.)
+                - problem: Hot spots!
+                    - transaction data: some letters have more names
+                    - transaction data: some countries have way more population
 
+Hot spots
+- How to deal with hot spots: 
+    - Hashing function: guarantees uniformity
+        - want to ensure reads/writes go to same database servers
+        - consisent hashing could work 
+            - if existent databaser server goes down, we have a problem
+            - we would need replicates of the shards 
+    
+    - Reverse proxy can be used:
+        - servers makes request to proxy
+        - reverse proxy decides which shard to go to 
+                 
 
+Example: See Sharding in Actions
+- Seeing how a reverse proxy will forward work to the shards
+- extension of storage from lesson 8 (storing data on disk)
 
+- Database 
+    - 2 endpoints: 
+        - post 
+        - get
+            - both have key parameters 
+                - based on key passed, destination files
+                - read will look for destination file
 
+    - 2 directories / 2 database shards: (example in lesson 8 had only 1)
+        - aedb_data_0 / aedb_data_1
+            - this is to represent how sharding works!
 
+            - How this works: 
+                - PORT and DATA_DIR are based on process environement variables
+                    - When running the javascript script aedb.js, we run it twice
+                        - 1 maps to 0
+                        - 1 maps to 1 
 
+- Reverse Proxy: 
+    - clients interact with this proxy
+        - listens on port 8000
 
+    - main difference: proxy does not store/retrieve data
+        - it forwards requests to the shards (we have 2)
+            - it returns 3000 or 3001
 
+        - returns what the shards returns
+            - after going to 3000/3001, tells us what they said
 
+Instructions link to setup:
+Link: 
+https://docs.google.com/document/d/1blouE7-2Ok-mfLbpK0WsdGOg2Cjk42N6Exe2fZv_8ec/edit?usp=sharing
 
+Notes on this example
+- Good for 2 key-value pairs, but in practice that is not the case:
+    - what happens if we take a lot of keys and keep going to the same shard? (example: we keep storing data into shard 1 since words starting with F are popular)
+        - System could get overloaded
+            - this defeats the purpose of hashing!
 
+        - How to fix:
+            - real hashing function
+                - robust/popular hashing function
 
+- This example is very simple
+    - In reality, shards would be on different machines, not the same 1!
 
+Takeaways: 
+- replication and sharding are very powerful tools
+    - especially for trying to improve system performance!
 
+- replication: having all of the data replicated in different spots
+    - ie. all of it is here, all of it is also here
+        - asynchronous updates
 
+- sharding: split up the data
+    - ie. some is here, some is there, etc.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    - the topic as a whole is complicated stuff (if you dive deep, it is super complicated)
 
 
 ---
 ## Lesson 16: Leader Election 
 
+Citizens in a society typically elect a leader by voting for their preferred candidate. 
+
+How does this work with servers in a distributed system?
+- they choose a 'master node' via algorithms
+    - "algorithm democracy" => "leader election"
+
 ### Prerequisites:
 
-##### 
+##### Availability: 
+The odds/probability of a particular service/server being up and running at any point in time 
+- Measured in percentages i
+- A server with 99% availability will be operational 99% of the time you interact with it 
+    - This would be describes as having 2 "Nines" of availability 
+
+
+##### High Availability: 
+Systems with particularly high levels of availability, typically 9 "Nines" or more 
+- Abbreviation: "HA"
+
+##### Redundancy: 
+The process of replicating parts of a system, in order to make it more reliable
+
+##### Strong Consistency
+Refers to the consistency of ACID transactions
+- opposite: "Eventual Consistency"
+
+##### Eventual Consistency
+In this model, reads might return a view of the system that is stale 
+- An eventually consistent datastore will give guarantees that the state of the database will eventually reflect writes within a time period (10 seconds, 10 minutes, etc.)
+- A consistency model which is unlike Strong Consistency
+
 
 ### Key Terms:
 
-##### 
+##### Leader Election
+Process by which nodes in a cluster (ie. servers in a set of servers) elect a "leader"
+- leader: responsible for the primary operations of the service supported
+- when a leader is correctly implemented, we guarantee the following:
+    - all nodes in the cluster know who is leader/boss
+    - a new leader can easily be elected if the current leader dies
+
+
+##### Consensus Algorithm
+A type of complex algorithm used to have multiple entities agree on 1 single data value 
+- similar to who the 'leader' is amongst a group of machines
+- popular consensus algorithms:
+    - Paxos
+    - Raft
+
+##### Paxos & Raft
+Two consensus algorithms that allow for the synchronization of certain operations
+- even in distributed systems
+- must ensure implementation is correct
+
+##### Etcd
+Strongly consistent/highly available key-value store
+- Often used to implement leader election in a system
+    - Leader election: 
+https://etcd.io/
+
+##### ZooKeeper
+Strongly consistent/highly available key-value store
+- Often used for the following:
+    - store important configuration 
+    * perform leader election
+https://zookeeper.apache.org/
+
 
 ### Notes from the video:
 
+Leader Election
+- a relatively advanced topic
+    - especialy if you go into details
+
+- high level understanding: 
+    - 
+
+Example: System that allows users to subscribe on a recurring (monthly/annual basis)
+
+- Database:
+    - Whether or not user is currently subscriibed
+    - Data it should re-new
+    - Cost
+
+- 3rd party service to charge the custoemrs
+    - Paypal/Stripe 
+    - Needs to communicate with database
+        - When to charge
+        - How much to charge
+
+    - How to hook up the database and 3rd party service?
+        - We do not want them directly linked 
+            - Database has sensitive information 
+            - Remedy: Insert a service in the middle 
+
+- Service between 3rd party payment and Database
+    - 
+    - Process:
+        - Communicate with database
+        - Get data from database
+        - Tell 3rd party service to actually charge customer
+
+    - Potential problem: This service is 1 server
+        - What happens if this single server fails?
+            - Entire payment system goes down 
+            - Remedy: Redundancy!
+                - How that we have 5 servers, now what is the issue?
+                    - We don't want to duplicate certain requests:
+                        - Example: Actually charging the customer should happen 1x (5 servers could mess up - we need to ensure this doesn't happen)
+                        - Remnedy: Leader Election!
 
 
+Group of Servers in charge of Service
+    - Leader election has the 5 servers choose 1 server to be in charge of the actual work
+        - Leader (1): only server responsible for business logic
+        - Followers (2-5): on standby for it leader goes down
+
+    - This may sound trivial, but it is not!
+        - This simple task of having distributed machines all on the same page is very difficult 
+        - Why?
+            - When multiple machines share a 'state'
+
+            - Example: network partition
+                - Easy: Choosing the new leader
+                - Hard: multiple machines gain consensus 
+
+Consensus Algorithm:
+- allows multiple nodes to reach consensus
+- math heavy algos 
+- popular algos: 
+    - Paxos
+    - Raft
+        - These are super complex, past scope of course
+
+- How to use these in practice?
+    - In industry, you use another product that leverages Paxos & Raft
+    
+    - Examples of these products:
+        - ZooKeeper
+        - Etcd
+            - Not only used for leader election, but both can be 
+
+Example: Uber
+- They used ZooKeeper for a lot of leader election
+
+Etcd: 
+- Strongly consistent (single source of truth)
+- Highly available 
+- How?
+    - It uses Raft
+        
+How to use Etcd to implement our own leader election: 
+- multiple servers communicate with etcd's key-value pair 
+    - 1 key-value pair represents the leader
+        - due to consistency/high availability, we know that the value of the leader is correct
 
 
+Code Example: 
+
+Etcd
+- 4 terminals/servers
+    - define leader key 
+
+- script: 
+    - get server name and run main function
+
+    - main function: 
+        - runs leader election, saying if we are a leader or follower
+            - leader election function uses lease(5) before doing any real work ie. do_work()
+                - if leader does not refresh/say anything for 5 seconds, elect a new leader!
+                    - keyboard interrupt can be what we used to do what we need here...
+
+    - what happens if a leader is killed?
+
+        - the other 3 servers know that LEADERSHIP CHANGE REQUIRED
+            - A new leader is elected
+
+    - what happens if a follower is killed?
+
+        - nothing! 
+
+    - what happens if a new server is added/follower is added?
+
+        - it becomes a follower and waits around 
+
+    
+
+Link: 
+https://docs.google.com/document/d/1aByB6ApJxfOMgyNEbts1J34dkhwRjqVUred_Oi2fqhk/edit?usp=sharing
 
 
+Takeaways: 
+- Leader Election is very useful 
+    - "handles all client requests which need cluster consensus - any request that requires consensus sent to a follower is automatically forwarded to the leader."
 
+- we did not implement our own consensus algorithm
+    - we used a 3rd party tool (Etcd)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        - leveraged its properties of high availability and consistency to implement the consensus algo  
 
 
 ---
 ## Lesson 17: Peer to Peer Networks 
 
+Cheesy ways to summarize:
+- Equity for all
+- Sharing is caring
+- Unity makes strength
+- The more the merrier
+- Teamwork makes the dream work
+
 ### Prerequisites:
 
-##### 
+##### Client Server Model
+The paradigm by which modern systems are designed
+- consists of clients requesting data or service from servers and servers providing data or service to clients 
+
+
+##### Throughput
+- The number of operations that a system can handle properly per time unit
+    - Can be measured in requests per second (RPS/QPS)
 
 ### Key Terms:
 
-##### 
+##### Peer-To-Peer Network
+A collection of machines (referred to as peers) that divide a workload between themselves to (presumably) compute the workload faster
+-  often used in file distribution systems
+- Peers are equally privileged
+
+
+##### Gossip Protocol
+When a set of machines talk to each other in an uncoordinated manner in a cluster
+- spreads information through a system without requiring a central source of data 
+- "ensure that data is disseminated to all members of a group"
 
 ### Notes from the video:
 
+Peer to peer networks
+- Cool
+- Advanced
+
+first use case: design system for big tech company that lets you deploy/transfer large files to 1000's of machines at once 
+- 1 machine transfers 5GB files to 1000 machines
+    - examples: security footage, ml modeling
+
+- size of 1000 files: 5GB
+    - 
+
+- throughput: 5 GB/second (or 40 giga bits since 40bits==5bytes)
+    - system lives in powerful data center by the big tech company (this is reasonable throughput)
+
+- When we send to all 1000 machines, this takes 1000 seconds
+    - math: 1000 5GB files = 5,000 GB, so at 5GB/second it takes 1000 seconds!
+        - 17 minutes is way too long for a process that has to occur a lot of times! (bottleneck at main machine)
+    
+    - How to remedy/improve bottleneck:
+        1. Have multiple machines handle the 1000 requests
+
+        - Now that we have 10 machines:
+            - not great. why?
+                - size: all 1000 5GB files have to be replicated on 10 machines
+                - time: 17/10 is still almost 2 minutes
+
+        2. Sharding
+        - some files in 1, ..., some in 10
+
+        - Now that we have 100 5GB files in 10 machines:
+            - still not great. why?
+                - everytime we transfer 1 file, all 1000 machines go to the 1 machine with that file
+                    - right back at the 17 minutes bottleneck....
 
 
+        3. Peer to peer networks!
+        - - 1000 machines are known as "peers"
+        - The other solutions don't work, but this can suffice for sure!
+
+        - Overview of Peer to Peer networks for this example: 
+            - Think Back to example with 1 machine trying to send 5gb file to 1000 machines, and we saw a bottleneck.
+
+        - What if we did the following:
+            - Split up the large file on the single machine into very small chunks/pieces
+                - 1 5GB file becomes 1000 5MB files
+
+            - Transfer 1 chunk to each of the peers
+                - 1000 5MB files go to 1000 peers
+                    - Takes 1 second
+                        - Network throughput: 5 GB/second
+                            - It is still only 5GB total (1000*5MB = 5GB)
+                            - if we ignore overhead - we can for now!
+
+            - Ppeers communicate with each other to get other files need to build up their own large file
+                - Single Machines have 1 of 1000 5MB files
+                    - Need 999 more 5MB files to make up the original 5GB
+                    - Time to take: 999 * 1/1000 seconds for 5MB = 0.99 seconds (1 second)
+                        - Single machine needs to talk to 999 machines
+
+                - Take Machine 1: 
+                    - While it is talking to Machine 2, the other 998 machines can talk as well
+                        * This idea allows you to parallelize all 1000 transactions at once
+                        * Bottleneck is removed
+
+Step-by-Step: Naive Solution vs. Peer-to-peer Solution
+- assume the following: 
+    - 1 host/server with all 5gb of data
+    - 1000 peers
+    - 
+
+Naive Solution:
+1. Peer 1 receives 5mb of data from server/main machine
+- 1 5mb chunk transferred
+2. Peer 1 receives another 5mb of data from server/main machine
+- 3 5mb chunks transferred
+3. Peer 1 receives another 5mb of data from server/main machine
+- 3 5mb chunks transferred
+4. Peer 1 receives another 5mb of data from server/main machine
+- 4 5mb chunks transferred
 
 
+Peer-to-peer Solution:
+1. Peer 1 receives 5mb of data from server/main machine
+- 1 5mb chunk transferred
+2. Peer 2 receives 5mb of data from server/main machine
+AND 
+Peer 3 receives 5mb of data from Peer 1
+- 3 5mb chunks transferred
+3. Peer 4 receives 5mb of data from server/main machine
+AND 
+Peer 5 receives 5mb of data from Peer 1
+AND 
+Peer 6 receives 5mb of data from Peer 2
+AND 
+Peer 7 receives 5mb of data from Peer 3
+- 7 5mb chunks transferred
+4. ...
+- 15 5mb chunks transferred
 
 
+Requirements for peer-to-peer network: 
+- peers have to know which peer to talk to next (we had done it randomly)
+- "Peer Discovery"
+    - gets complicated, but here are 2 ways: 
+        1. central database/other machine orchestrates the network
+        2. Gossip Protocol
+            - instead of centralized way, the peers are able to talk to another and exchange information
+                - better way!
+            - Peers contain mappings about what peers others have
+                - Think of an IP address mapped to another peer's hash table/mapping
+
+                - Distributed hash table
 
 
+Example of peer-to-peer network: Kraken (Crypto E)
+- at peak production load, distributes 20,000 1mb blobs in under 30 seconds
+    - you could speed up some operations by up to 600x!
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Final notes: 
+- Last example: Torrenting
+    - spreading files from one peer across the world 
+        - main machine that had original file doesn't need to send it more than 1x
+        - it just needs to send all of the chunks in the file, and let peer-to-peer network take over 
 
 ---
 ## Lesson 18: Polling and Streaming 
 
+Classroom
+- sometimes students ask the teacher lots of questions
+- other times they listen to the lecture
+
 ### Prerequisites:
 
-##### 
+##### Client Server Model
+The paradigm by which modern systems are designed
+- consists of clients requesting data or service from servers and servers providing data or service to clients 
+
+##### Socket 
+A kind of file that acts like a stream
+- processes can read/write to sockets and communicate in this manner
+- sockets are fronts for TCP Connection (most of the time)
 
 ### Key Terms:
 
-##### 
+##### Polling
+The act of fetching a resource/piece of data regularly
+- at an interval to make sure your data is not too stale
+
+##### Streaming
+In networking, it refers to the act of continuously getting a feed of information from a server
+- does this by keeping an open connections between the two machines/processes 
 
 ### Notes from the video:
 
 
+So far
+- Clients issue requests (ask for info)
+- Server responds to client (replies with data)
+
+- What happens if you build a system where data gets updated/changes regularly?
+    - weather
+    - chat
 
 
+Polling vs. Streaming
+- fetching data at a time interval 
+- fetching data with an open connections
+
+Polling
+- The client issues a request for data following a set interval 
+    - "I need to update the weather every 30 seconds"
+
+    - Limitations: 
+        - You will want to receive messages/updates instantly (live feeling)
+        - Polling with small intervals puts a huge load on the server
+            - 10 requests/second with 1000000 users is a huge load on the server
 
 
+Streaming
+- Continuous stream of data
+- Using a client open a long-lived connection with a socket, listens to any data that your server might push through
+    - Socket: computer file that acts like a stream
+        - a portal
+- Instead of requesting data repeatedly to the server
+
+Difference between streaming and polling: 
+- polling: client says "Hey server, send me the data" every few seconds
+    - 
+- streaming: client says "Hey server, I am listening for data"
+    - servers push/send data to the clients
+
+Note: Streaming is not necessarily better than polling!
+- General rule of thumb:
+    - Instantaneous experience: Streaming
+        - chat
+        - live trading
+    - Instantaneous experience: Polling
+        - weather changes
+        - viewing stock data 
 
 
+Example of polling and streaming side-by-side:
+Link:
+https://docs.google.com/document/d/1yhxxFkK9-yeNTcATguGgDyXn__2cGTgjEM0iGTU-bQc/edit?usp=sharing
 
+Takeaways
+- polling and streaming are both very powerful
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+- know the functionality your system has to support that
+    - depending on that, choose:
+        - polling
+        - streaming
+        - something else!
 
 
 ---
 ## Lesson 19: Configuration 
 
+The config file is like the genome
+- stores parameters that define your system's critical settings
+    - just like DNA stores the genes for our characteristics!
+- unlike DNA, config file is easily editable 
+
 ### Prerequisites:
 
-##### 
+##### JSON
+A file format heavily used in APIs and configuration
+- JSON = JavaScript Object Notation
+
+    ![Alt text](photos/7.png)
+
+##### YAML
+A file format mostly used in configuration
+- ![Alt text](photos/8.png)
+
+##### Key-Value Store
+
+Flexible NoSQL Database that's often used for caching and dynamic configuration
+- Popular options: 
+    - DynamoDB
+    - Etcd
+    - Redis
+    - ZooKeeper
 
 ### Key Terms:
 
-##### 
+##### Configuration
+A set of parameters or constants that are critical to a system
+- typically written in JSON or YAML
+- can be either one of the following: 
+    - STATIC: hard-coded in and shipped with your system's application code
+        - example: Frontend!
+
+    - DYNAMIC: lives outside of your system's application code
 
 ### Notes from the video:
 
+Configuration Intro
+- very simple
+    - overlooked because it is easy
+- most large scale systems rely on configuration
+
+Definition, in a nutshell: 
+- A set of parameters that your application uses, written in another file
+
+- Examples: 
+
+    ![Alt text](photos/9.png)
+
+- Note: 1 is not better than the other, Clement said at Google different teams used different files
 
 
+2 types of Configuration files: 
+
+1. Static: 
+- configuration is bundled with application code
+    - example: if config.json has showSystemsExpert: false and you want it to be true, you have to deploy entire code
+
+- Pros:
+    - Safer: When you submit a change to codebase, it will go through code review (the break will be caught in testing)
+- Cons: 
+    - Slower: entire application needs to be re-deployed
+
+2. Dynamic
+- you can change configuration, at a moment's notice you'll see the changes 
+- gives you a lot of power and flexibility
+    - example: build user interface (UI) to change configuration with a click of a buttom with a 
+
+- Pros:
+    - Changes make impact fast: You can deploy things fast
+- Cons: 
+    - Riskier: You might not have things thoroughly reviewed
+        - no tests
 
 
+How does this all work in big companies?
+- Dynamic configuration is used
+    - too many benefits to pass up 
+
+    - Tools built around dynamic configuration to keep it safe
+
+    - Examples:
+        - review system on top of (others review)
+        - access control (you have to own the feature)
+        - deployment systems
+            - deploy it every 4 hours
+            - get deployed to 1% of users 
+
+Key Takeaways: 
+- Dynamic configuration gives you a lot of power
+    - Great power comes with great responsibility!
+
+    - How to make sure we keep dynamic config safe: 
+        1. have great responsiblity
+        2. develop complex tools 
 
 
+Code example: 
+Link:
+https://docs.google.com/document/d/1FFWrngDZbDLLw8s-8sSDjuMJktv-EL_jbGxJSSDH6qs/edit?usp=sharing
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Takeaways from Configuration Lesson: 
+- simple, yet powerful/important
+    - every large scale system relies on it 
 
 ---
 ## Lesson 20: Rate Limiting 
 
+Too many pokes, and you will get rate-limited!
+
 ### Prerequisites:
 
-##### 
+##### Availability: 
+The odds/probability of a particular service/server being up and running at any point in time 
+- Measured in percentages i
+- A server with 99% availability will be operational 99% of the time you interact with it 
+    - This would be describes as having 2 "Nines" of availability 
+
+##### Key-Value Store
+Flexible NoSQL database that's often used for caching and dynamic configuration
+- Popular options include the following:
+    - DynamoDB
+    - Etcd
+    - Redis
+    - ZooKeeper
+
 
 ### Key Terms:
 
-##### 
+##### Rate Limiting 
+The act of limiting the number of requests sent to/from a system
+- Most often used: limit the # of incoming requests to prevent DoS attacks
+
+- Can be enforced at the following levels: 
+    - IP address
+    - User-account
+    - Region
+
+- Can be enforced at the following tiers: 
+    - 1 per 1 second
+    - 5 per 10 seconds
+    - 10 per 1 minute
+    - etc.
+
+##### DoS Attack (Denial-of-service attack)
+An attack where a malicious user tries to bring down/damage a system in order to render it unavailable to users
+- Most of the time: Done by flooding it with traffic
+    - so that the system can't handle all the requests
+
+- Some of the time: Easily preventable with rate limiting
+    - Not always the case, it gets far trickier
+
+##### DDos Attack (Distributed Denial-of-service attack)
+A DoS attack in which the traffic flooding the target system comes from many different sources
+- Example: 1000's of machines 
+    - These are much harder to defend against!
+
+##### Redis
+An in-memory key-value store
+- Typically used as a really fast/best-effort caching solution
+    - Offers some persistent storage options 
+- Often used to implement 'rate limiting'
+    - Rate limiting: a strategy for limiting network traffic (It puts a cap on how often someone can repeat an action within a certain timeframe)
+https://redis.io/
+
 
 ### Notes from the video:
 
+In a nutshell:
+- Setting a threshold that will end up giving errors
+    - Limiting the # of operations that can be done in a given amount of time
 
+    - Example: 2 requests every 10 seconds
+        - 1 and 2: Client > Server > Database > Server > Client
+            - client receives data
+        - 3 and on: Client > Server > Client 
+            - client receives error messages
 
+If you don't rate limit, malicicous actors will ruin your throughput
+- DoS Attack
 
+Rate Limiting Implications: 
 
+- security: 
+    - hackers can bring down your system 
 
+- performance: 
+    - expensive tasks will create a bottleneck
 
+Note: Rate limiting is not 
+- Distributed DoS Attacks circumnavigate the rate limiter
+    - You need more than rate limiters for these 
 
+Example in Action: 
+- rate limiting to 1 operation per 5 seconds
+Link:
+https://docs.google.com/document/d/1ywzM3z0zAlDyvJcccuNkIZRT1bIfvssb-IOX-VEFjBw/edit?usp=sharing
 
+More on Rate Limiting
+- In our example, we were storing 'accesses' in local server's memory
+    - Rate limiting would fall apart using this in a large distributed systems
 
+    - Remedy: A separate database/server that handles this 
+        - Popular option - Redis!
 
+Simple system:
+- Client interacts wih server
+- Server interacts with database
+    - checking redis 
+        - Fine? keep going up to database
+        - Not fine? go back to client w/ error
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Depending on use case, rate limiting needs to be different
+- Some need simple rate limiting, others could need advanced rate limiting!
+- Example: algoexpert code button
+    - You want to limit it, but you don't want to spam it non-stop
+    - They can still spam it this way...
+        - Add another for 1 every 1 seconds, 10x in 1 minutes, 
 
 
 ---
 ## Lesson 21: Logging and Monitoring
 
+In order to properly understand issues in a system, it's critical to create trails of events in place
+
 ### Prerequisites:
 
-##### 
+##### JSON
+A file format heavily used in APIs and configuration
+- JSON = JavaScript Object Notation
 
 ### Key Terms:
 
-##### 
+##### Logging
+The act of collecting and storing logs
+- Logs = useful information about events in your system
+- Typically: Programs will output log messages to one of the following:
+    - STDOUT
+    - STDERR
+- From there, they are aggregated into a centralized logging solution
+
+##### Monitoring
+Having visibility into a system's key metrics
+- typically implemented by collecting important events
+    - then, aggregate into human-readable charts
+
+
+##### Alerting
+Process of notifying system administrators of critical system issues
+- Can be set up by defining specific thresholds on monitoring charts
+    - These alerts can then be sent via text/Slack/etc.
+
 
 ### Notes from the video:
 
+Logging and Monitoring
+- simple
+- important as your system gets bigger and bigger
+    - Allows you to debug issues at scale 
+
+Logging Example
+- As system grows larger and larger, things won't work
+    - example: someone bought algoexpert, credit card was charged, but no access granted
+        - edge case issue
+        - logging can help you debug this issue!
+            - It will show you what happened when that user bought the product
+
+Logging
+- Put log statements in your code
+    - languages have libraries to help:
+        - 
+        - JSON
+    - Products to help
+        - Google Stackdriver (now called Cloud Operations suite)
 
 
 
+Monitoring 
+- A tool/thing that makes managing your system a lot easier and/or better
+    - Example: You grew AlgoExpert
+        - You want to gather metrics on different operations
+
+        - Example: Code execution engine
+            - are users getting errors?
+            - are users dealing with latency?
+
+        - Example: Authentication
+            - which login is most popular?
+                - google
+                - github
+                - facebook
+
+Ways to gather metrics: 
+1. Prebuilt tools that scrape logs
+    - limiting factor: you need robust logs in place
+        - if you change your logs, you could break this metrics / monitoring system
+
+2. Time series database
+- database specifically tailored for data measured over time 
+- examples: 
+    - Prometheus (algoexpert uses this)
+    - InfluxDB
+    - Graphite
+- These specialized databases receive metrics/data from your server
+    - Query data in this database
+    - Create graphs 
+        - Grafana (https://grafana.com/docs/grafana/latest/panels-visualizations/visualizations/time-series/)
+
+- Gives ability to create robust monitoring services 
+    - Not tied to your logging system
 
 
+Alerting
+- You want monitoring to be useful
+- Get notified when specific thresholds are broken 
+    - Example: Error rate increases past 10%
+        - When something goes past this threshold, you get a message to go check it out!
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Takeaways: 
+- Logging and Monitoring are simple yet important
+    - Irrelevant at first
+    - Quickly become important as your system scales
+- Might not be most important part of system, but important for constant improvement 
 
 
 ---
 ## Lesson 22: Publish/Subscribe Pattern 
 
+Publish/Subscribe
+Press/Tug
+Produce/Consume
+Push/Pull
+Send/Receive
+Throw/Catch
+Thrust/Receive 
+
+*3 can be used interchangeably in the context of systems design*
+
 ### Prerequisites:
 
-##### 
+##### Polling
+The act of fetching a resource/piece of data regularly
+- at an interval to make sure your data is not too stale
+
+##### Streaming
+In networking, it refers to the act of continuously getting a feed of information from a server
+- does this by keeping an open connections between the two machines/processes 
+
+##### Persistent Storage: 
+- Usually a reference to disk
+- In general, any form of storage that persists if the process in charge of it dies
+- Good to know: Disk vs. Memory
+    - Memory is what the computer stores temporarily
+        - When you save a file, it transfers from being 'Memory' into being 'Disk/Storage'
+    - Disk is permanent storage
 
 ### Key Terms:
 
-##### 
+##### Publish/Subscribe Pattern (Pub/Sub)
+Popular messaging model that consists of publishers and subscribers 
+- Publishers: 
+    - Publish messages to special topics/channels 
+        - Without care/knowledge of who will read the messages
+
+- Subscribers: 
+    - Subscribe/read messages coming from publishers 
+
+- These pub/sub systems usually come with very powerful guarantees, such as: 
+    - At least once delivery
+    - Persistent storage
+    - Ordering of messages
+    - Replayability of messages
+
+
+##### Idempotent Operation
+Operation that has the same ultimate outcome, regardless of how many times it is performed (If the operation can be performed multiple times without changing its effect)
+- Operations in a pub/sub messaging system are usually idempotent
+    - These systems allow you to consume/read the same messages over and over
+
+    - Example: Increasing an integer value in a database
+        - NOT idempotent; repeating this operation does not have the same effect vs. doing it just 1x
+
+    - Example: Setting a value to 'COMPLETE'
+        - idempotent; repeating this operation 100x does the same as 1x, the value is marked complete and stays.
+
+##### Apache Kafka 
+A distributed messaging system created by LinkedIn
+- very useful when using the streaming paradigm (instead of polling)
+- "event streaming platform"
+https://kafka.apache.org/
+
+##### Cloud Pub/Sub
+A highly scalable Pub/Sub messaging service created by Google
+- Guarantees at least once delivery of messages 
+- Supports "rewinding" in order to reprocess messages 
+https://cloud.google.com/pubsub/
+    
 
 ### Notes from the video:
 
+Publish/Subscribe Pattern
+- very important concept/paradigm
+- in order to understand, we have to remember streaming:
+    - streaming we showed how to make a simple chat application
+    - how would we improve that system?
+        - network partitions: what happens to messages if they disappear? 
+        
+
+Stocks Example: 
+- Clients listen to server for stock prices 
+
+- What happens if a network partition?
+    - We don't want to lose access the stock prices 
+        - Need persistent storage 
+
+Server-level storage solution:
+- Separation of duties 
+    - need a new storage solution
+
+Pub/Sub Model
+- General gist: 
+    - Publishers post data/message to topics
+    - Clients become subscribers as they subscribe to a topic
+    - As messages are sent into a topic, they are sent to subscribers
+
+    - Notes; 
+        - Publishers/Subscribers don't know about each other 
+        - All messages published to topics are persistent information
+            - guaranteed delivery of messages at least 1x
+                - Under the hood: Each messages checks that each subscriber's ID consumed the message 
+
+                - Sometimes: messages sent more than 1x
+                    - That is OK because receiving a message more than 1x won't hurt anyone 
+
+1. Publishers (the servers)
+- job: publish data to the topics 
+
+1. Subscribers (the clients)
+    - clients subscribe to topics 
+
+1. Topic
+- channels of specific information
+
+1. Message 
+- the data itself
+
+![Alt text](photos/10.png)
 
 
+Idempotent
+- If you perform an operation 1x, it has some outcome as 100x
+    - Example: Binary variables 
+        - Setting status to 'done' or 'complete'
+
+    - Bad Example: Numerics
+        - Number of times watched
+        - Minutes spent watching video 
+
+Ordering of messages
+- Messages/Data are going to be sent to clients seqentially
+    - kind of like a queue
 
 
+Replaying of messages
+- Functionality to rewind to previous snapshots in time 
 
 
+Why do we have multiple topics?
+- Database Solution: Each topic is essentially its own database 
+    - This helps the system designer
+        - separation of concerns
+        - content based filtering 
+            - example: tech company stock prices only 
+        - no need to send data to people who don't want to see it 
+
+Pub/Sub Solutions ready out of the box: 
+- Many comes with a ton of features from day 1: 
+    - Pairing these with pub/sub system makes them great for systems design interviews
+
+- Examples: 
+
+    - Apache Kafka
+        - 
+
+    - Google Cloud Pub/Sub
+        - topics will scale automatically
+
+    - AWS
+        - end to end encryption
 
 
+Code Example: Isolation Aspect of Pub/Sub pattern
+Multiple Subscribers subscribing to various topics 
+- we will not implement the storage system ie. out of box product like apacha kafka - takes a lot of work to set up and is not in the scope of these interviews
+    - we just need to know that we CAN use these 
+
+Notes on this:
+- message api endpoints have topicId's 
+- server takes messages 
+    - also creates socket and checks if we have topicSockets
+- 
+
+Link: 
 
 
+Takeaways: 
+- Isolation of data
+    - When you subscribe to a topic, you only see that data/messages
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+- Knowledge of underlying persistent storage
+    - We did not implement 1, but we know of Apache Kafka and Google Cloud Pub/Sub
+    - Very powerful to have persistent storage !
 
 
 ---
 ## Lesson 23: MapReduce
 
+Programming Model for processing and generating big datasets with a parallel, distributed algorithm on a cluster 
+- confusing wiki definition
+
+
 ### Prerequisites:
 
-##### 
+##### File System
+An abstraction over a storage medium that defines how to manage data 
+- There are many different types of system files
+    - Most follow a hierarchical structure that consists of directories/files
+        - Example: Unix file system's structure (I use Unix)
+
+##### Idempotent Operation
+Operation that has the same ultimate outcome, regardless of how many times it is performed (If the operation can be performed multiple times without changing its effect)
+- Operations in a pub/sub messaging system are usually idempotent
+    - These systems allow you to consume/read the same messages over and over
+
+    - Example: Increasing an integer value in a database
+        - NOT idempotent; repeating this operation does not have the same effect vs. doing it just 1x
+
+    - Example: Setting a value to 'COMPLETE'
+        - idempotent; repeating this operation 100x does the same as 1x, the value is marked complete and stays.
+
 
 ### Key Terms:
 
-##### 
+##### MapReduce
+A popular framework for processing very large datasets, for these reasons/attributes: 
+- Efficiency
+- Quickly
+- Fault-tolerant manner
+
+Comprised of 3 main steps:
+
+1. Map: Runs a map function on the various chunks of the dataset 
+- Transforms these chunks into intermediate key-value pairs 
+
+2. Shuffle: Re-organizes the intermediate key-value pairs
+- Pairs of the same key are routed to the same machine in the final step
+
+3. Reduce: Runs a reduce function on the newly shuffed key-value pairs
+- Transforms them into more meaningful data 
+
+When dealing with a MapReduce library:
+- Engineers and system administrators worry about: 
+    - Map/Reduce
+    - Inputs/Outputs
+
+- All other things (MapReduce Implementation takes care of):
+    - Parallelization of tasks
+    - Fault tolerance of the MadReduce job 
+
+
+##### Distributed File System
+An abstraction over a (usually large) cluster of machines that allows them to act like 1 large file system
+- 2 popular examples of DFS: 
+    - Google File System
+    - Hadoop Distributed File System
+
+- Other attributes:
+    - DFSs take care of the classic availability and replication guarantees, the ones that are tricky to have in a distributed-system setting.
+
+    - Overarching idea: 
+        - files are split into chunks (of a certain size; 4mb, 64mb)
+        - those chunks are sharded across a large cluster of machines
+        - central control plane is in charge of deciding where each chunk resides 
+            - then, routing reads to the right nodes, and handling communication between machines 
+
+Different DFS implementations have slightly different APIs/semantics, but at the end of the day, they all acheive the same common goal: Extremely large-scale persistent storage.
+
+
+##### Hadoop
+A popular, open source framework that supports MadReduce jobs (and many other kinds of data-processing pipelines)
+- Central component: Hadoop Distributed File System (HDFS)
+    - many other technologies have been developed from HDFS
+https://hadoop.apache.org/
+
 
 ### Notes from the video:
 
+MapReduce
+- simple at face value, but gets complicated
+    - straightforward for interviews
+
+Go back in history when google engineers were faced with a challenge 
+- Huge amounts of large data sets that they had to process
+- There is only so much vertical scaling you can do 
+- You have to eventually horizontally scale (add systems)
+    - When dealing with distributed systems, things like processing a dataset becomes hard
+        - handling failures, network partitions, etc.
+    - Whitepaper for MadReduce released in 2004
+
+MapReduce Whitepaper
+- Premise: The majority of tasks can be split into 2 steps: 
+    - Map: 
+    - Reduce: 
+
+    - Created a library to allow Terabytes of data to be spread across 1000s of machines 
+
+Simple Example: 
+- Important thing about MapReduce/Assumptions:
+    1. Distributed system (of 4 machines here)
+        - large data split into chunks across machines
+        - central control plane exists that knows inputs/outputs/etc. 
+
+    2. We don't want to move the large dataset 
+        - let them live where they live
+        - send the map functions to the data 
+
+    3. Key-value pairs structure (intermediate step) is very important
+        - When you reduce multiple chunks from the same large dataset, you are likely looking for commonality 
+            - This is why the key-value pairs
+                - Some keys will be common, can be aggregated and reduced to 1 common value for that key 
+
+    4. Handling failures is built in
+        - The map OR reduce will be repeated if there is a network partition/error
+            - Central control partition 
+                - Assumption: Map function and Reduce function are both Idempotent (same outcome 1x or 100x)
+
+    5. Systems Engineer/Admin needs to care about Map Function, Reduce Function, and Inputs/Output
+        - Flow of MapReduce: 
+            - Map Function => Input => (Intermediates) => (Shuffle) => Reduce Function => Output 
+
+        - No need to worry about other things
+            - MapReduce takes over
+            - Implementations are already in place!
+
+Steps
+
+1. Map
+    - Data is tranformed into intermediate values
+
+2. Shuffle
+    - 
+
+3. Reduce
+    - 
 
 
+Canonincal example of MapReduce - Counting the number of occurrences of words in a large text file: 
+- Ends up being some sort of loop that counts the values
+    - All of these operations happen in parallel
+
+- This example has 4 machines, hence how input has 1,2,3,4
+
+Map Step - Data:
+1. - {a: 2}
+2. - {a: 1, b: 1}
+3. - {a: 2, c: 1}
+4. - {b: 3}
+
+Shuffle Step - Intermediate key-value pairs:
+1. - {a: 2}
+2. - {a: 1, b: 1}
+3. - {a: 2, c: 1}
+4. - {b: 3}
+=>
+1. - {a: 2}
+2. - {a: 1}; {b: 1}
+3. - {a: 2}; {c: 1}
+4. - {b: 3}
+=>
+a's: {a: 2}, {a: 2}, {a: 1}
+b's: {b: 1}, {b: 3}
+c's: {a: 1} 
+
+Reduce Step - Output:
+a's: {a: 2}, {a: 2}, {a: 1}
+b's: {b: 1}, {b: 3}
+c's: {a: 1} 
+=> 
+{a: 5, b: 4, c: 1}
 
 
+Example: Youtube Videos in a Dataset
+- MapReduce
+
+Example: Logs across systems
+- Total number of logs across jobs 
+
+Note: SO many ways that you can use MapReduce Model!
 
 
+Another Example: 
+Dataset: Latencies on AlgoExpert
+- 2 text files: 
+    - host1
+    - host2
+        - These are both on local here, but in reality would be 2 different machines!
 
+- End Goal: Counting # of latencies...
+    - over_10_seconds: 136
+    - under_10_seconds: 64
+        - out of 200 total!
 
+1. Input: 
+    - host1 directory: 
+        - latencies.txt: list of latencies (100, 345, ..., 2999)
+    - host2 directory: 
+        - latencies.txt: list of latencies  (100, 345, ..., 2999)
 
+2. Intermediate: 
+    - host1: 
+        - over_10_seconds.txt: list of 1's (70 rows)
+        - under_10_seconds.txt: list of 1's (30 rows)
+    - host2: 
+        - over_10_seconds.txt: list of 1's (66 rows)
+        - under_10_seconds.txt: list of 1's (34 rows)
 
+3. Shuffle: 
+    - map_results: 
+        - over_10_seconds.txt: list of 1's (70+66=136 rows)
+        - under_10_seconds.txt: list of 1's (30+34=66 rows)
 
+4. Reduce:
+    - reduce_results:
+        - results.txt: {
+            over_10_seconds: 136,
+            under_10_seconds: 64
+        }
+    
 
+Note: He uses .sh file to run a bunch of command line stuff in sequence!
+- bash run.sh
+    - how to do this in Ubuntu: https://askubuntu.com/questions/38661/how-do-i-run-sh-scripts 
 
+Link to all instructions on how to replicate this:
+Link: 
+https://docs.google.com/document/d/1LmyVXNc9RCx5D4ZP4jqws8BxOJGNXoqYjsdaLwynrRU/edit?usp=sharing
 
+Note: 
+- This is a great script to look at - it is the first time I have used run.sh, and .sh files let you run a bash script
+    - Help with this: https://www.andrewcbancroft.com/blog/musings/make-bash-script-executable/
 
+Takeaways: 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+MapReduce
+- incredible useful!
+- makes more sense when using example on multiple systems...
 
 ---
 ## Lesson 24: Security and HTTPS
 
+Network security is of critical importance to any system
+- Beyond scope of most systems design interviews
+    - Having a basic/cursory understanding of a few concepts can help you 'secure' that job offer!
+
 ### Prerequisites:
 
-##### 
+##### Client
+A machine or process that request data or service from a server
+- Single machines or piece of software can be both a client and a server at the same time
+    - Example: A Single machine could act as a server for end users and as a client for a database
+
+##### Server
+A machine or process that provides data or a service for a client, usually by listening for incoming network calls
+
+##### IP Packet - Network Packet: 
+- Besides bytes, is effectively the smallest unit used to describe data being sent over IP
+- Consists of the following:
+    - IP Header, which contains: 
+        - source IP address
+        - destination IP address
+        - Other information related to the network
+    - Payload: the data being sent over the network
+
+##### HTTP - HyperText Transfer Protocol: 
+- Very common
+- Implemented on top of TCP
+- How it works:
+    - Clients make HTTP requests, with schema such as:
+        - Host: string ie. algoexpert.io
+        - Port: integer ie. 80/443
+        - Method: string ie. GET/SET/PUT/DELETE
+        - Headers: pair list ie. "Content-Type" -> "application/json"
+        - Body: opaque sequence of bytes
+    - Servers respond with one of these responses, such as:
+        - Status code: integer ie. 200/401
+        - Headers: pair list ie. "Content-Length" -> 1238
+        - Body: opaque sequence of bytes
 
 ### Key Terms:
 
-##### 
+##### Man-In-The-Middle-Attack
+An attack in which the attacker intercepts a line of communication (a line of communication that the 2 parties thought was private)
+- MITM attacks are the primary threat that encryption and HTTPS aim to defend against
+
+    - if a malicious actor intercepted and mutated an IP packet on its way from a client to a server, this is an example of man-in-the-middle attack
+
+
+##### Symmetric Encryption
+A type of encryption that relies on the following: 
+- 1 single key
+    - Used to encrypt AND decrypt data 
+
+    - The key must be known to all parties involved in communication 
+        - Therefore, it has to be shared at some point
+
+- Symmetric-key algorithms are faster than assymetric
+    - Most widely used symmetric-key algo: Advanced Encryption Standard (AES)
+
+
+##### Asymmetric Encryption
+Public-key encryption
+- Relies on the following:
+    - Public key
+        - Can be openly shared
+
+    - Private key
+        - Must be kept secure 
+
+- The keys are generated using cryptographic algorithms 
+- They are mathematically connected such that data encrypted with the public key can only be de-crypted with the private key
+
+- Slower than symmetric counterparts
+
+
+##### AES (Advanced Encryption Standard)
+Known as the "gold standard" in encryption
+- Used by the US National Security Agency to encrypt top secret info
+
+- Widely used encryption standard that has 3 symmetric key algorithms: 
+    - AES-128
+    - AES-192
+    - AES-256
+
+##### HTTPS (HyperText Transfer Protocol Secure)
+Used for secure communication online
+- Requires servers to have trusted certificates 
+    - Usually this means SSL certificates 
+
+- Encrypts data communicated between client/server with the Transport Security Layer (TLS), a security protocol build on top of TCP
+
+
+##### TLS (Transport Layer Security)
+What HTTP runs in order to achieve secure communication online
+- HTTP over TLS is where HTTPS comes from
+
+
+##### SSL Certificate (Secure Socket Layer Certificate)
+A digital certificate granted to a server by a certificate authority
+- contains the server's public key
+    - public key is used as a part of the TLS handshake in an HTTPS connection
+
+- effectively confirms that a public key belongs to the server claiming that it belongs to them
+    - crucial defense against man-in-the-middle attacks
+
+
+##### Certificate Authority
+A trusted entity tat signs digital certificates
+- namely, SSL certificates that are relied upon for HTTPS connections 
+
+##### TLS Handshake
+The process through which a client and server communicating over HTTPS, exchange encryption-related information and establish a secure connection
+- Typical steps: 
+    1. Client sends a 'client hello', or a string of random bytes, to the server
+
+    2. Server responds with a 'server hello', another string of random bytes, as well as its SSL certificate, which contains its public key
+
+    3. Client verifies that the certificate was issued by a certificate authority, and sends a premaster secret (another string of random bytes - encrypted with the server's public key) to the server
+
+    4. The client and server use the client hello, server hello, and the premaster secret to generate the same 'symmetric-encryption' session keys, which are used to encrypt and decrypt all data communicated during the remainder of the connection
+
 
 ### Notes from the video:
 
+Security and HTTPS - 2 quick flags
+1. unlike other concepts, Security is not actually needed in a systems design interview 
+    - not going to be expected to know
+    - still good to be familiar with it 
+        - depending on interview, it could lead into security and being familiar will give you brownie points
+
+2. Security is domain expertise heavy
+- you don't need this 
+    - we will not go into advanced topics
 
 
+HTTP
+- Remember: in modern systems, most talk over HTTP
+    - internet runs on it
+- Although there is not security in HTTP, we have an implied assumption of privacy between client/server
+    - malicious actors can intercept IP packets and eavesdrop OR change the packets
+        - breach of privacy (man-in-the-middle attack, MITM attack)
+            - we are trying to prevent the consequences of these ie. having a 3rd party intercept communication between client/server
+                - this is where encryption comes in (to hide messages)
+
+Encryption
+- turn the data into a form that is encrypted/not legible 
+    - it needs to be able to be de-crypted
+
+- 2 systems we will talk about at a high level: 
+
+    - Symmetric (1 key - AES)
+        - Symmetric key algorithms 
+            - cryptographic algo that uses 1 key to encrypt AND de-crypt the data
+
+            - Simple example showing how (symmetric) encryption works with AES-256:
+            - Link: https://docs.google.com/document/d/1qHtZ8bNQnDY5PVkX6811gM-2CNnGeJSLpaioxGWNXFg/edit?usp=sharing
+
+            - ![Alt text](photos/11.png)
+
+        - Very Fast!
+        - Because it relies on 1 key, you need to share it with both parties
+            - HTTP is still vulnerable 
+            - Examples of client/server communicating over network, how do you communicate the key without having a MITM attacker intercept the key?
+                - Assymetric Encryption!
 
 
+    - ASymmetric (2 keys)
+        - Public key encryption
+
+        - Pairs of keys: 
+            - Generated mathematically using cryptography
+                - If you encrypt with public key,  message can only be de-crypted using the private key (Mathematically bound)
+
+            - Public Key: anyone can see it/encrypt messages
+            - Private Key: only the server can see it/decrypt messages
+
+        - Slower!
+        - More secure
+        - How do we make HTTP secure?
+            - HTTPS!
 
 
+HTTPS
+- extension of HTTP running on TLS (Transport Layer Security)
+    - the 'S' in HTTPS is for security
+    - "HTTP on top of using TLS"
+        - information is secured using TLS
+
+- Assume we have a client and server communicating over HTTPS: 
+    - How is connection secure? 
+        TLS Handshake
+        - process that established secure connection between client and server 
+        - steps: 
+            1. client hello: random string of bytes (sent by client)
+
+            2. server hello: random string of bytes AND ssl certificate (sent by server)
+                - server's public key is somewhere in this ssl certificate
+                    - client now has public key 
+
+            3. premaster secret: random string of bytes (sent by client)
+                - this time, the bytes are encrypted using the public key that 
+
+            4. symmetric encryption key: server generates session key
+                - key is only used in this session
+                    - once the session ends, 
+                    - under hood: 4 session keys are created by server
+
+                - because server has the private key, it can decrypt the message!
+                    - server is only entity with the private key 
+                    - it was encryted with the public key, so private key can decrypt
+
+            5. final message between server/client using those session keys 
+            - this message is encrypted
+            - it is used to signal we are done
+
+                - "done, everything is good"
+                    - secure connection has been established
+                
+                - "problem"/"mismatch"
+                    - secure connection has failed 
 
 
+- What is the SSL Certificate all about?
+    - vulnerability: if server returns public key and server hello, this communication can be intercepted by a fake client who replaces with their own public key
+        - would encrypt the premaster secret with their own public key 
+        - could then de-crypt the premaster secret/entire communication channel
+            - How does the client know the public key comes from the server/How can the client trust the server?
+                - SSL Handshake!
 
+SSL Certificate
+- General idea: Granted by a trusted 3rd party (certificate authority - CA)
+    - Developers have agreed to trust CA's
+    - They give out SSL Certificates
+        - Digital item that CA has signed, and assured the client that the server is who they say they are
 
+- Example: 
+    - Rectangle = certificate
+        - contains the following:
+            - public key of server
+                - public key was given by the certificate authority 
+            - name of entity that owns the public/private key pair
+                - "server" for now
+            - Assurance
+                - "I am a trusted 3rd party, assuring that this public key belongs to this server, and this SSL certificate proves this server is who they say they are" 
 
+            - Signed by a private key from the the 3rd party certificate authority 
+                - Client verifies this "digital signature" with the public key of the certificate authority
 
+Re-iterate those steps: 
+1. SSL Certificate is signed by the private key from CA
+2. Certificate can be verified with public key of CA
+- Chrome has public keys of all CA's
+    - You can verify SSL Certificates very quickly
+        - If you go on a website that it HTTP instead of HTTPS, Chrome will flag it for not being secure!
 
+Overview of entire TLS Handshake process:
+1. Client hello: Client reaches out w/ random bytes
 
+2. Server hello: Server responds w/ random bytes AND SSL certificate (has public key, info about itself, and a signature from the certificate authority)
 
+3. Premaster secret: Client verifies the SSL Certificate using corresponding Public key, then gets public key from certificate, encrypts message, sends back to server 
 
+4. Session keys are created and used for the session
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+5. Session keys are thrown out (process repeats when a new connection needs to be established)
 
 
 ---
 ## Lesson 25: API Design 
 
+You have mastered all of the lessons on SystemsExpert
+- feeling confident to ace the systems design interview
+- what about API design interviev? 
+
+Let's dive into the last piece of the puzzle.
+
 ### Prerequisites:
 
-##### 
+##### HTTP - HyperText Transfer Protocol: 
+- Very common
+- Implemented on top of TCP
+- How it works:
+    - Clients make HTTP requests, with schema such as:
+        - Host: string ie. algoexpert.io
+        - Port: integer ie. 80/443
+        - Method: string ie. GET/SET/PUT/DELETE
+        - Headers: pair list ie. "Content-Type" -> "application/json"
+        - Body: opaque sequence of bytes
+    - Servers respond with one of these responses, such as:
+        - Status code: integer ie. 200/401
+        - Headers: pair list ie. "Content-Length" -> 1238
+        - Body: opaque sequence of bytes
+
+##### JSON
+A file format heavily used in APIs and configuration
+- JSON = JavaScript Object Notation
+
+##### YAML
+A file format mostly used in configuration
+
+##### ACL (Access-Control List)
+A term used to refer to a permissioning model ie. Which users in a system can perform which operations
+- Example: APIs often come with ACLs defining which users can do the following with certain entities: 
+    - Delete
+    - Edit
+    - View
 
 ### Key Terms:
 
-##### 
+##### Pagination
+Often used when designing list endpoints
+- When a network request potentially warrants a really large response, the relevant API might be designed to return only a single page (limited response) instead of multiple pages or the full response 
+- Is accompanied by an identifier or token for the client to request the next page (if they want to)
+
+- Example: 
+    - An endpoint to list videos on the YouTube Trending page could return a huge list of videos
+        - This would not perform well on mobile devices due to lower network speeds
+            - (would not be optimal since most users will only scroll through the first 10-20 anyways!)
+
+        - API could be designed to respond with only the first few videos of the lsit
+            - We would say "the API Response is paginated"
+
+##### CRUD Operations
+Create, Read, Update, Delete
+
+- These 4 operations often serve as the bedrock of a functioning system 
+    - they are at the core of many APIs
+
+- Note: the term CRUD will very likely come up in interviews!
 
 ### Notes from the video:
 
+First thing to note:
+- API design is distinct from SystemsDesign
+    - it is not a subset, but a sibling
+
+    - Why do we cover it then?
+        1. Convenience
+            - not much to cover
+
+        2. Shares a lot of similarities!
+            - bundling it makes sense
+
+Why do API Design interviews event exist? (Systems make sense since they are complex, is designing an API even that important)
+- All products and services you use are back by 1 or more APIs
+    - Without that API, most functionality would be gone
+
+    - Example: Stripe
+        - Used for payments processing services
+            - One of their core products IS an API
+                - Selling access to an API is a potential product
+
+    - When dealing with API, there is a sense of "permanance"
+        - Making changes to an API is impossible/difficult
+            - Designing an API is very important from the start
+                - Even the most trivial details become important!!
+                - Google has high-level engineers dissect API's in review
+
+What API Design interview is like:
+- Intro:
+    - First 10 minutes are similar to Systems Design
+        - Example: "Design Stripe's API" 
+            - Need to know more information to answer properly: 
+                - What part of the service
+                - Who's consuming the API
+
+- After you get information/Meat of interview:
+    - Systems: Draw out diagrams, SQL tables, etc.
+
+    - API Design: Not drawing out diagrams
+        - Writing out an outline of the API
+            - Example: Stripe payment entity
+                - Outline for API things: 
+                    - endpoints
+                    - parameters
+                    - responses returned
+
+                - Not: 
+                    - writing out logic
+                    - implementing the actual endpoints
+
+        - Lesson: There still is not a right/wrong answer
+            - The API design choices need to be defensible 
+                - If so, they are fair game 
+                - Might be completely different, you just need to be able to have a conversation
+                    - Be open to criticism!
+
+- End of API Design Interview - API Definition (Outline):
+    - Entity Definitions: 
+
+    - Endpoint Definitions: 
+
+    - a
+
+        - Example: Stripe API Outline
+            - ![Alt text](photos/12.png)
+
+            - 
+
+Format of writing API outline: 
+- Swagger - An interface description language (format to describe API's)
+    - Verbose
+    - Can be written in .json or .yaml
+        - "Are you fine with plain bullet points or do you want _"
+
+How to study for these:
+
+1. Questions on SystemsExpert
+
+2. Go online and find product with publicly available API
+- look through API documentation
+- examples online: 
+    - nice to see that it is not a blackbox
+    - gives tricks/patterns
+
+Example: Stripe API (https://api.stripe.com)
+- Core Resources: 
+    - Charges
+        - Charge Object itself
+            - has description of parameters
+        - CRUD: 
+            - Create a Charge: 
+            - Read a Charge: 
+            - Update a Charge: 
+            - Delete a Charge: you cannot...
+            
+    - Customer 
+    - etc.
+- 
+
+Example: Google Cloud Platform IoT Core (cloud.google.com/iot/docs)
+- Notes: 
+    - has non-CRUD endpoints
+    - list endpoint: 
+    - fieldMask
+        - maybe you don't want all of these properties shown 
+            - "Field masks are a way for API callers to list the fields that a request should return or update. Using a FieldMask allows the API to avoid unnecessary work and improves performance. A field mask is used for both the read and update methods in the Google Slides API." (https://developers.google.com/slides/api/guides/field-masks)
 
 
 
+##### End of Notes on SystemsExpert
 
+Good work!
 
-
-
-
-
-##### Ending Notes on SystemsExpert
-
-
-
-
-# VSCode Stuff
+---
+# Bonus! VSCode Stuff
 
 Guide for Markdown in VSCode:
 
