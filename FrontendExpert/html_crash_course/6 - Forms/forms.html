@@ -1,0 +1,76 @@
+<!DOCTYPE html> <!-- Put this at top of any .html file -->
+
+<html lang="en"><!-- START -->
+    <head>
+        <title>Basic Form Here</title>
+    </head>
+    <body>
+
+        <!-- Would put this in form if JavaScript wasn't way better: action="/myapi" method="POST"-->
+        <form > <!-- Choose where the data gets send when you press submit button-->
+
+            
+            <!-- Lables are adjacent to inputs - We know it is for the one below it -->
+            <!-- FIX: for input, name it with ''. For label, add for = "insert name of input" -->
+            <!-- Note: This doesn't change output, just improves HTML code-->
+            
+
+            <!-- Username input -->
+            <label for="usernameinput">Username, please enter:</label>
+            <input 
+                id="usernameinput" 
+                type="text" 
+                placeholder="mockuser123" 
+                name="username"
+                required/>
+            <!-- name: lets server know what this input was (ie. data type "this is a username") -->  
+            
+
+            
+            <!-- Password input -->  
+            <label for="passwordinput">Password, please keep this private:</label>
+            <input 
+                id="passwordinput" 
+                type="password" 
+                name="password" 
+                minlength="6"
+                required="required"/> 
+            <!-- name tells server "This is a password"-->
+            <!--required="required" is same as required-->
+
+
+            <!-- More data types-->
+            <label for="d">Date</label>
+            <input 
+                type="date" 
+                name="d"
+                id="d">
+            
+            <label for="cb">Checkbox</label>
+            <input 
+                type="checkbox" 
+                name="cb"
+                id="cb">
+
+
+            <!-- Putting these radio buttons in 1 fieldset, they are in 1 line with borders (CSS can change this too) -->
+            <fieldset>
+
+                <legend>Choose your number (This is the title of the fieldset)</legend>
+
+                <label for="rad1">One</label>
+                <input type="radio" name="rad1" id="rad1" value="1">
+                <label for="rad2">Two</label>
+                <input type="radio" name="rad2" id="rad2" value="2">
+                <label for="rad3">Three</label>
+                <input type="radio" name="rad3" id="rad3" value="3">
+            </fieldset>
+            
+            
+            <!-- Submit button -->
+            <!-- Old way, doesn't look as nice: <input type="submit" name="button1" id="id1"> -->
+            <button>Submit!</button>
+
+        </form>
+    </body>
+</html><!-- END -->

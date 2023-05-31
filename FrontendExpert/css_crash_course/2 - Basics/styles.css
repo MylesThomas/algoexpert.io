@@ -1,0 +1,15 @@
+h1 {
+    text-align: center;
+    color: brown;
+    font-weight: normal;
+    text-decoration: underline;
+}
+
+p {
+    background-color: rebeccapurple;
+    color: white;
+    text-align: right;
+    min-height: 100px; /* min-height is better than height because large default font would be trapped in */
+    font: 1.25rem; /* rem:  root em, font size relative to the size of the root element (HTML tag's) */
+    width: 30%; /* width: 30% of page */
+}

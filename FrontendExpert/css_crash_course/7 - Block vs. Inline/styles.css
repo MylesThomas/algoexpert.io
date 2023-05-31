@@ -1,0 +1,23 @@
+/*Border is currently taking up the entire width of the body
+- its defaults to block level element
+    - defaults to entire width of parent
+    - starts on new line
+
+p is the parent of em, so if we change p's width, em will change too */
+
+p {
+    display: inline-block; /*middle ground: */
+    width: 30vw;
+    border: 2px solid black;
+}
+
+em {
+    /*width: 100vw;
+    height: 100vh;*/ /*these do nothing at first: inline elements look at width of content */
+
+    border: 2px solid blue;
+
+    /*display: block; this makes the height/width turn on*/
+    /*margin: 10px; splits them up a bit */ 
+}
+
