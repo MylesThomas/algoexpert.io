@@ -1,0 +1,55 @@
+/* This would grab everything with class="red"
+.red {
+    color: white;
+}*/
+
+
+/* This would grab everything, period
+* {
+    color: red;
+}*/
+
+/*This would grab everything with id="red"
+#red {
+    color: black;
+}*/
+
+/*This would grab everything with type 'a' AND href=='https://algoexpert.io' 
+a[href="https://algoexpert.io"] {
+    color: green;
+}*/
+
+/*This would grab everything with type 'a' AND href STARTS WITH'https://algoexpert.io' */
+a[href^="https://algoexpert.io"] {
+    color: green;
+}
+
+/*Combinator Selectors*/
+
+/*Look for paragraphs, anywhere inside of footer
+footer p {
+    color: pink;
+}*/
+
+/*Child selector: Look for paragraphs, directly inside of footer
+Div paragraph is inside of div AND inside of footer, so it stays black*/
+footer > p {
+    color: pink;
+}
+
+
+
+/*Sibling Selectors*/
+/*Shares same parents ie. right next to each other*/
+
+/*Get any paragraph that is a sibling of h2
+h2 ~ p {
+    color: aqua;
+}*/
+
+/*Get any anchor tag that is adjacent to h2*/
+/*Systems expert top line is adjacent, the others are not!*/
+h2 + a {
+    color: brown;
+}
+

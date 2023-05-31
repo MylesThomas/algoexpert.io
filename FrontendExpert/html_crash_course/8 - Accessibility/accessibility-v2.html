@@ -1,0 +1,38 @@
+<!--DOC type-->
+<!DOCTYPE html>
+
+<!--HTML START-->
+<html lang="en">
+
+    <!--Header-->
+    <head>
+        <title>Accessibility</title>
+        <script src="tabs.js" defer></script>   <!--Javascript: Holds up the tabs to work-->
+        <link rel="stylesheet" href="tabs.css"> <!--CSS: Colors -->
+    </head>
+
+    <!--Body-->
+    <body>
+        
+        <ol role="tablist"> <!-- Lets UI know that this ordered list is of tabs-->
+            <li id="tab1" role="tab" aria-controls="panel1" aria-selected="true">Tab 1</li> <!-- role: Let's the HTML know these list items are tabs-->
+            <li id="tab2" role="tab" aria-controls="panel2" aria-selected="false">Tab 2</li> <!-- aria-controls: Let HTML know which panel this is a tab for showing -->
+            <li id="tab3" role="tab" aria-controls="panel3" aria-selected="false">Tab 3</li> <!-- id="tab3": anything associated with this tab will take the id which is tab3 here-->
+        </ol>
+
+        <div role="tabpanel" id="panel1" aria-labelledby="tab1"> <!-- Let's know these are the panels from the tabs above-->
+            <p>Panel 1</p> <!--  aria-labelledby: makes a label - associates with tab1 because it takes tab'1 id! (dynamic)-->
+        </div>
+
+        <div role="tabpanel" id="panel2" aria-labelledby="tab2" class="hidden"> <!-- role: Let HTML know this is a panel - a panel of a tab!-->
+            <p>Panel 2</p> <!-- id: let HTML know who the parent tab is-->
+        </div>
+
+        <div role="tabpanel" id="panel3" aria-labelledby="tab3" class="hidden">
+            <p>Panel 3</p>
+        </div>
+
+    </body>
+
+<!--HTML end-->
+</html>

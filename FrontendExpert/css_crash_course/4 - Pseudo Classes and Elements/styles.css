@@ -1,0 +1,73 @@
+/*Pseudo Classes
+------------------------------------*/
+
+/*Links that are un-visited*/
+a:link {
+    color: red
+}
+
+/*When we come back it is purple, 
+hence the links that are un-visited part...
+- Now we are taking the 1 <a> that's visited and making it green */
+a:visited {
+    color: green;
+}
+
+/*Style based on current state 
+ie. "what they are currently doing"*/
+input:focus {
+    outline: 10px solid blue; /*When I click box, it gets huge and blue*/
+}
+
+/*Select invalid inputs
+Output must be 6+ or it will be red once you click out*/
+input:invalid:not(:focus) {
+    outline: 15px solid red;
+} /*When you start typing, both this and the big blue are true!
+CSS will default to this since it is lower in the .css file
+Add :not(:focus) so fix this, so it waits for you to stop typing!
+ie. 
+Blue: Hello World
+Red: Hello*/
+
+/*Select elements based on location in the DOM
+This takes the 1st paragraph in a set of direct sibling 'Go to' */
+p:first-of-type {
+    color: orange;
+    font-size: 32px; /*16x is default*/
+}
+
+p:last-of-type {
+    color: purple;
+    font-size: 8px;
+}
+
+/*Selects odd/even/(2n-1 is odd)
+p:nth-of-type(2n-1) {
+    color: pink;
+}*/
+
+/*look at every element ie. div: whos your first child */
+p:first-child {
+    color: greenyellow;
+    font-size: 24px;
+}
+
+
+/*Pseudo Elements
+------------------------------------*/
+
+/*first letter (of all <p>)*/
+p::first-letter {
+    font-size: 2em; /*2x size of current font*/
+}
+
+/*before and after are self explanatory*/
+p::before {
+    content: ">";
+}
+p::after {
+    content: "!"; /*make sure HTML is on same line to avoid whitespace*/
+}
+
+/*Note; it makes more sense to add ! in HTML, this is an eh example*/

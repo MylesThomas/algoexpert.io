@@ -1,0 +1,43 @@
+/*new stuff*/
+html {
+    font-size: 24px; /*makes all html scale up from 16 to 24*/
+}
+
+/*Fix the paragraph that is super long (bad user experience)*/
+p {
+    width: 60ch; /*60 character/line regardless of window size (using 50% is a bad idea)*/
+}
+
+/*for the id="parent"*/
+#parent {
+    font-size: 1.5em;
+    width: 60%;
+    border: 2px solid black;
+}
+
+/*old stuff*/
+
+/*for the id="red"*/
+#red {
+    font-size: 1em;
+    width: 50%;
+    background-color: red;
+}
+/*for the id="blue"*/
+#blue {
+    font-size: 1rem;
+    width: 50vw; 
+    background-color: rgba(75, 125, 175, 0.3); /*hard to read: #4b7daf*/
+} /*a: alpha value for shade/transparency*/
+
+/*for the id="green"*/
+#green {
+    font-size: 16px; /*doesn't scale with html, which is bad*/
+    width: 10rem;
+    background-color: green;
+}
+/*for anything inside of div*/
+div {
+    margin: 10px;
+    color: white;
+}
