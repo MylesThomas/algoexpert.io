@@ -1,0 +1,33 @@
+body {
+    display: grid;
+    grid-template-columns: [left] 3fr [middle] 1fr [right];
+    grid-template-rows: 1fr 3fr 1fr;
+    grid-template-areas:
+
+    /*Col 1*//*Col 2*/
+        "header header"     /*Row 1*/
+        "aside main"        /*Row 2*/
+        "footer footer";     /*Row 3*/
+
+    gap: 10px;
+}
+
+header {
+    grid-area: header;
+}
+
+main {
+    grid-area: main;
+}
+
+aside {
+    grid-area: aside;
+}
+
+footer {
+    grid-area: footer;
+}
+
+body > * {
+    border: 5px solid lightblue;
+}
