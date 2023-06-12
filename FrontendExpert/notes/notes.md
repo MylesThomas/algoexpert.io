@@ -5962,3 +5962,81 @@ Closing Thoughts
 - Performance is not as important due to the modern web
     - This micro-optimizations do absolutely nothing usually
         - Not worth sacrificing trade-offs like code maintainability
+
+Note: Right before JavaScript Crash Course, I decided to put figures in their own modules...
+
+---
+# JavaScript Crash Course
+
+# Lesson 1 - Introduction
+
+JavaScript is the 3rd (and arguably most important) pillar of the holy trinity of the modern web
+
+Master it and you can breathe life into any webpage!
+
+# Notes from the video
+
+JavaScript
+- Primary programming language of the web
+- Resembles a lot of other languages
+    - Java/Python
+    - Has a ton of unique properties too 
+        - Can really set you apart as a frontend engineer
+
+Something different about JavaScript: Usually executed inside of the user's browser
+- Other languages we run on our local computers...
+
+Because of this:
+- Pros:
+    - Unique set of features we can take advantage of 
+
+- Cons: 
+    - Need to be aware of limitations of browsers
+
+        Example: Event Loop
+        - JavaScript all executes in a single thread
+        - Browser uses an "event loop" to mimic concurrency
+            - Understanding how this event loop works is incredibly important for interacting with asynchronous programming
+                - Need it for working with APis
+
+Note: Asynchronous programming = allows you to start a long-running task and still be responsive to other events while that task runs (rather than having to wait until that task has finishes)
+
+Starting out: 
+- Syntax
+- Types
+- Operators
+
+Next - Nuanced: 
+- Model for Object Oriented Programming
+- How closures are used for scoping of identifiers
+
+Last: 
+- Work with browser to manipulate the document to create interactive webpages that respond to user input and communicate w/ the server 
+
+Prepare of frontend interviews: 
+- Deep knowledge of JavaScript is the most important skill
+    - Very likely you will have to implement functions (just like questions on this FrontendExpert site)
+    - Questions will test your understanding of his topics
+        - Almost impossible to solve without specialized knowledge of how JavaScript language is working 
+
+Also, you may be asked to write JS to add functioality to webpage
+- Not to test knowledge, but practical knowledge
+
+JS is very important!!
+
+# Lesson 2- JavaScript Basics
+
+# Key Terms
+
+## JavaScript
+
+
+## 
+
+
+## 
+
+
+## 
+
+
