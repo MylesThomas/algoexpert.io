@@ -5216,3 +5216,121 @@ A single array consisting of some defined numbers, which is applied to an image 
 
 ## Image Padding 
 Adding a border of zero-valued pixels to an output image
+- Goal of padding: Ensure that the dimensions of an image remain the same, after applying an image kernel
+
+Libraries typically allow 2 options:
+- Valid Padding: Not to pad the image
+- Same Padding: Zero-pad the image
+
+## Convolutional Layer
+Similar to a fully connected neural layer
+- However; each neuron is only connected to a subset of neurons in the subsequent layer (with respect to a receptive field)
+
+## Receptive Field
+The number of neurons in a preceding layer, which are connected to an adjacent layer of neurons
+- The largest receptive field: A fully connected neural network
+
+## Stride
+The incremental rate at which a kernel is applied to an image OR feature map
+
+## Feature Map
+The result of applying a kernel to an image or another feature map
+
+## Channels
+The number of stacked images
+- Typically: representing RGB (Red, Green, Blue) pixels
+- Or, the number of feature maps produced by a convolutional layer
+
+## Pooling
+Most often: max pooling 
+Sometimes: Average pooling
+
+A kernel is applied to an image and the max OR average of the pixel values in the kernel overlay is the resulting pixel value in the output image
+
+## Shift Invariance
+One of the goals of a convolutional neural network
+- Objects within an image can be in different areas of the image, yet still recognized!
+
+## Flatten Layer
+Takes in a series of feature maps and flattens out all of the values into a single feature vector
+
+## Mechanical Turk
+A crowdsourcing service which performs on-demand tasks that computers are currently unable to do 
+
+## Batch Normalization
+The process of normalizing values by mean of re-centering (subtracting the mean) or 
+
+Goal: Accelerate the learning of deep neural networks, by decreasing the number of epochs required for the loss function to converge
+
+Reminder: Epoch vs. Iteration: "if you have 1000 training examples, and your batch size is 500, then it will take 2 iterations to complete 1 epoch"
+
+## Keras
+Software that acts as an interface for Tensorflow
+- Aims to simplify the experience of working with neural networks
+
+## Graphics Processing Unit (GPU)
+A specialized device that has many cores, allowing it to perform many operations at one time
+
+- GPUs are often used within deep learning to accelerate the training of neural network
+    - They do this by taking advantage of their ability to perform many parallel computations
+
+## Pre-trained Models
+Models which have already been trained
+- These trained models can be used as layers of not-yet-trained neural networks to increase performance of these neural network
+    - Like "embedding layers"
+
+# Notes from the video
+
+Convolutional Neural Networks
+
+![Example of Image](./crashCourse/3-deep-learning/14-convolutional-neural-networks/figures/0.png)
+
+Let's say we are trying to do binary classification of photos:
+- Moutain 
+- No Mountain
+
+Method #1: Apply the full-connected neural network model to these images
+
+### Issue #1: Too many parameters to learn
+
+When we zoom into the photo, we get pixels.
+- Each pixel has a RGB value between 000-255
+    - Note: There is a value for Red, Value for Blue, Value for Green (each Pixel holds 3 values)
+
+Example: 200x200 image
+- Pixels: 200*200 = 40,000 pixels 
+- Each pixel has 1 RGB value: 1*3 = 3 data values per pixel
+- Total data values: 40,000 * 3 = 120,000
+
+Input to neural network: 120,000 nodes
+- 1st value is x1's red value, 120,000th value is x40,000's blue value
+- Because the input layer has 120,000 the intermediate/hidden layer will have 60,000 values
+    - This results in over 7 BILLION weights!!!
+
+Problem with that:
+- Too many parameters to learn for a simple binary classification problem
+    - Because it is a fully connected neural network, it has 7 billion weights to learn
+    - It also has 60,001 biases to learn
+
+Another issue with this approach: 
+
+### Issue #2: Sensitivity to object Location
+
+When we trained the model, the input layer had mountains in a certain location (in that x1-x120000 list)
+- When you flip the image, the mounains are now in a different space in the neural network
+    - Because the fully connected neural network is sensitive to object location, this is not great for our classification task
+
+To improve on these issues, We can borrow something from image processing:
+
+### Image Processing
+
+![Image Processing](./crashCourse/3-deep-learning/14-convolutional-neural-networks/figures/2.png)
+
+Image Processing: 
+- Filtering: Filtering with Kernels to alter an image
+    - Kernels: An array of values
+
+Example: 
+Input: Image
+Function applied: Blur kernel
+Output: Blurred Image 
