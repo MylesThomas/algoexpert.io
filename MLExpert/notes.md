@@ -5305,7 +5305,9 @@ Example: 200x200 image
 Input to neural network: 120,000 nodes
 - 1st value is x1's red value, 120,000th value is x40,000's blue value
 - Because the input layer has 120,000 the intermediate/hidden layer will have 60,000 values
+    - Note: It is 60,000 because due to binary classification, 2 input layers for 1 output layer (I think)
     - This results in over 7 BILLION weights!!!
+        - This is a problem.....
 
 Problem with that:
 - Too many parameters to learn for a simple binary classification problem
@@ -5328,9 +5330,626 @@ To improve on these issues, We can borrow something from image processing:
 
 Image Processing: 
 - Filtering: Filtering with Kernels to alter an image
-    - Kernels: An array of values
+    - Kernels: An array of values that alter an image
 
 Example: 
 Input: Image
 Function applied: Blur kernel
 Output: Blurred Image 
+
+![How to apply a kernel to an image]
+
+How to apply a kernel to an image:
+1. Overlay the kernel onto the image
+- Assume 0 padding 
+    - Terms with 0 padding 0 out
+2. Repeat for each pixel value until you get to the bottom right
+3. Sum result to get 
+
+As you can see, the values are no longer between 0 and 255.
+
+Normalize/scale them back into the range [0, 255]:
+- Equation to do so is above
+    - uses max and min value of range (0, 255), max and min of current grayscale image (-312, 903), and current number (903) to get the new RGB type value 
+
+Note: New image will find outlines of new images
+
+### Filtering with Kernels
+
+![Filtering with Kernels]
+
+What if instead of using the edges of kernel (fixed values ie. -1, -1, -1, 8), we used a neural network?
+What if we assigned weights to each?
+- tranpose(W) * x
+- Benefit: We can learn the weights according to some loss function
+    - Could be negative log loss of mountain being in an image
+
+
+#### Example: Building a Kernel to apply a Neural Network to a Basic Small Image
+
+![Building a Kernel to apply a Neural Network to a Basic Small Image]
+
+Input:
+- 1 basic small image (appears to be 4x4 ie. x1 ... x16)
+
+Steps to build a neural network:
+(Represents same as applying a kernel to an image)
+
+1. Overlay the kernel on top of the image
+- Start at top left pixel
+- In this example, it is a 3x3 over the 4x4 so some of the 3x3 is out of bounds
+
+2. Multiply the weights based on where the kernel is on top of the image
+Let's take x1:
+- x (the image) multiplied by whatever kernel is on top (w) 
+    - x1*w5
+    - x2*x6
+    - x5*w8
+    - x6*w9
+    - The rest are 0'd out since the kernel doesn't overlay on top of their x-value
+        - w1*0, w2*0, etc.
+- This draws a line between the x's (inputs) and the weight (hidden layer sigmoid) in the neural network
+
+- These values are all summed together and it becomes the value that feeds into Sigmoid #1
+
+Note: All of these are feeding into the same Sigmoid function
+- I would assume we do this for all 16 kernels, so there will be 16 sigmoid functions in this neural network!
+
+3. Repeat for the other inputs to complete the Convolutional Layer
+- There are 16 inputs total, and we did x1 already
+    - Note: Each node in the Convolutional Layer has a bias
+
+
+### Convolutional Layer
+
+![Convolutional Layer]
+
+Convolutional Layer: 
+- Receptive fields: For every neuron, we only have a subset of the inputs/neurons that that nueron has knowledge of 
+    - In this example above: Picture is 4x4=16, the kernel is 3x3=9, so even if you are not on the outside w/ 0's, only a subset (9/16) are connected
+        - Due to the 0 values when the kernel is overlayed over the edges, not every weight gets a value up to the convolutional layer's neuron
+    - This is different than our fully connected neural network
+        - previous video: Every input mapped/had a line to every value in the next/hidden layer
+            - Subset = All neurons from input  
+
+
+#### What does this do to improve?
+
+Reduces parameters:
+- Fully-connected: 256
+    - 16 input neurons * 16 neurons in hidden layer = 256 total weights/mappings/connnections 
+
+- Convolutional Layer: 9
+    - 
+
+Weight sharing/Shared parameters:
+- The 9 parameters in the example above are shared across the entire layer 
+- What this means for us: If our kernel of 9 weights learns to identify mountains in 1 portion of the image, the same weights can be used in another part of the image!
+
+#### Specs of Convolutional Layer
+
+##### Kernel Dimension:
+- Typically: 3x3, 5x5, or 7x7
+    - We used odd dimensions so we can center the pixel within the kernel
+        - Using an even dimension would make things hard (have to offset it)
+
+##### Padding:
+(True OR False)
+(We mentioned zero-padding earlier, where the edges hanging off the layer ended up being 0's since x*w = 0*w = 0)
+- Other types of padding (examples):
+
+    ![Padding Examples w/ 3x3 kernel and 4x4 image]
+
+    - With Padding - Input AND Output: 4x4
+    - With NO Padding - Input: 4x4; Output: 2x2
+    
+##### Stride:
+(Example was with Stride=1)
+- Think of stride as steps taken
+    - Stride=1: x1, x2, x3, ...
+    - Stride=2: x1, x3, x5, ...
+    
+- Reduces the dimension of the image in half
+
+##### Number of kernels to learn:
+- Per concultional layer, we will learn more than 1 at a time 
+    - Apply them all at the same time to the same image
+    - Generates 3 new images (features knobs)
+
+    - Varies from 4 per layer to 50000
+
+- How to avoid _ learning the same thing
+
+
+##### Channels:
+- 
+Example: Greyscale
+- Channel=1
+
+Example: RGB
+- Channels=3
+
+
+- No matter the number of channels, we will get 1 _
+
+We have learned what we need to for convolutional NN's, let's apply it to an image
+
+### Example of Convolutional Layer in Action
+
+![Example of Convolutional Layer in Action]
+
+#### Givens/Input Params:
+Input is an image
+- 
+- Channels = 3 (1 for Red, Green, Blue)
+- Dimensions = 185x185
+
+#### First Convolutional Layer
+
+The following params for Kernel are needed for a convolutional layer only:
+- Dimensions: 5x5 
+- Padding: Valid (ie. no padding)
+- Stride = 2
+
+After applying these convolutions....
+- Feature Maps: 6@91*91
+    - 6 channels
+    - 91x91 dimension
+    
+Notes: 
+- Where did 6 come from? 
+    - We picked this as the # of kernels to learn for this input image
+    - Remember: No matter the # of inputs channels, if you apply 1 single kernel, you will get 1 kernel out 
+        - We chose to learn 6 kernels, so we will get 6 out (5x5 kernel + 1)
+
+- Where did 91x91 come from? 
+    - Formula: [(n input + 2p - k) / s] + 1
+        - n: dimensions of input (185 here)
+        - p: padding (0 for valid/no padding)
+        - k: kernel size 
+        - s: stride ( 2 here)
+
+        - [(185 + 0 - 5) / s] + 1 = 90 + 1 = 91
+
+#### 2nd, etc. convolutional layers
+
+About:
+- More than 1 convolutional layer is used (usually)
+    - The earlier layers learn lines and corners
+    - The deeper layers learn curves and shapes, from the lines and corners
+        - It seems like deeper layers are squeezing out the value 
+
+How this looks: 
+
+1[2nd convolutional layers and on]
+
+
+Notes:
+- Number of ways to learn lines/zigzags is limited
+    - But, combining them gives more possibilities
+
+- Stride 2 made dimensions smaller
+
+- Convolutional layers typically are not adjacent
+
+#### Steps to :
+
+
+### Pooling Layer
+
+![Pooling Layer]
+
+Pooling Layer: 
+- 
+
+#### What does Max Pooling layer do?
+
+##### 1. Reduces Dimensions
+
+Helps us reduces dimensions
+
+##### 2. Increases the chances we will become 
+We can shift objects and still _
+- It "de-noises" the image
+
+
+### Average Pooling
+
+Instead of taking maximum in step 1, you take the average
+
+What this does: 
+- In general, max is preferred
+
+
+### Back to Example after adding max pooling layer
+
+Notes: 
+- When you add a max pooling layer, the number of channels remaims the same as the previous layer
+- Dimensions of max pooling layer are much less than Convolutional layer
+    - We used stride=4, so the size will be ~ 1/4 of the convolutinal/last layer
+
+
+#### Another Convolutional Layer (after Max Pooling Layer)
+Params:
+- 7x7 kernel
+- Strike = 4
+- Valid/no padding
+- Extract 10 kernels from previous layer @ 5x5
+    - What this means: 
+        - We end up with a 5x5 image
+
+- 
+
+What do we do with all of these feature knobs?
+
+#### Flattan Layer
+
+![Flattan Layer]
+
+What this does: Un-ravels the entire thing into 1 flat layer
+- The 5x5 w/ 10 kernels turns into 250: 5*5*10 = 250
+    - Note: Layers are fully connected
+
+- Output of flatten layer: Single neuron
+    - This single neuron makes the prediction(yhat) !
+        - 0 if mountians, 1 if yes
+
+
+### Hypothetical Example #2: We work for a small hedge fund who is interested in making better earnings predictions
+
+Earnings: Reports like revenue/expenses
+-  Release 1x per quarter (4x per year)
+- Investors will trade on the company's stock (up or down) based on that earnings report 
+
+Idea: If we predict earnings report before it is released, we can place a trade and make money if the market goes in our favor 
+
+Fortunately, a gaming company was set to release a somewhat-novel gaming device in the coming months.
+- Hypothesis: If we can figure out how many devices are being distributed out to customers, then we can get a better idea of what their earnings report will look like!
+
+#### Givens:
+3 distribution centers in North America
+- 2 in USA, 1 in Canada
+
+Thought: If we do the following, we can predict how many consoles they are selling, and form a better earnigns prediction
+- Monitor how many tractor trailors / trucks leave the distribution center a few months before the release
+- Measure the increase in this AFTER the release
+
+
+How to monitor distribution centers?
+1. Traffic Cameras
+- USA: We can use freedom of information act to get traffic footage
+    - Won't work for Canada but let's ignore that for now 
+    - Also assume we have a camera of traffic camera footage outside the center
+
+Notes:
+- We could hire someone to watch by hand
+    - This would not scale - no go!
+
+Goal: Build a model that can tell if trucks are in the frame
+
+### 
+
+About
+- We will ignore cars and sedans
+- We don't care if it is coming or going 
+
+#### Traffic Cameras
+- 30 images per second
+- Model is "truck in frame, or not"
+
+#### Logic
+
+
+#### Features/Labels
+Features: 
+- 100,000 images (1hr of video)
+- 335x335 RGB
+- Half no trucks
+- Mechanical Turk
+- Various angles
+
+
+#### Model
+Convolutional Neural Network (CNN)
+
+##### Layers: 
+1. Input: 3 @ 
+
+
+##### Hyperparameters
+1. Regularization
+
+
+
+##### Training
+Split: 80/10/10
+- 10 epochs (go through dataset 10 times)
+
+
+##### Initial Results
+Results: Overfit model
+- Training loss looked really good (it converged)
+- Validation loss bad (didn't perform well)
+
+How to fix?
+- Add 'Dropout-0.2" to our neural network
+
+What this means: Add dropout after our 2 Max Pooling Layers
+- Additionally: Add dropout between convolutional layer #3 and flattened layer 
+
+##### Results after Adding Dropout
+Results: Model was too slow to converge
+- Training this neural network took too long for the loss function to decrease
+
+
+#### Batch Normalization
+Batch Normalization: Normalize the values (subtract by mean, divide by sd) for all the values, before they get passed to the activation function within the Convolutional Layers
+- We can also do this before the activation function in the fully-connected flattened layer
+
+What this does: Smoothens and speeds up the loss function's convergence 
+
+##### Batch Normalization - Effects on Dropout
+We can decrease dropout once we apply Batch Normalization
+- Why? Batch Normalization already contributes to regularization!
+
+### Results
+
+After all of these changes, our model ends up with ~100% test accuracy.
+- Remember: To make investments off of this, the model output (# of trucks) needs to go into another model, which will predict earnings.
+
+
+### Best / State-of-the-Art Convolutional Neural Networks
+
+Options: 
+- AlexNet: Runs 2 convolutional NN's in parallel, and makes cross-connections between them
+    - This performs very well
+
+- ResNet: Introduces 'residual connections'
+    - residual connections: Can be effective at eliminating 'vanishing gradients' as the network grows deeper and deeper
+        - Implemented by adding future map values to future, future maps
+            - This allows networks (using skip connections / ResNet) to go fairly deep
+                - ResNet has 150 layers
+                    - The residual connections have been used in some cases up to 1000 layers!
+
+Note - Assumption: The deeper the layers/network, the better ability the network has to represent complex data
+
+- GoogleNet: Introduces an 'inception layer'
+    - inception layer: Using different kernel sizes, per convolution
+        - Different size kernels produce different sized feature maps
+        - The feature maps are appended on top of each other
+            - Smaller feature maps: 0-padded (so they can match the size of larger maps)
+
+#### Best: ResNet
+ResNet beat GoogleNet
+
+
+### Best Library for Using CNN's: Keras
+
+Keras
+
+Offerings:
+- Conv2D: number of kernels, kernel sizes, activation functions (per layer)
+- Dense/fully connected layers: 
+- Flattening: 
+- GPU Support: (Graphical processing unit)
+
+### Pre-Trained Models
+
+For those who don't want to start from scratch... Keras Applications!
+
+Keras Applications:
+
+Offerings:
+- Pre trained models
+    - ResNet: 
+    - InceptionNet: 
+
+
+# Lesson 15 - Recurrent Neural Networks
+
+RNNs
+
+# Key Terms
+
+## Recurrent Neural Network (RNN)
+A neural network in which the output is routed back into the network to be used with the subsequent input
+- good for time-dependent and sequential data problems 
+    - tough to train due to vanishing gradients...
+
+## Hidden State
+The output of the Recurrent Neural Network, at the previous timestamp
+
+## Cell State
+Used within a Long short-term memory (LSTM) acting as an additional hidden state
+
+## Backpropogation Through Time
+Backpropogation within an RNN in which an additional partial derivative term is calculated per time step that the input required
+
+## Long Short-term memory
+A type of RNN with a cell and hidden state, input gate, and reset gate
+
+## Gated Recurrent Unit
+A type of RNN with a hidden state, update gate, and reset gate
+
+## Embedding Layer
+Typically used as the first layer in a neural network which is optimized to transform the input in an effort to maximize 
+
+## Gradient Clipping
+Capping the value that the gradient is allowed to be
+- Typically: Used in an effort to avoid exploding gradients
+    - Initialization techniques are favored
+
+# Notes from the video
+
+
+
+.....
+
+
+
+# Lesson 17 - Collaborative and Content Based Filtering
+
+Teamwork makes the dream work!
+- this applies to these ML systems
+
+# Key Terms
+
+## Content Filtering
+A recommendation technique which takes into account a single user's features and many items' features
+
+## Collaborative Filtering
+A recommendation technique which uses many user's and items' data
+- Typically: In the form of a user-item matrix
+
+## User-item Matrix
+A matrix which contains the interactions of users and items
+- Items can take the form of products, music, videos
+
+## Pearson Correlation
+A measure of the correlation between 2 inputs
+- Context of recommendation systems: Pearson correlation can be used to construct an item-item similarity matrix
+
+## Time Decay
+The added modelling assumption that interactions between items and users should count for less over time 
+
+## Inverse User Frequency
+Factors the user-item matrix into embeddings such that multiplying together the resulting embedding layers gives an estimate for the original user-item matrix
+
+## Implicit Rating 
+A rating obtained from user behavior as opposed to surveying the user 
+
+## SparkML
+Refers to APIs which provide machine learning capabilities on Spark dataframes
+
+## Cold-start
+A challenge with recommendation systems in which users or itmes are new
+- there is no information/limited info in terms of the user-item matrix
+- This can make personalized recommendations difficult/even impossible
+
+## Echo Chamber
+A state of a recommendation system in which user behavior is reinforced by the recommendations themselves
+
+## Shilling Attack
+A type of attack on a recommendation system in which users manipulate the recommendations by inflating or deflating positive interactions
+- Oftentimes: For their own items / competitor's items
+
+
+# Notes from the video 
+
+User-Based Collaborative Filtering
+
+![User-Based]
+
+Steps:
+1. Find K-NN of u_i to form prediction
+- Use Jaccard, Pearson, or Cosine
+
+2. Using K-NN data, predict the response for u_i
+
+3. Recommend u_i highest prediction
+
+
+![Item-Based]
+
+Item-item similarity matrix: 
+
+Steps: 
+1. Calculate item-item similarity matrix
+- 
+
+2. Predict response for u_i
+
+3. Recommend the item with highest prediction
+
+
+![Time Complexity Differences]
+- User based matrices are more sparse
+
+Note: item-based has less calculations
+- Work can also be done offline
+
+![Memory Based Recommendation Systems]
+
+![Alt text](image.png)
+#### Half life
+
+
+#### More weight to less-frequent items
+
+Inverse user frequency
+- Applies less weight to liking a popular post
+- Applies more weight to liking a not-popular post
+
+
+#### Matrix Factorization
+
+What are terms of matrix factorization:
+- 
+- 
+
+Note:
+- You can also add regularization
+
+
+#### Implicit Ratings
+
+
+
+
+
+
+
+
+### Problems with Collaborative Filtering
+
+#### Cold Start
+(This can be for both users AND items)
+
+
+#### Echo Chamber
+
+
+- We need diversity
+
+
+#### Shilling Attacks
+
+Ways to mitigate: 1 user per phone
+
+
+## Content-based filtering
+
+![Content-based filtering]
+
+Content-based filtering: Looks at what users viewed in the past 
+- Doesn't require any other user's data
+- NEED to have context about other items
+
+#### Deep Learning Hybrid
+
+Similar to the deep collaboration method, but includes side features
+
+## What are we going to use for OUR recommendation system?
+
+Decision: Deciding whether or not to send a push notification to a user, based on the content written by our content creators/writers 
+
+Goal: Send a push notification to users that they will click on 
+
+
+We will use Matrix Factorization!
+
+Features:
+- Features: 1 through 4
+- Alpha = 40
+- 
+    - Cup = (1 + 40 * {1,2,3,4})
+- Else 0
+- U and P were both 10
+    - Latent factor
+
+SparkML
+
+### Results
+Click rate: 9.4%
+- Only 4.9% when sending non-personalized / trending posts
+    - Very good lift! Model is a success

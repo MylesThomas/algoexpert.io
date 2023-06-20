@@ -2545,20 +2545,20 @@ A library provided by Apache Spark which provides Spark clusters access to ML al
 # Notes from the video
 
 Previous videos:
-- HDFS and Spark Cluster can help produce features and labels
-- Now, to explore models, we need to train mocels
-    - automate training needed for launching the model
+- HDFS and Spark Cluster together can help produce features and labels
+- Now, to explore models, we need to train models
+    - automate training needed for launching the model (stay up-to-date with most recent features)
 
 Idea of this video:
 
-In this past, we looked at
+In this past, we looked at situations that are not scalable:
 - models over 1 machine/processor
 - Small datasets
 
 Reality of industry/real world:
 - Computing power over multiple computers 
 - Very Large datasets
-    - Need to parallelize and alter in order for things to work in a big data setting 
+    - Need to parallelize/alter in order for things to work in a big data setting 
 
 ### How to train a basic model
 
@@ -2589,10 +2589,12 @@ What we can do to speed this up:
 2. Analyze every node on a particular level, in parallel (Less intuitive)
 - Evaluate every feature and split point of that feature as we descend down the tree
 
-3. One of major parts of gradient boosted tree is sorting the features in order to find best split points we can use: By using original sorted list in a clever way, we can prevent needing to re-sort every time we evaluate a split point 
+3. Sort the values in order of best to worst
+- One of major parts of gradient boosted tree is sorting the features in order to find best split points we can use:
+    - By using original sorted list in a clever way, we can prevent needing to re-sort every time we evaluate a split point 
 
 4. For gradient boosted trees: We CANNOT parallelize the ensemble technique of boosting (subsequent trees depend on previous tree..), but with random forest we can parallelize the construction of each tree in the ensemble 
-- This is because there is no dependency
+- This is because there is no dependency:
     - Gradient boosted tree: Sequence of past gradient
     - Random forest: Each row in training data gets its own decision tree (ie. a "weak learner")
 
@@ -2603,36 +2605,822 @@ In general: All of these parallelized processes can speed up training by ~90%
 ![Matrix Factorization](./largeScaleCourse/4-large-scale-training/11-basic-models/figures/1.png)
 
 Matrix Factorization: Uses ALS (Alternating Least Squares)
-- Used to approximate
-    - Alternates optimization between
-        - These embeddings can get quite large, so 
+- Used to approximate used-product matrix OR user-item matrix so that the user-embedded matrix and product-embedded matrix will multiply together (and then approximate the original)
+    - Alternates optimization between user-embedding and product-embedding
+        - As it alternates, it performs least squares
 
+Example: 
+- 100,000 products
+- 100,000,000 users
+    - These embeddings can get quite large, so we can split these up while solving for the alternate embedding
+
+What happens here:
+- Performing ordinary least squares (OLS) on P, while locking in the value for U
+    - We can multiply different sections of U across P so that we can follow OLS exactly, but still getting the benefit of splitting work across machines
+    - As these machines calculate partial results, they communicate with each other to make sure all of the machines have all of the total results
 
 ### Logistic Regression
 
-![Logistic Regression]
-
-Logistic Regression: IF we had multiple machines available
+![Logistic Regression](./largeScaleCourse/4-large-scale-training/11-basic-models/figures/2.png)
 
 
-Note: 
-- Uses the gradient of a gradient
-    - 
+Logistic Regression: IF we had multiple machines available, we would be able to put the parameter coefficients across the cluster
+- B0 and B1 on Machine 1, spread B0 and B1 to machines 2 and 3, machine 1 then spread mini-batches of data between the 2/3 machines 
+    - Each machine 2/3  executes the model and gets part of the mini-batch gradient, sends it back to machine 1
+    - Single machine 1 aggregate the partial mini batch gradients and add them up
 
+Note: We probably won't actually use gradient descent
+- Most models in production use '...' algorithm 
+- Effectively: This is a variation of gradient descent where they don't just use the gradient, but uses the GRADIENT OF THE GRADIENT 
+    - Helps us get more information of how we should update the coefficient of LR model
+
+## Generalities about ML Algoritms
+Parallelization: Almost always in Basic ML Models, there are variations that you can leverage parallelization
+- This means a faster convergence to optimal parameter values!
+    - We can train for less time, and usually have better models !
+
+Note: Basic ML Models = anything besides deep learning
+
+### How important is this speed/parallelization actually?
+
+Example: Stock market prediction model
+- We incorporate all prices of all stocks throughout the last 20 years
+
+If our model takes 3 days to train, we can NEVER actually use it!!
+- Need to parallize to get the benefits of ML 
+
+How to best does this?  Spark's library called MLlib.
 
 ## Spark - MLlib
 
-![MLlib]
-
-Examples:
-- 
--
-- 
-
-Note: Cannot use KNN in MLlib, but can use with other Spark libraries
-
-MLlib also offers:
-- 
+![MLlib](./largeScaleCourse/4-large-scale-training/11-basic-models/figures/3.png)
 
 
-### Example: Using MLlib to train a model on _
+MLlib: Implements parallelized/optimized versions of many models
+
+#### Examples of Models on MLlib:
+- Linear/logistic regression
+- SVMs
+- Gradients Boosted Trees/Random Forests
+- Naive Bayes
+- Bisecting K means
+- SVO/PCA
+- Collaborative Filtering
+
+Note: Cannot use K-NN in MLlib, but can use K-NN with other Spark libraries
+- Usually: Just MLlib but just a different basic model 
+
+Spark also offers:
+- Ways to analyze the performance of models 
+    - Thresholds
+    - AUC
+
+#### Examples of Offerings on MLlib:
+- Feature standardization
+- TF-IDF
+- Feature Hashing
+- Stop words removal
+- One hot encoding
+- Many more!
+
+### Example: Using MLlib to train a model on predicting if user's of a website will cancel in the next week, or not
+
+Info:
+- Basic Model: MLlib's version of logistic regression.
+- Data and features to predict with: User interaction data
+- Classification task: Will users on the website cancel in the next week?
+
+
+#### 0. Read in data from HDFS
+
+``` python
+df = spark.read.parquet("/cancellation_features_labels/*.parquet")
+
+df.show()
+```
+
+What is in this data for each user_id:
+- Feature #1: Monthly interaction count
+- Feature #2: Weekly interaction count
+- Feature #3: Daily interaction count
+- Label: Cancelled within week (1 or 0)
+
+#### 1. Isolate Features from Labels
+
+##### Features
+
+This simply creates a column `features` that takes each of the predictor column values and puts them into 1 ordered list.
+
+We do this using a Vector Assembler.
+- Input: 3 names for the predictors/features
+- Output: `features`:
+    - Features is a transformed column with all features in 1 list
+
+``` python
+from pyspark.ml.feature import VectorAssembler
+assembler = VectorAssembler(
+    inputCols=["month_interaction_count", "week_interaction_count", "day_interaction_count"],
+    outputCol="features"
+)
+
+df = assembler.transform(df)
+df.show()
+```
+
+##### Labels
+
+This simply creates an identical column with the name `label`.
+
+``` python
+df = df.withColumn("label", F.col("cancelled_within_week"))
+df.show()
+```
+
+##### How it looks after:
+
+Features/Labels are now condensed into 2 columns:
+- features: Series of lists ie. [941.0, 9.0, 0.0]
+- labels: Series of integers ie. 1
+
+
+#### 2. Begin creating our model
+
+Does the following:
+1. Import logistic regression from PySpark ML classification
+
+2. Cache our data
+    - Makes sure our data is available in all spark nodes!
+        - Necessary: If our spark cluster isn't big enough to have all of the data in memory, some will spill over to the disk
+        - This Cache Operation ensures we try to get everything 'in memory'
+
+3. Split data into train/test sets
+
+4. Define Logistic Regression object
+- maxIter: max iterations we want our algorithm to do, when learning
+
+5. Take our LogisticRegression object and fit our training data to it
+
+6. Using trained model, get predictions from test set 
+- .transform() will add `rawPrediction`, `probability`, and `prediction`
+
+7. Look at predictions
+
+``` python
+# 1. 
+from pyspark.ml.classification
+# 2. 
+df = df.cache()
+# 3. 
+training_data, test_data = df.randomSplit([0.6, 0.4])
+# 4. 
+lr = LogisticRegression(maxIter=10)
+# 5. 
+lrModel = lr.fit(training_data)
+# 6.
+predictions = lrModel.transform(test_data)
+# 7.
+predictions.show()
+```
+
+#### 3. Results
+
+So far:
+- With 10 training iterations (light work), our accuracy was 2/3 for 66%
+    - In reality: Way more data and iterations, and hyperparameter tuning
+
+
+# Lesson 12 - Deep Learning Models
+
+Just like in previous video, we will put the practical in the academic and take a deeper look at deep-learning models
+
+# Key Terms
+
+## Model Parallelism
+A machine learning model training strategy used to maximize the utilization of computer resources (CPUs/GPUs)
+- The MODEL is distributed across 2+ devices
+
+## Data Parallelism
+A machine learning model training strategy used to maximze the utilization of computer resources (CPUs/GPUs)
+- The DATA is distributed across 2+ devices
+
+## Graphics Processing Unit (GPU)
+A specialized device that has many cores, allowing it to perform many operations at one time
+- Oftentime: Used within deep learning to accelerate training of neural networks
+    - Takes advantage of the ability to perform many parallel computations
+
+## Concurrency
+When 2+ computer programs share a single processor
+- GPU CONCURRENCY: Used when there is too much work for a single GPU.
+
+# Notes from the video
+
+### Refresher
+
+![Refresher](./largeScaleCourse/4-large-scale-training/12-deep-learning-models/figures/0.png)
+
+Refresher - Basic neural network:
+1. Sigmas take in the inputs (x1/x2) multiplied by weights (w1/w2) and take summation of connections to that Sigma/Sigmoid
+- x1*w1 + x2*w3
+- x1*w2 + x2*w4
+
+2. Output layer Sigma takes inputs from the outputs of hidden layer
+- ie. Sigma(x1*w1 + x2*w3) * w5
+- ie. Sigma(x1*w2 + x2*w4) * w6
+
+3. Output layer sigma gives the prediction
+- ie. Sigma(
+    Sigma((x1*w1 + x2*w3) * w5) + 
+    Sigma((x1*w2 + x2*w4) * w6)
+)
+
+4. Y_out is the output of the final sigmoid
+- After this forward pass it complete (we have y_hat), we use y_hat to determine the gradient of the loss w/ respect to all of the weights
+    - This is done by Backpropogation
+    - ie.  
+
+5. After we have all of the gradients of the loss with respect to each weight, we can update each respective weight in terms of its gradient 
+
+Now that we understand the basic NN model, let's look at how we represent these computations in a machine!
+
+![Machine]
+
+Machine:
+- RAM: Memory
+- CPU: 
+
+### Computations
+
+Order of operations:
+1. RAM stores mini batch of examples
+- X -> y (features -> Labels)
+
+2. CPU fetches an example from RAM
+
+3. CPU does a forward pass with this example to generate the loss
+- Computation here: Matrix multiplication!
+
+    ![Order of operations of a Matrix Multiplication](./largeScaleCourse/4-large-scale-training/12-deep-learning-models/figures/1.png)
+
+    - Put inputs (x1/x2) into a vector
+    - Put weights (w1/w2/w3/w4) into a matrix
+    - Multiply the input by its weights 
+        - Use matrix multiplication rules to split out formula
+        - Good to use this because linear algebra libraries are highly optimized (efficient matrix multiplication)
+
+Note: matrix multiplication can also be used during the Backpropogation stage
+
+4. Use the y_hat/prediction during Backpropogation to get a gradient with respect to the loss function
+
+5. CPU places that loss function back in RAM
+- This 2-5 repeats for all observations
+
+6. Mini-batch gradient is put back in RAM
+(to be used for the weight update)
+- After all examples are done in the mini-batch, summation of the gradients is added up to be the total mini-batch of the gradient
+
+Note: Low level operations like matrix multiplication, let's look at how a convolution can be seen as a matrix multiplication:
+
+#### Convolutions and Matrix Multiplication
+
+![how a convolution can be seen as a matrix multiplication](./largeScaleCourse/4-large-scale-training/12-deep-learning-models/figures/2.png)
+
+Remember: A convolution is formed when we filter an image with some kernel
+- xi's of input image * wi's of kernel, summed up becomes value in convolutional layer
+
+Old Way: Takes 4 Steps
+1. Apply kernel to image in top left
+....
+4. Apply kernel to image in bottom right
+
+New way: Flatten out the Kernel
+1. Flatten kernel
+- Same exact kernel matrix, but now flatten out into 1x9 vector (instead of 3x3)
+2. Flatten section you would have overlayed the kernel with 
+- Same exact 3x3 area, but now flatten out into a 1x9 vector
+3. Multiply flattened sections by flattened kernel to end with 2x2
+- Note: This Allows us to use optimized linear algebra libraries to compute convolutions
+
+Operators: Need to be highly optimized for large scale ML 
+- Usually: Done via concurrency
+    Examples of operators:
+    - Fully-connected layer
+    - Convolution layer
+
+Old way: Convolutions happen step-wise (as we slide the kernel with/along the image)
+Concurrency: Executes all of those steps for the entire image at 1 time 
+Parallelization: 
+- Also extremely important for large scale ML 
+
+Earlier example: 
+- 1 machine 
+- 1 CPU
+
+Now: 
+- 1 machine
+- 3 CPUs
+    - each CPU could grab an example from the mini-batch and independently calculate the gradient with respect to that individual example
+    - when finished, store in RAM
+    - Then, 1 of the CPU's will grab all of the gradient loss from the memory/RAM and add them up to get the mini-batch gradient
+        - This can finally be stored in RAM and used for weight updates 
+
+Software to implement this: Open multi-processing (Open np)
+- This coordinates all of the processes across each of the CPUs
+    - This is especially true when we have share memory ie. 1 machine and 3 CPU, they share RAM
+
+### Learning about CPUs
+
+CPUs generally havem ore than 1 core
+- What does this mean: the CPU can handle more than 1 task at a time
+
+``` python
+# Find the number of cores on my machine
+import multiprocessing
+
+multiprocessing.cpu_count() # mine has 8
+```
+
+``` r
+# Find the number of cores on my machine
+parallel::detectCores() 
+```
+
+#### CPU's are very fast to compute things BUT have a low bandwidth
+
+Example to illustrate how CPUs cannot support a lot of examples:
+- Givens:
+    - 1 CPU w/ 4 cores
+        - ie. it can handle 4 examples at a time
+
+- With 100m training examples, 0.1ms per example
+    - Note: The 0.1ms comes from forward-pass, backpropogation, then update stages
+
+- 45 minutes per Epoch
+    - 10 epochs total would take 7 hours
+        - Hyperparameter tuning will make this take even longer
+
+
+How do we deal with CPU's having low bandwidth/throughput?
+
+GPUs.
+
+### GPUs
+
+![GPUs - Graphics Processing Unit](./largeScaleCourse/4-large-scale-training/12-deep-learning-models/figures/3.png)
+
+Graphics Processing Unit: Peripheral component to the CPU
+- Machine can have all of the following:
+    - RAM
+    - CPU
+    - GPU
+        - Has multiple streaming multi-processors
+            - Each of these has a series of cores
+
+Note: Expensive GPUs can have over 50 multi-processors AND 60 cores per processor
+- 50*60 = 3000 cores for 1 GPU!
+
+##### GPU Speed
+
+In general: Slower than making calculations on the CPU itself
+
+Example to show: Have a single 1 example in Ram...
+Steps:
+1. Send it to CPU
+2. Send it to GPU
+3. GPU calculates gradient
+4. GPU passes that back to CPU
+5. CPU passes that back to RAM
+
+What's the actual benefit here then, since there are more steps now?
+- The bandwidth is much larger
+
+
+Example to show: Have 100 million examples in RAM (10 GB total)...
+Givens:
+- 100 million examples
+- 10 GB RAM
+- Bandwidth between RAM/CPU: 25 GB/s
+- Bandwidth between CPU/GPU: 8 GB/s
+- GPU can hold up to 16GB of data
+- 3,584 computations at a time can be done in the GPU
+    - GPU has 56 streaming multi-processors
+    - Each streaming multi-processor has 4 cores
+- Computations still take 0.1ms
+    - Same speed as CPU
+
+Steps:
+1. Send it to CPU
+2. Send it to GPU
+3. GPU calculates gradient
+4. GPU passes that back to CPU
+5. CPU passes that back to RAM
+- Still account for bandwidth on transferring data on the way back
+
+Results: 
+- 1 Epoch takes 3 seconds to perform finding overall loss for the data 
+    - We typicaly do mini-batches, but this example speaks for itself
+- 10 epochs now takes 30 seconds
+    - Compared to 7 hours....
+    - This order of magnitute usually holds up, where GPU is THAT much faster than CPU.
+
+Can we have more than 1 GPU? Yes!
+
+##### Machines with more than 1 GPU
+
+CPU has to be the organizer of the processing of all of the GPUs
+- It ends up being the bottleneck (at first)
+
+##### Method #1 of removing CPU Bottleneck: Cube Method
+
+To remove this bottleneck, we allow the GPU's to converse with one another. How so?
+
+NVLink (High speed GPU inter-connection)
+- Gives direct memory access from 1 GPU to another GPU
+    - How GPUs are able to talk/share information so that the CPU is not a bottleneck 
+        - Terrabytes per second in throughput!
+
+Note: Now that we know this, we will address CPUs and GPUs as intetchangable...
+
+Problem: What if we cannot fit all of our data in RAM?
+
+Example to illustrate:
+Before:
+- RAM needed to fit 10GB
+
+Givens:
+1 billion observations / rows of data
+- Each row of data is now 200 columns/features
+- 800 GB total!
+    - Can't fit this all in RAM...
+
+This is now too much to fit into RAM, so now we need to use a HDD (Hard Disk).
+
+What impacts does using the hard disk have?
+- Need to account for 100 mb/s bandwidth between HDD and RAM
+    - 98% of the total training time is spent moving the data from HDD to RAM...
+
+##### Method #2 of removing Bottleneck: Vertically Scale Machine Up
+
+Similar to supercomputer
+- Keep adding CPUs/GPUs until all of the data can fit on 1 machine
+
+This isn't great since supercomputers are SUPER expensive....
+
+##### Method #3 of removing Bottleneck: Vertically Scale Machine Up
+
+What we do here:
+- Spread our 80GB of data across 8 machines
+    - Each machine gets 10GB of data
+
+How this would work:
+
+
+
+Steps:
+1. CPUs would generate gradients for each part of the 80GB of data
+2. The CPUs would ship all of the data via direct connection/neighbors to 1 machine
+3. Machine 1 would aggregate all of the partial gradients into 1 total gradient (with respect to the loss)
+- We can now upgrade the gradients/weights in the model
+
+How did these CPUs communicate in Step #2?
+- Ethernet
+OR
+- Direct communication with memory of devices (ie. InfiniDAM)
+    - Note: This is very similar to SPARK
+
+Why this may not be optimal: It is going to be 'synchronous'
+
+Example to illustrate: 
+- Using the same 8 machines
+- Machine #5 goes down
+    - In order to continue on, Machine #1 needs to wait for Machine #5 to turn back on before continuing (Network goes bad, machine goes down)
+
+The entire training process is now stalled!
+- If you scale to 1,000 machines, it is more than likely that >= 1 machine will be down at any given point
+
+How can we scale up a non-Spark way in order to avoid this problem of single points of failure?
+
+Downpour Stochastic Gradient Descent.
+
+##### Downpour Stochastic Gradient Descent
+
+We can forget the synchronous property and do the following:
+1. Parameter server: 1 single machine responsible for the parameters/weights
+2. Work machines: Pull current parameters of model from parameter server
+    - Then pulls data from queue/fetches from some database to find respective gradients (given the current model weights)
+    - When these machines finish finding the gradient, they ship the gradient loss back up to the Parameter server
+3. Parameter server now updates the weights
+4. Work machines who sent out the gradients repeat #2
+- Re-fetch data
+- Compute respective gradient
+- Send up to parameter server
+
+Note: This happens asynchronously, so any worker can be sending gradients while another can be receiving most recent weights from the server
+
+Pros of Downpour Stochastic Gradient Descent:
+1. If a node/Machine goes down, the Parameter Server can simply assign that work to a different machine
+
+Problems with Downpour Stochastic Gradient Descent:
+1. These machines will have stale parameters
+- Meaning: When receiving a particular weight from the parameter server, it may be the case that there are more recent weights to be made available in a few seconds
+- (Translation: Models could be executing their mini batches on old model params)
+- Ways to mitigate this problem of stale parameters: "Barrier"
+    - Synchronizes machines for if any 1 machine calls too far behind
+
+Note: In practice, even with the parameter staleness, performance is still really good!
+
+Setup in practice:
+- More than 1 parameter server (Let's say 10 machines)
+- Each parameter server has workers assigned to them
+    - What does this introduce? Data Parallelism.
+
+### Data Parallelism
+
+![Data Parallelism]
+
+Data Parallelism: Model is same for each machine, but different data/mini batches go to each machine 
+- Effectively: We are parallelizing data across machines, but every machine has the same model
+
+But... what if the model cannot fit in RAM or GPU?
+- We must partition our model across different machines (Model Parallelism)
+
+### Model Parallelism
+
+![Model Parallelism](./largeScaleCourse/4-large-scale-training/12-deep-learning-models/figures/4.png)
+
+Model Parallelism: In order for the forward pass or backpropogation to work, the machines need to communicate at points
+- Generally: Works better with Convolutional NN's than fully connected NN's (if every node was attached to every other node, that's a lot more communication to be done!)
+
+##### Model Parallelism - Method #1: 
+Steps:
+1. Split model into x parts
+- Each machine gets 1/x ie. 1/4th of the model
+2. Machines communicate at each point (where they would be connected) if it was in 1 machine
+
+##### Model Parallelism - Method #2:
+Steps: 
+1. Split up the model by each layer of the NN
+2. Distribute each layer to a separate machine
+
+Intuitively: May not make sense, because before layer 2/machine 2 can start working, doesn't layer 1/machine 1 have to be finished?
+- We can use 'Pipelining'
+
+##### Pipelining
+
+![Pipelining](./largeScaleCourse/4-large-scale-training/12-deep-learning-models/figures/5.png)
+
+Pipelining: At any given time, each machine is calculating its own independent example
+- Both for the forward pass AND backward propogation
+Steps: 
+1. Example 1 goes in 
+2. Then examples 2 goes in
+3. Then examples 3 goes in
+
+Now.... what if the Model AND Data cannot fit into the RAM?
+ - We combine them
+
+#### What to do if Model AND Data cannot fit in RAM
+
+![What to do if Model AND Data cannot fit in RAM](./largeScaleCourse/4-large-scale-training/12-deep-learning-models/figures/6.png)
+
+Combine the following:
+1. Parameter server architecture
+2. Model parallism architecture
+- Can introduce pipelining if we want
+    - in this example, we introduce sections of the model across each machine....
+
+Things to think about:
+- Intermittent backup: Backups to calculations so that if machines go down, when we replace that machine, we don't have to re-calculate certain checkpoints
+    - Checkpoints that we would have if we used backups
+
+One implementation of intermitten backups: Project AtoM
+
+![Project AtoM]
+
+####
+
+Parameter Server: Example of a 'Centralized Topology'
+- Can require a lot of network bandwidth 
+    - Typical: ie. up to 50 GB/s
+
+- Mitigation involves trading staleness for less communication
+    - Example: Instead of updating for each mini batch sample a worker gets, could pull a few mini batches from the queue/HDFS and update parameter after calculating 3-4 mini batches
+        - This speeds things up (via less communication) but leads to more data staleness ()
+
+- Can also compress data before sending
+    - Can still achieve the same results!
+
+Examples of Parameter Server
+- TensorFlow
+- MXNet
+
+As opposed to centralized tologies, there are also de-centralized topologies!
+
+![De-centralized topologies](./largeScaleCourse/4-large-scale-training/12-deep-learning-models/figures/7.png)
+
+De-centralized tologies: 
+- No parameter server / leader
+- Each machine still gets a section of the mini-batch
+Steps:
+1. Each machine calculates the gradients
+2. Each machine communicates with every other machine to share their respectivegradient
+- Now every machine has the total gradient
+3. Each machine can update each of their weights appropriately 
+
+Problems with this approach: 
+1. Bandwidth is a limiting factor and makes this a bad strategy
+- How to Improve? Ring Reduce
+
+##### Ring AllReduce / Ring Reduce
+
+![Ring AllReduce / Ring Reduce](./largeScaleCourse/4-large-scale-training/12-deep-learning-models/figures/8.png)
+
+Ring Reduce: 
+
+
+Example: 
+- Get ride of machine and put values to the gradients
+- Each mini batch has 16 examples so the 4 machines get spread 4 examples per
+    - Each element is the gradient with respect to example
+
+Goal: Equip every machine with everybody else's gradient
+1. Colors in example distinguish which machines will send which element first
+2. Receiving machine adds up whatever value gets sent to it with that respective element
+    - Colors get added to the same color
+3.  Move to another element so that eventually all 4 orange are at 1 machine, all 4 purple at another, etc. so that each machine has a sum of 1 variable
+4. Now, each machine sends its information in a random fashion so that all 4 machines have all 4 summations
+5. Every machine now has the total gradient of the mini batch!
+
+Note: This Ring Reduce method is preferred (over every machine sending what they have) is this requires far less bandwidth
+- Ring Reduce = "Bandwidth Optimal" because each node's total computation does not depend on number of nodes in the ring
+    - Preferred over parameter server OR peer to peer configuration because those DO depend on the # of nodes
+
+Pros of Ring Reduce = "Bandwidth Optimal" Configuration:
+1. Allows most of computational time to be calculating the gradient
+2. Minimal time goes towards transferring data
+- This allows for a linear speed up in number of GPUs added to the ring
+
+##### Implementations of Ring all-reduce
+
+Implementations of Ring all-reduce: 
+- Horovod: Developed by Uber
+
+### EXAMPLE: CPU VS. GPU VS. MANY GPUs
+
+Jupyter Notebook:
+
+Note: went into powershell and did 'pip install tensorflow' before this...
+
+``` python
+import tensorflow as tf
+print(f"Number CPUs available: {len(tf.config.list_physical_devices('CPU'))}\n{tf.config.list_physical_devices('CPU')}")
+print(f"Number GPUs available: {len(tf.config.list_physical_devices('GPU'))}\n{tf.config.list_physical_devices('GPU')}")
+```
+
+His output in AWS Sagemaker: 
+- 1 CPU
+- 8 GPUs
+
+My output on local: 
+
+Number CPUs available: 1
+[PhysicalDevice(name='/physical_device:CPU:0', device_type='CPU')]
+Number GPUs available: 0
+
+Note: In the next section, would never use 8 GPUs for only 5 rows of data, but here is the example provided!
+
+``` python
+training_features = [
+    [25.0, 9.0, 2.0],
+    [21.0, 2.0, 1.0],
+    [22.0, 5.0, 2.0],
+    [36.0, 11.0, 1.0],
+    [33.0, 7.0, 1.0],
+]
+training_label = [0,1,0,0,1,]
+
+model = tf.keras.models.Sequential(
+    [
+        tf.keras.layers.Dense(5, input_dim=3, activation="relu"),
+        tf.keras.layers.Dense(3, activation="relu"),
+        tf.keras.layers.Dense(1, activation="sigmoid")
+    ]
+)
+
+optimizer = tf.keras.optimizers.SGD(learning_rate=0.01)
+
+model.compile(optimizer=optimizer, loss='binary_crossentropy', metrics=['binary_accuracy'])
+
+with tf.device('/:CPU:0'):
+    model.fit(training_features, training_label, epochs=20)
+```
+
+What is going on in this code:
+
+Model: VSimple model using tensorflow
+- More specifically: Keras high-level API on top of Tensorflow! (helps get us the sequential model)
+
+- Sequential Model: 3 layers
+    Represents the layers from neural network:
+    1. 5 neurons for 5 input observations, input_dim=3 for 3 features per example, activation = "relu" for 
+    2. Only 3 neurons, also activation = "relu"
+    3. 1 neuron and activation = "sigmoid" for 
+
+    Note: Layer 1 feeds into 2, 2 into 3, 3 into output/prediction
+
+Optimizer: 
+- Stochastic Gradient Descent w/ Learning rate o 0.01 (standard)
+
+Compilation of model:
+- Use optimizer, specify loss of binary_crossentropy, metrics are binary accuracy (gets printed out)
+
+Selection of device:
+- He has GPUs available to use too, but specifies CPU first
+- Note: You will put in whatever is after 'physical_device' ie. `:CPU:0`
+
+##### What happens when he switches device to GPU ie. `:GPU:0`
+
+ie. 
+
+``` python
+with tf.device('/:GPU:0'):
+    model.fit(training_features, training_label, epochs=20)
+```
+
+Results:
+1. GPU converges to the loss much faster
+
+##### What happens when he switches device to Mutliple GPUs in parallel ie. `:GPU:0, ..., :GPU:7`
+
+ie. 
+
+``` python
+strategy = tf.distribute.MirroredStrategy()
+with strategy.scope():
+    model = tf.keras.models.Sequential([
+        tf.keras.layers.Dense(5, input_dim=3, activation="relu"),
+        tf.keras.layers.Dense(3, activation="relu"),
+        tf.keras.layers.Dense(1, activation="sigmoid"),
+    ])
+
+    optimizer = tf.keras.optimizers.SGD(learning_rate=0.01)
+
+    model.compile(optimizer=optimizer, loss="binary_crossentropy", metrics=['binary_accuracy'])
+
+model.fit(training_features, training_label, epochs=20)
+```
+
+What is happening in this code:
+- Mirrored strategy: Essentially, each GPU will mirror one another
+    - What each GPU will do is...
+        - define model
+        - define optimizer
+        - compile model
+
+- Fit the model
+    - All of the GPUs fetch data AND generate part of dataset
+    - Loses and accuracies are now calculated across ALL GPUs instead of just 1
+         
+
+Results:
+1. Using multiple GPUs allows us to get Accuracy of 80%, when the 1CPU/1GPU got only 60%
+2. Our loss is also much lower (0.3747) than before! (0.948)
+
+### GPU Takeaways
+1. Peripheral component to the CPU
+2. Slower than CPU for a single result
+3. Much faster when bandwidth is needed since you can do a bunch of examples at once
+4. Just like we can have multiple CPUs, we can have multiple GPUs
+5. Downpour Stochastic Gradient Descent can be used to asynchronously train models
+- Examples: RMSProp, Adam
+6. Data Parallelism is good for when RAM/GPU cannot fit all of the mini batches
+6. Model Parallelism is good for when the model cannot fit onto 1 machine
+- Pipelining can be used with this to improve further
+7. De-centralized topologies can used if If the Model AND Data cannot fit in RAM
+8. Ring Reduce ie. "Bandwidth Optimal" can be used to improve bandwidth of de-centralized Topologies
+- If the Model AND Data cannot fit in RAM
+
+
+### In total - according to Ryan
+1. Operator Level concurrency
+- Convolutions, matrix multiplications on forward pass AND backpropogation
+
+2. Model level parallelism
+- Distributing Models AND/OR Data across 1 machine across multiple CPUs/GPUs
+
+3. Distributed training
+- Multiple machines that all have multiple CPU/GPUs
+
+
+# Lesson 13 - Model Validation
+
+Hyperparameter tuning of complex, business-grade ML Models can cost hundreds of thousands of dollars!
+- It is imperative to optimize this process (minimize costs, be a ProfitExpert)
+
+# Key Term
+
+## Hyperparameter Optimization
+The process of searching for the best possible values for the hyperparameters of a ML model
+
+# Notes from the video
+
+a
