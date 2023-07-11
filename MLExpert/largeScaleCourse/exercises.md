@@ -2,13 +2,26 @@
 
 ## Setup
 
+### PySpark on your local machine
+
+[]
+
+
+##### Setting up PySpark in VSCode so I can ....
+
+
+
+
+
+### Amazon AWS (Optional - haven't done this myself yet)
+
 [Link to AWS - Dashboard for EC2 Console](https://us-east-1.console.aws.amazon.com/ec2/home?region=us-east-1#Home): 
 
 Ryan appears to be working from an EC2 (Amazon Elastic Compute Cloud), which is Amazon's way to provide scalable-computing capacity in the AWS Cloud
 
 [Docs](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/concepts.html)
 
-### Features of EC2:
+#### Features of EC2:
 - Virtual computing environments (instances)
   - Various configurations of CPU/memory/storage/networking capacity (instance types)
 
@@ -24,7 +37,7 @@ Ryan appears to be working from an EC2 (Amazon Elastic Compute Cloud), which is 
 - Virtual networks you can create that are isolated from the rest of AWS Cloud
   - Virtual Private Clouds (VPCs)
 
-### How to get started with Amazon EC2
+#### How to get started with Amazon EC2
 
 
 

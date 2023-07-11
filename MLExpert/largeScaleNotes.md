@@ -2716,6 +2716,7 @@ We do this using a Vector Assembler.
 - Output: `features`:
     - Features is a transformed column with all features in 1 list
 
+
 ``` python
 from pyspark.ml.feature import VectorAssembler
 assembler = VectorAssembler(
@@ -3289,6 +3290,9 @@ Number GPUs available: 0
 Note: In the next section, would never use 8 GPUs for only 5 rows of data, but here is the example provided!
 
 ``` python
+
+
+
 training_features = [
     [25.0, 9.0, 2.0],
     [21.0, 2.0, 1.0],
@@ -3423,4 +3427,749 @@ The process of searching for the best possible values for the hyperparameters of
 
 # Notes from the video
 
-a
+Model Validation
+
+Trained model needs to be tuned against a validation set by its hyperparameters
+- Running the model against the validation set can benefit from the same techniques in model training video
+
+Note: Largest neural networks take $5,000,000 to train 1x!
+- Cutting training iterations down is the goal here
+
+Goal: Find the best hyperparameters, as fast as you can!
+- This is tough to do in an efficient way!!
+    - How can we do this better??
+
+Let's look at these 3 methods.
+
+
+### Method #1: Naive 
+
+Learning rate: Uniform(0.00001, 0.1)
+Batch size: Uniform(10, 1000)
+Kernel Size: Uniform(3, 11)
+
+About Naive Method: 
+- Totally random search
+
+### Method #2: Grid Search
+
+Learning rate: [0.00001, 0.0001, 0.001, 0.01, 0.1]
+Batch size: [10, 50, 100, ..., 1000]
+Kernel Size: [3,5,7,9,11]
+
+About Grid Search: 
+- List possibilities that we want to try
+- Better than naive/random
+    - We can select intervals that are guaranteed to be meaningful
+        - Example: Won't test out 0.01 and then 0.02
+            - Would have no impact on results vs. testing set...
+
+
+### Method #3: Bayesian Optimization
+
+![Bayesian Optimization](./largeScaleCourse/4-large-scale-training/13-model-validation/figures/0.png)
+
+Bayesian Optimization: 
+
+##### Example: Chance of loss with 50% dropout
+Prior: 
+- A guess right now. Given the dropout is 50%....
+    - 0% change that loss = 0
+    - 0% change that loss = 300
+    - High chance that loss = 150
+    
+
+Dropout: The probability of training a given noe in a layer, where 1.0 means no dropout and 0.0 means no outputs from the layer (Good values usually between 0.5 and 0.8, and input layers usually are higher towards 0.8)
+- We don't know if 30% or 50% or 60% is represented by this distribution (No matter what the dropout is, the prior is currently the same!)
+
+How do we get better priors ie. find out which droput rates are more likely to lead to a good log loss?
+
+Building a surrogate.
+
+![Surrogate](./largeScaleCourse/4-large-scale-training/13-model-validation/figures/1.png)
+
+
+Surrogate: A rough approximation of the 
+
+1. Setup the hypothetical distributions with no prior
+- Draw a mean for the peak / most probable area of the distributions
+- Draw a line representing Sd +/- 1 each way (same for all dropout rates still)
+- Do this for all possible values of Dropout
+
+2. Pick a value for Dropout
+- Keep track of what log loss we get with this value of dropout
+
+3. Collapse the distribution to the single point of data we now have 
+- We have no uncertainty anymore here, and can use this value as prior to update information/surrouunding points on the graph 
+
+4. Continue until we find the most optimal point
+
+Note: Grid search finds the best point to, just a lot slower!!!
+
+How did we know to (mathematically) to go into the middle area of the graph?
+
+Expected Improvement.
+
+#### Expected Improvement
+
+![Expected Improvement]
+
+Expected Improvement: Represents the probability of an improvement, as well the size of the improvement
+- Takes into account the mean of the surrogate vs. the minimum loss (best param) seen so far
+    - Algo Can be adjusted to explore more / exploit more
+
+What does this mean?
+
+Example: 
+
+![Example](./largeScaleCourse/4-large-scale-training/13-model-validation/figures/3.png)
+
+- There is a threshold above the best parameter yet found
+    - We are willing to explore around, in hopes for an improvement
+
+What the threshold implies: We are going to have to search in nearby areas for an expected improvement
+- Higher standard deviations = High expected improvement
+
+What happpens if we raise the threshold?
+- We go further away from best known point
+    - Trying to explore more promising options with higher expected improvement...
+
+What happpens if we lower the threshold?
+- We go closer to the best known point
+    - Trying to exploit our knowledge and look for values really close...
+
+
+#### Downsides of Bayesian Optimization
+
+1. Not parallelizable like grid search / naive search (for the most part...)
+- We need the updated information before we can take appropriate action ie. for the next iteration in the bayesian optimzation process
+
+
+### Tools to Help us use Model Validation + Bayesian Optimization
+
+1. Hyperopt
+- Can work w/ Spark
+
+2. AWS SageMaker
+- Has Grid Search AND Bayesian Optimization
+
+3. Google Vizier
+
+#### Example with Hyperopt to tune a Logistic Regression Model
+
+![Example with Hyperopt to tune a Logistic Regression Model](./largeScaleCourse/4-large-scale-training/13-model-validation/figures/2.png)
+
+##### First: Try using grid search
+- We specify possible values for the params to be
+
+``` python
+paramGrid = ParamGridBuilder().addGrid(lr.regParam, [0.1, 0.01])\ # regularization
+    .addGrid(lr.elasticNetParam, [0,0, 0.5, 1.0])\ # elasticNet
+    .addGrid(lr.threshold, [0.4, 0.5, 0.6])\ # threshold
+    .addGrid(lr.maxIter, [10])\ # max iterations (we want only 10)
+    .build()
+```
+
+##### Second: Try using Bayesian Optimization
+- Params: We specify distributions, not possible values/explicit choices!
+
+``` python
+search_space = {
+    'elasticNetParam': hp.uniform('elasticNetParam', 0, 1), # distribution between 0-1
+    'regParam': hp.uniform('regParam', .01, .1), 
+    'threshold': hp.uniform('threshold', .4, .6), 
+}
+```
+
+- Model: Tree of Parzen estimators, a Bayesian method
+    - "algorithm is designed to optimize quantization hyperparameters to find quantization configuration that achieve an expected accuracy target and provide best possible latency improvement."
+
+``` python
+algo = tpe.suggest
+```
+
+- How we minimize the loss function with the best hyperparams: fmin() 
+    - w/ function, search space, algo, max evaluation
+
+``` python
+def train(params):
+
+
+best_hyperparameters = fmin(
+    fn=train, # Function user-defined
+    space=search_space,
+    algo=algo,
+    max_evals=9 # note: earlier we had 18, only going to give them 9 this time!
+)
+```
+
+What happens here in def train(params) function?
+- Plugs in all parameters we want to try
+- Fit model to training data
+- Evaluate vs. test data
+- Return the negative accuracy (Loss, we want to minimize it...)
+    - Simple model, so can return STATUS=OK
+
+
+##### Results: 
+
+Bayesian Optimization with HyperOpt:
+- Best accuracy = -(loss) = -(-0.8571) = 0.8571 = 85%
+    - Improvement from before!!!
+
+- Faster (less iterations needed)
+
+
+#### Closing notes from this lesson: 
+1. Hyperparameter Optimization with Bayesian Distributions can save you a LOT of money!!
+- If the model in the example takes $10,000, you would save almost $100,000!!
+
+
+
+# Section 5 - Productionization
+
+# Lesson 14 - Productionization
+
+Transitioning your model from the experimentation phase to a live production environment is the final step!
+
+A lot of time/money/resources have been invested at this point.
+- It is critical to reduce the human-error element as much as possible to ensure a smooth/successful launch!
+
+# Key Terms
+
+## Recall (Sensitivity)
+The proportion of true positives that are correctly classified
+
+## Precision
+The proportion of true positives, divided by true positives + false positives
+
+
+# Notes from the video
+
+Productionalization
+
+![Productionalization]
+
+So far we have learned:
+
+Large Scale ML Course
+- Data Ingestion
+    - Click stream
+    - Data processing jobs
+    - Data storage
+    - Data Orchestration
+
+- Data/Model Exploration
+    - Workspaces
+    - Data Access
+        - Access to compute cluster as well for joins and aggregation
+    - Model Access
+        - Access to training infrastructure
+    - Collaboration
+
+- Experiment Design and Impact Estimation
+    - A/B Testing
+    - MAB
+    - Experiment Tracking
+
+Are we ready to run the experiment?
+- In general, still no.
+
+##### Reduce room for human error
+
+Reduce is much as is practical!
+
+How likely are we to make a mistake?
+- If our software can make mistakes, we must also realize are humans can too!
+
+Example 1: Small team
+- 3 SWE
+- 2 DE
+- 2 DS
+- 1 manager
+- 1 UX Designer
+
+If every person has a 1% chance of making a mistake and we run an experiment all 12 months of the year, we have a 66% chance of something going wrong.
+
+Watch how this scales up as team increases!
+
+Example 2: Large team
+- 65 SWE
+- 14 DE
+- 25 DS
+- 4 manager
+- 12 UX Designer
+
+99.99999% chance of something going wrong.
+
+### Possible problems going wrong that we want to be conscious of
+
+- Big deal/bad: Complete outage of a service
+- Subtle: Swapping 2 feature columns in a data
+    - This could go un-noticed for a long time... and is an error that can still be very detrimental
+
+### How to Reduce Room for Human Error: Examples
+
+##### Example: Data Ingestion
+
+Automated tests: verify that performing some action on a website leads to some event making its way into the storage layer, after it passes through the ingestion process
+
+Tools:
+- Headless browser (web browswer w/o a GUI, provdes autoated control of a web page but executed via command line interface)
+    - Chromium
+    - Firefox
+
+Tests like this will ensure that click stream events are accurate and complete!
+
+##### Example: Data Processing Jobs
+
+Unit Tests: Running tests against production data to validate (to some extent) that our data processing jobs are running correctly
+
+Tools: 
+- pytest: allows individuals to write test code in Python (for better programs)
+- version control/code review: lets others look over the jobs
+
+##### Example: Data Storage Jobs
+
+Validate all Schema: 
+- We want consistency across all partitions
+- Make sure data gets preserved the exact same way it is entered (in terms of ingestion)
+
+Ways to test/verify:
+- After we do some click stream tests via headless browswer
+
+##### Example: Data Orchestration
+
+Make sure joins and data aggregations are happening correctly.
+- This occurs in our Apache Airflow DAGs
+
+Methods:
+- Unittests
+- Version control
+
+##### Example: Data / Model Exploration
+
+Make sure the environment in workspace == environment in production environment
+
+Example: Data and Model exploration with Tensorflow v2.12.0
+- We want our production traffic to also use TensorFlow v2.12.0
+
+    - How to do this? Requirements.txt
+
+###### Requirements.txt
+
+Makes pip, the Python package mananger, install the exact same environment for production environment that users use.
+
+How this works:
+- Workspace environment: 
+- Production environment: 
+    - To productionize a Model/Data environment, you deploy Requirements.txt to that production environment
+
+##### Example: Data Version-ing / Data Version Control ie. Data Management
+
+Need to make sure that data itself is versioned:
+- Origin of data
+- Aggregations/Joins that were performed
+    - Ensures that the exploration we did is repeatable amonst our colleagues
+
+Note: This can include other transformations:
+- TF-IDF
+- Feature Scaling
+
+We must have all of these things noted and made available elsewhere (to ensure repeatability)
+
+Tools to use for Data Version-ing: 
+- S3: Amazon
+- DVC: Data Version Control (Git-like experience)
+
+##### Example: Model Management
+
+Need to know the following, that was trained:
+- Model parameters trained
+- Hyperparameters used
+- Overall results/performance
+
+(This is easily available at any stage of model development)
+
+### Tools that do Model AND Data management
+
+1. MLFlow
+2. MLMD (ML Metadata)
+3. SageMaker Studio
+
+### Experiment Design and Impact Estimation
+
+We should at all times be tracking the following about an experiment:
+1. Who is it affecting?
+2. What about these people is it affecting?
+3. Where is it affecting them?
+4. For how long will it affect them?
+
+This helps with the following:
+1. Avoiding experiment collisions
+2. Provides a way to quickly look up past experiments (to see what works/doesn't work)
+- It is just as important to know what did NOT work to avoid going down that rabbit hole again!
+
+### Deployment
+
+We will talk about Deployment more later - but, one of the goals of productionalization is to synchronize everything on Deployment!
+
+Everything, meaning:
+1. Model
+2. Data the model expects
+3. Environment (software packages)
+
+Everything must fall in place together!
+
+### Video Recap
+
+We looked at ways to verify (automatically) that all of our processes are occurring in the way that we expect
+- This is an effort to reduce human error; while transitioning from exporation/experimenting into a production environment
+
+# Section 6 - Hosting
+
+# Lesson 15 - Data Hosting
+
+Production Environments have stricter performance requirements than testing environments
+- Latency, especially
+    - You are serving real users - every millisecond is precious!
+
+In this video, How to leverage:
+- In-memory databases
+- Distributed caching
+
+This will crush latency and keep users happy.
+
+# Key Terms
+
+## In-memory database
+A database which relies either solely OR primarily on the computer's RAM
+
+## Distributed Cache
+A cache which is distributed across 2+ machines
+
+# Notes from the video
+
+![Data Hosting](./largeScaleCourse/6-hosting/15-data-hosting/figures/0.png)
+
+### Example: We have setup a recommendation service after productionalizing our model
+
+- Recommendation servive is up
+- Model is production ready
+- Model is now serving real traffic!
+
+Steps:
+1. User requests homepage
+2. App calls get_recommendation() (tailored for that `user_id`)
+3. Recommendation service, which is hosting our model, gives the recommendation to the app
+4. The app returns the recommendation/recommended experience to the user's homepage
+
+Let's think: 
+- This recommendation service needed information about the user in order to run the model. How did it actually get that info?
+
+Where the user's features may be:
+1. Nowhere ie. cold start problem
+2. They are in HDFS
+- This is where data processing jobs store the final features
+
+#### Problems with hosting data in HDFS
+1. HDFS is not good for hosting data in low-latency situations
+
+To fix this, we should offer a low-latency solution via a low-latency data serving layer
+- This is where In-memory databases come in!
+
+### In-memory Databases
+
+![In-memory Databases]
+
+Example of an In-memory Database: 
+
+Steps:
+1. User requests homepage
+2. App calls get_recommendation(), and the data is on the device so it has the answer already (without having to go up to a database ie. HDFS)
+
+How it works:
+- When new feature get added to HDFS, a "hook" on HDFS tells Airflow, to tell the recommendation service to go up to HDFS for the newest data (gets all the data in bulk)
+
+What is wrong with this approach?
+1. The assumption that we can fit all of this data on 1 recommendation service/machine
+- This assumes data can fit in memory/RAM or on Disk+Mmemory
+
+Note: Tools to do this with: Redis, Memcached, Tarantool
+
+2. Having to vertically scale 2 different
+
+Example: If recommendation service bulk loads 30GB of data in memory w/ Redis, but now your requests 10x and you need 300GB in memory, you need to setup new machines (to make it work this way)
+
+3. May need more hosts for requests
+- If the requests keep scaling up, 1 recommendation service is a bottleneck that will slow you down
+- This problem is similar to #2 because each machine has to load 300GB in memory every 24 hours, and that is not efficient way to scale up!
+
+How to horizontally scale so that we can handle 1000 requests per second?
+
+Distributed Cache.
+
+### Solution #2: Distributed Cache
+
+Distributed Cache: Multiple machines that make up a cluster.
+- Machines/Recommendation Services share this cache so that don't need to all store in-memory databases
+- Airflow tells the Distributed Cache to get the updated bulk data from HDFS every 24 hours
+
+More Notes:
+- Each machine in the cluster has some portion of the data 
+    - Complex hashing is used so that if 3 machines, each have 1/3 of the data from HDFS
+        - ie. hash the `user_id`'s so that 1/3 of user_id's data would be on each host
+
+How it works: 
+- Multiple recommendation services / Machines that handle traffic
+- 1 distributed cache
+    - Instead of hosting an in-memory database, the machines go to this distributed cache for data
+
+#### Clients
+
+Note: We have two more things to manage:
+
+1. Need clients on each of the 3 recommendation services
+- This is so we know which host (in the distributed cache) to call for each data
+
+2. Manage the membership of each node in the Clusters
+- 
+
+How to do this? Zookeeper
+What Zookeeper does:
+- Makes sure not to call hosts who are out of the cluster ie. they are down or have been scaled down
+
+##### Clients - Cache Handling
+
+Another important thing these clients are good for is caching.
+- If we have an extremely popular item, it is far more efficient to cache these item's data on the client themselves (as opposed to having the client reach up to the Distributed Cache)
+- Idea: Have the Client store the top 1-3% most popular items in a cache
+    - This will help save time / calls to the distributed cache
+
+### Tools
+
+- Apache Ignite
+
+- DynamoDB (DAX / DynamoAccelerator)
+
+- Redis (Elasticache)
+    - Allows you to horizontally scale a Redis cluster
+
+
+### Video Review
+
+We cannot use HDFS to host data for production models:
+- Strict latency requirements
+
+What a better idea is instead:
+- In memory database and/or
+- Distributed Cache
+
+# Lesson 16 - Model Hosting
+
+We will continue down the hosting-optimization rabbit hole from before
+- A true MLExpert is not satisfied until they've eradicated all traces of latency from their systems, even when serving millions of users!
+
+# Key Terms
+
+## Numba
+A just-in-time Python compiler (A High Performance Python Compiler)
+- Resolves a subset of Python programming language down to machine code
+
+# Notes from the video
+
+Last video:
+- Distributed cache
+
+What we didn't talk about
+- The model gets hosted in the recommendation servers as well!
+
+### What the servers will have to do:
+
+1. Fetch the features
+- User/Item/Product/Ad
+    - Example: Video recommendation service, we'd need features of user AND videos to rank/recommend
+
+2. Alter the features
+- Append the user/item features
+- Append online features, that were not in HDFS.
+    - Device
+    - Country
+    - Referrer
+    - etc.
+
+3. Perform the inference
+- ie. send the features into the model
+
+4. Map inference to meaningful result
+- Example: Turn an array of probabilities to 1 prediction
+
+Note: All of these steps were done before in exploration!
+- We trained and validated until accuracy was good enough, and now the inference needs to be repeated exactly
+
+### How to ensure training exploration is same as production?
+
+### Spark Pipeline
+A library that allows you to create a DAG of stages
+- Required to go from hosted features to useable prediction
+
+
+Code Example: 
+
+``` python
+# split data into train/test
+train_df, test_df = df.randomSplit([.8, .2])
+train_df.show()
+
+# use Spark Pipeline
+from pyspark.ml import Pipeline
+from pyspark.ml.classification import LogisticRegression
+from pyspark.ml.feature import VectorAssembler
+features_assembler = VectorAssembler(
+    inputCols=["month_interaction_count", "week_interaction_count", "day_interaction_count"],
+    outputCol="features"
+)
+
+label_assembler = VectorAssembler(
+    inputCols=["cancelled_within_week"],
+    outputCol="label"
+)
+
+lr = LogisticRegression(maxIter=10, regParam=0.001)
+
+pipeline = Pipeline(stages=[features_assembler, label_assembler, lr])
+
+# fit model
+model = pipeline.fit(train_df)
+
+# make predictions
+prediction = model.transform(test_df)
+
+# save model
+model.save("s3://......")
+```
+
+#### Spark Pipeline
+Allows you to make parts of code into 'stages' in a sequential pipeline.
+Example of 'parts of code':
+- VectorAssembler(): (turns feature columns into a `features` column of lists)
+- VectorAssembler(): (turns label column into a `label` column )
+- LogisticRegression(): Running the actual model with given hyperparams
+
+We can now guarantee that the model we use in production is the EXACT same as the one used in the exploration phase!
+
+Note: We also validated the data would be the same (in the last video)
+- because the Distributed cache is downloading all of the data from HDFS
+
+Pipeline: Extremely useful tool for when you begin productionalizing your models!
+
+#### Quality of Service
+
+Last video: Data is the same as in exploration (Data is downloaded from HDFS every 24 hours)
+This video: Model is the same as in exploration
+
+What else do we need??
+- Quality of Service that the recomendation service provides
+
+##### Latency
+
+- Now that getting an ML inference is on the "critical path" of rendering the homepage, latency is a large concern
+
+- As well, we can't parallelize feching the features and running them through the model 
+    - Doing things in order can cause it to take awhile
+
+Notes on importance of latency:
+- Amazon found that 100ms of latency creates a 1% loss of revenue
+- Google found an extra 0.5 second load time causes a 20% traffic delay
+    - Equoates to billions of revenue!
+
+
+#### Latency Management
+
+##### Local Inferences vs. Remote inferences:
+
+Option #1 - Local
+- Would be nice/low latency if the inference runs on the recommendation service
+    - Unforuntately... Typically: Recommendation service is in different language than model code
+        - Example: Java_ vs. Python
+        - There are workarounds such as Predictive Model Markup Language (PMML) (is a markup language for data mining)
+
+    - When you want to update your model, you have to deploy to your service 
+    - Same if you want to update your service
+        - Dependency that you may not want
+
+Option #2 - Remote
+- Dedicated inference server is used, and all of the recommendation services call this server
+- Pros:
+    - Language agnostic
+    - Deployments are no longer tied together
+    - This configuration can accomidate, ie. hardware requirements outside of your typical web-server's hardware requirements
+
+##### Langugage Optimizations
+- Python = slow
+    - C++ is 10-100x faster
+    - Java is 10-50x faster
+        - These languages are much harder for scientists to learn etc...
+
+    - How to get past this: Numba!
+
+###### Numba
+Numba: Compiles the python code down to machine code
+- Latencies similar to C/Fortran
+
+##### Hardware
+- In general for real time inferences: CPU > GPU for 1 off predictions 
+    - GPU better for batches, but this is not batches!
+
+- We will use CPU (since it is closer to memory)
+
+##### Low-latency fallback + Circuit Breaker
+
+These are for considering the worst case-scenarios...
+
+Low Latency Fallback:
+
+- Example: 
+    - Call from client to inference service
+    - Call from client to distributed cache
+        - If a call takes too long, we need to be able to return a low-latency recommendation to the user!
+
+Low-latency fallback
+- Most popular products, or something more personalized
+
+Note: Doesn't matter that much, just needs to be fast!
+
+Circuit breakers:
+For if anything goes down / network issues.
+- After a certain number of re-tries to a distributed cache/inference service, the client will automatically fall back to the default experience
+    - This should only happen until the services come back online 
+
+##### Batch inference
+
+Storing all pre-calculated inferences onto the distributed cache, instead of using an inference server.
+
+When would this be ideal?
+- No / minimal online features: ie. Device/Country/Referrer
+- Inference space is small enough: 
+    - Example to explain: Netflix has 100 million customers, 30 titles to recommend
+        - CAN fit in memory
+    - Example: Netflix has 100 million customers, 100 million similar products to recommend
+        - can NOT fit in memory
+            - This would be 1 quadrillion data updates per 24 hours! (and have to transfer all the 4 petabytes of data... better for online inference)
+
+
+Tradeoff in Batch Inference: Latency goes up, cost for storing data goes down 
+- Batch inference: For small / less expensive jobs
+- Online inference: For large jobs that require an inference server for space
+
+### Recap of Video
+
+1. Spark Pipeline
+- perserves the experience in exploration to be the same users see in production
+
+2. Latency Management
+- Local vs. Remote inferences
+- Language optimizers
+- Hardware
+- Low latency fallback + circuit breaker
+- Batch inference

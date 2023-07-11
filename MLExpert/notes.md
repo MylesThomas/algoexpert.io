@@ -5055,7 +5055,7 @@ last neuron that determines output: depends on binary vs. multiclass
 - what it does: Passes the value of the summation through (to the output)
 
 
-### Note: Why us symmetric OR asymmetric?
+### Note: Why use symmetric OR asymmetric?
 - Symmetric: 
 - Asymmetric: 
 
@@ -5747,7 +5747,7 @@ Offerings:
 
 # Lesson 15 - Recurrent Neural Networks
 
-RNNs
+RNNs....
 
 # Key Terms
 
@@ -5781,9 +5781,484 @@ Capping the value that the gradient is allowed to be
 
 # Notes from the video
 
+Recurrent Neural Networks
+- Note for some libraries: Dimensions = Units
+
+Example: Use Chatbot to Encourage new users / insprire them to write posts 
+
+Problem: We are going to get different sized inputs
+
+Idea #1: Fix the length of messages
+- Cons:
+    - Need padding with 0's to match length of initial message
+        - 0 = no word at all
+
+Idea #2: Recurrent neural networks
+- Pros:
+    - 
+
+- Cons:
+    - 
+
+How it works:
+- Sliding window
+    - Starts with first two values, continues until you run out of inputs
+        - At end up input, use the output of the softmax 
+        - Example: Sliding window of 2: use the last word of input array, first word of softmax outputs
+            - We end up keep going until the softmax's 2nd word in sliding window is the end of the term for 'end of message'
+
+            - Example: [31, 63, 7] = [no, I, EOS]
+
+#### Recurrent Neuron
+Instead of an output, we use a hidden state
+- The hidden state goes from the output of RNN to 
+- Starts at 0
+    - The first iteration 0 gets added, after that, the output from RNN goes through hidden state and is added to the summation from the NN
+
+Our results were not good, as the reply "No, I" didn't make much sense. How can we improve?
+
+### Ways to improve the RNN
+
+#### Added neuron layers
+
+![Adding new layers](./crashCourse/3-deep-learning/15-recurrent-neural-networks/figures/0.png)
+
+- This represents hidden state with 'h' dimensions
+- You can also adjust the window size
+
+Note: Weights for hidden layer are learned via gradient descent
+
+#### 
+
+## Back to the example....
+
+![Features and LABELS](./crashCourse/3-deep-learning/15-recurrent-neural-networks/figures/1.png)
 
 
-.....
+Features: Windows of a message:
+- [12, 3, 72, 7] = 3 windows of [12, 3]; [3, 72]; [72, 7]
+
+Labels: Next word after the sliding window
+- Feature: [12, 3]
+- Label: [72]
+
+Loss: Categorical cross-entropy
+- Softmax activation
+    - Class predicted: Words in the vocabulary (300 words, 300 predicted probabilities)
+
+Note: Tool to reduce burden of all categories at 1 time: 
+
+### How to train the network
+
+#### Back propogation through time
+
+Back propogation: 
+- When window only looks at first 2 words, that is t_0
+- This continues until there are no more windows left
+- Gradient for loss = summation(gradient loss) for all t
+
+Back propogation through time: 
+- Using the derivatives and some math, we can reduce the term above down into a chain rule equation that relies on t-1
+- We need the time stamp before, and all of the ones before, so this is where 'backpropogating through every timestamp' becomes 'backpropogation through time'
+
+##### Vanishing gradient problem
+
+Note: As timestamps increase, so does multiplication of all gradients 
+- As depth increases, your gradient can race towards 0
+- This is 'loss of memory as time goes on'
+    - We lose memory/impact of past timestamps on current timestamp (diminishes as # grows, this is the vanishing gradient problem)
+
+How to deal with this issue?
+
+### Long short-term memory (LSTM)
+
+![LSTM](./crashCourse/3-deep-learning/15-recurrent-neural-networks/figures/2.png)
+
+- A type of RNN
+- Uses gates to control what gets remembered, ignored, and recalled from the hidden state
+
+##### Forget Layer
+Job: Based on input/current state, tell LSTM what part of long term memory it should forget
+
+##### Input Layer
+Job: Deciding how much of input goes/gets let into the long term memory
+
+##### Output Layer
+ Job: Optimize how much of long term memory should we recall
+ - Take cell state at time t (not t-1) and specifies how much of each element within the long term memory that we should let out / recall
+ - This predicts the new h(t), which gets passed back around and waits on next iteration
+
+ Note: LSTM can still suffer from vanishing gradient, but it is MUCH LESS likely to now!
+- Not all weights get affected the same due to forget gate specifying which to update
+
+#### How to improve the LSTM Further
+
+##### Stacked LSTM
+
+![Stacked LSTM](./crashCourse/3-deep-learning/15-recurrent-neural-networks/figures/3.png)
+
+Instead of 1 LSTM, how about 2 adjacent?
+- Input goes to LSTM, then output goes into LSTM #2, then that goes into a softmax for the end
+- Uses same input as before ie. [x1, x2] sliding window
+
+Notes:
+- Dimensions can be different (in example, #1 has d=200, #2 d=300)
+
+##### Bidirectional LSTM
+Two LSTM's
+- 1st - regular: iterates through training example from first word, moving that sliding window 1 at a time
+- 2nd - start at end: Starts at end and goes inwards backwards
+
+- 2 final states get merged via adding/multiplying/concat, then goes into softmax layer for prediction
+
+Benefit here: Hidden states get a 'lookahead context'
+
+##### GRU
+Goal: Improve training time, while keeping model steady
+- No cell state, only hidden state
+- 2 gates, reset and udpate 
+    - 1 for determining info to be passed into hidden state
+    - 1 for determining how much to be forgotten
+
+##### Altering the way to give inputs into the LSTM
+
+![Altering the way to give inputs into the LSTM](./crashCourse/3-deep-learning/15-recurrent-neural-networks/figures/4.png)
+
+Normal: Mapping words to numbers 
+- ie. Word 12 = 'Have', Word 7 = End of Sentence
+- Our sentence can be represented by a list of indexes ie. [Have, you, been, EOS] = [12,3,72,7]
+
+###### Embedding Layer
+
+New way: Use of an Embedding Layer
+- Embedding Layer: Takes in the number of total words and the dimensions to use for the words
+- Embeddings learned via gradient descent
+
+Example: 
+- 300 words in vocab
+- 10 dimensions for each word
+
+###### Why use an embedding layer?
+1. Better predictive performance
+2. Transplant embedding layers into your model
+- Ones that have already been trained
+
+Note: Popular embedding models
+- GloVe
+- Word2vec
+
+#### Refining Outputs
+
+Original
+- Input: Regular
+- Output: Softmax
+
+New way:
+- Input: Embedding layer 
+- Hierarchical softmax
+
+##### Hierarchical softmax
+
+![Hierarchical softmax](./crashCourse/3-deep-learning/15-recurrent-neural-networks/figures/5.png)
+
+If we have a lot of words in the vocabulary, the leads to the following:
+- Lots of words to calculate probabilities for 
+
+With the method, you can iterate through a hierarchical tree of log(O(n)) instead of O(n)
+- Leaf nodes are probability of a certain word
+
+What this does:
+- Reduces amount of calculations
+- 
+
+#### Model we ended up using for that Chatbot:
+Input: Embedding layer
+- 317 words in our vocabulary
+- each word is represented in 10 dimensions (via )
+
+Model: Recurring Neural Network
+- 2 LSTM (in sequence/stacked)
+- 1st: 32 units/dimensions
+- 2nd: 64 units/dimensions
+
+Output: Softmax
+- Did NOT have to use heirarchical softmax
+
+Performance:
+- Converted 11% of 1st time writers into full-time writers (within 30 days)
+
+### Libraries to use for RNN's
+
+Keras
+- Glorot Initialization: Initalize weights of LSTM to avoid degenerate phases ie. vanishing/exploding gradients
+
+- Regularizers: For recurrent weights AND input/embedded weights
+
+- Dropout
+    - Can be used for all layers
+
+- Gradient clipping: Instead of letting gradient overflow (as it does with exploding gradient), you 'Clip' it to a max value
+    - We haven't talked about this yet...
+
+
+# Lesson 16 - Generative Adversarial Neural Networks
+
+Generator: "I promise this is a real Rolex."
+Discriminator: "No, it's definitely not."
+Generator: "What if I change the position of the hands slightly and then promise it's real again?"
+Discriminator: "I'll almost certainly believe you then."
+
+# Key Terms
+
+## Generative Adversarial Networks (GANs)
+Take advantage of a concept called adversarial min max.
+- Generator generates fake data and tries to minimze a particular loss function
+- Discriminator tries to correctly identify the fake data from real data, in an effort to maximize a particular loss function
+
+## Mode Collapse
+A challenge of training GANs in which the generator generates data which successfully confuses the discriminator 
+- So the generator exploits this vulnerability and only produces this kind of data over and over
+- Way to mitigate: Force the generator to see responses from the discriminator multiple timesteps ahead
+    - Method of doing this: 'Unrolled GAN'
+
+# Notes from the video
+
+Generative Adversarial Neural Networks
+
+Example: Going back to the example of using satellites to track tractor trailers
+- Outside of the USA, we could NOT get that traffic footage 
+- We now have to use satellite imagery
+
+Satellite Images
+- legal, minimum 30com per pixel
+
+
+Aerial Images
+- More granular than satellite images
+    - No legal limit so we can improve image quality by getting closer
+
+Model:
+- Input: Satellite Images
+- Output: Aerial Images (Prediction of what the aerial image will look like!)
+
+#### Model Features
+
+200,000 satellite images
+- Spanning coastlines, Ports. Civics, Farms, Mountains, Oceans, Suburbs, etc.
+- Collected via Satellite Companies taking pictures
+
+#### Model Labels
+
+Equivalent aerial images, corresponding to each satellite images
+- 4x the resolution
+- Collected via capturing aerial imagery 
+
+Meaning of 4x the resolution:
+
+![4x](./crashCourse/3-deep-learning/15)
+
+Turn 2x2 sub-section into a 4x4!
+- How do we do this?/What model do we use?
+
+### Generative Adversarial Neural Network (GAN)
+
+![GAN](./crashCourse/3-deep-learning/16-generative-adversarial-neural-networks/figures/0.png)
+
+Composed of 2 neural networks:
+- Generator: Takes in the input (low res. image) and generates predictions (high res. images)
+- Discriminator: Takes in real images and predictions of images (from the generator) and Decides if Generator created something fake/wrong
+
+#### How does the GAN work
+
+Steps:
+1. Generator takes in inputs (low res. imgaes)
+2. Generator makes predictions on what it thinks the high res. image will look like
+3. Discriminator takes real high res images and tries to predict them as real
+4. Generator sends (fake) predictions/fake high res. images to the Discriminator, in an attempt to fool the discriminator
+- The generator hopes that it can fool the discriminator
+- Step 4 continues until the Generator can fool the discriminator
+    - ie. when the discriminator thinks that actual true high res. images are fake
+5. Generator is now done training
+- When generator is done training, we can put in various satellite images, and the generator will produce an estimate of what the aerial image will look like 
+    - Remember: needs to have 4x the resolution
+
+First iteration:
+- Don't train generator, just send an image prediction
+- Discriminator weights gets trained based on loss from predicted real images and real images
+
+Second iteration:
+- Generator Sends image prediction, when it gets results from Discriminator it 
+- Discriminator sends loss from Discriminator and propogates it back to the Generator to update the Generator's weights
+    - ie. keeping the Discriminator's weights constant, updating the Generator so that it can get better at tricking/fooling
+
+Discriminator Loss: Regular log loss
+- ie. Maximize summation of (Probability classify 1 + Probability classify 0)
+
+Generator Loss: Minimize the probability that the generator knows the image is fake
+
+#### Adversarial Min-max
+
+Adversarial Min-max: The cominbation of the above two loss function
+
+How do we know when this loss function has converged?
+Remember...
+- Generator has done its job: When it confuses the generator
+    - How to do this: Discriminator is around 50%
+        
+Note: We want to stop trainging when this 50% happens
+
+- Discriminator has done its job: 
+
+### Our Example of a GAN
+
+#### Generator
+
+![Generator/CNN](./crashCourse/3-deep-learning/15-recurrent-neural-networks/figures/6.png)
+
+- Model: CNN
+    - Input: Satellite Image (Low Res)
+    - Output: Estimated aerial image (High Res - prediction)
+    - Upsample for 4x resolution
+
+    - Params:
+        - 3x3 input
+        - stride=1
+        - same padding 
+            - ie. with stride=1, pads 1 so input size = output size (see how 200x200 is at each layer)
+        
+Notes
+- Much Different from CNN video because instead of turning image into a binary classification, we are UPSampling from 200x200 to 400x400
+
+##### Pixel Shuffle Layer
+
+![Pixel Shuffle Layer](./crashCourse/3-deep-learning/15-recurrent-neural-networks/figures/7.png)
+
+Pixel Shuffle: How we increase the resolution of our images in our CNN
+- Takes in a certain number of feature maps ie. 256
+    - Increases the dimensions ie. 200x200 up to 400x400
+    - Does this while decreasing the feature maps ie. 256 down to 64
+
+##### Residual Connection
+
+Also talked about in CNN video, there to avoid vanishing gradient when NN gets deep
+
+#### Discriminator
+
+![Discriminator/](./crashCourse/3-deep-learning/15-recurrent-neural-networks/figures/8.png)
+
+Discriminator
+- Similar to CNN's in previous videos
+- Ends in binary classification
+    - 1: fake image predicted
+    - 0: otherwise 
+
+Difference with this discriminator: Instead of ReLU, we use Leaky ReLU
+
+##### Leaky ReLU
+
+Leaky ReLU: Slope of line to the left of y-axis is 0.2
+
+##### Training: Mini-batch
+
+Mini-batch size: 16
+- Smaller than usual
+
+Why?
+- Descriminator goes through some iterations of training BEFORE we allow the Generator to learn from the Descriminator's decisions
+- Keeping these mini batches smaller will ensure that Descriminator only gets 16 images to train on 
+    - Lets generator jump in and train as well
+        - ie. Prevents the discriminator from out-learning the generator!
+            - If the discriminator is "too smart", it will not provide any valuable feedback and will send small gradients to the generator
+
+##### Learning Rate
+
+Note: The generator and discriminator should learn TOGETHER.
+- Can also adjust Learning Rate of the discriminator, to make sure the generator can keep up
+
+##### Mode Collapse (avoid!)
+
+When the generator figures out an image that will fool the discriminator
+- The generator keeps generating this image since it knows it has it fooled
+
+How to remedy this?
+- Unrolled GAN
+
+##### Unrolled GAN
+
+Unrolled GAN: Allows the generator to see responses from the discriminator multiple timesteps ahead
+- Generator is then encouraged not to learn a 'local exploitation' 
+    - since it now has to account for what the discriminator will look for in the future
+
+### Model Evaluation
+
+LR Unseen -> Generator -> HR unseen
+
+Steps:
+1. Low resolution photo that model is not trained on 
+2. Pass through generator
+3. Generator creates a prediction/High Resolution image
+
+How to gauge if these High Resolution images are good?
+
+Test set, given we have the high resolution image:
+Methods:
+1. MSE (Mean square error, per pixel)
+2. PSNR (Peak signal to noise ratio)
+- A gauge of how noisy the output/predicted image is 
+
+Note: Better/Lower MSE = Better PSNR
+- Formula: 20 * log(pixel max) - 10 * log(MSE)
+
+3. Human raters
+
+Model was successful!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
