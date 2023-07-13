@@ -8304,3 +8304,118 @@ Learn more: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script
 
 ## Notes from the video
 
+Start by doing the following:
+- Copy the connectingJS.html file
+
+    ``` html
+    <!DOCTYPE html>
+    <html lang="en">
+        <head>
+            <title>Connecting JS to HTML</title>
+        </head>
+        <body>
+            <button>Click Me</button>
+        </body>
+    </html>
+    ```
+
+- Run it in Chrome
+    - cd FrontendExpert/javascript_crash_course/8_connecting_javascript_to_html
+    - start connectingJS.html
+
+- Copy the server.js code
+
+    ``` js
+    const button = document.querySelector('button'); // get button element off the page
+    button.addEventListener('click', setBackgroundColor); // when button is clicked, run this function
+
+    function setBackgroundColor() {
+        document.body.style.backgroundColor = '#00334C';
+    }
+    ```
+
+Let's start connecting the two:
+
+- Add functionality 
+
+    ``` html
+    <!-- Line 5, under <title> -->
+    <script src="script.js"></script>
+    ```
+
+Note:
+- We are adding it to the head because it doesn't need to be displayed on the page (it is not content)
+- script tag is NOT a self closing tag
+    - this is because you can write JS code directly inside of it
+        - Usually: You link in a JS file
+
+When I click on the button, it still does not work. Why?
+- If you look at this code, the browser goes from top to bottom
+- We are referencing the button (line 5) before it even exists in the DOM/html file! (line 8) 
+
+### Solution #1: Move the script tag to the bottom
+
+Classic method - Bad idea for the following reasons:
+- Semantics (weird having a script in the body)
+- Takes extra time (you have to download all of the html before getting into the script)
+
+### Solution #2: Solve in Javascript
+
+Top of JS file:
+- We are not running any of the code until this even fires
+
+``` js
+window.addEventListener('DOMContentLoaded', main); // Run main once all of the content is loaded
+
+function main() {
+    const button = document.querySelector('button'); // get button element off the page
+    button.addEventListener('click', setBackgroundColor); // when button is clicked, run this function
+
+    function setBackgroundColor() {
+        document.body.style.backgroundColor = '#00334C';
+    }
+}
+```
+
+This method works!
+
+You can also change '' with 'load;:
+- 'DOMContentLoaded': just waits for browser to finish creating DOM tree
+- 'load': waits for images etc. to be loaded as well
+
+Negatives:
+- Have to make JS code uglier (more code too)
+
+### Solution #3: defer (BEST solution)
+
+Defer: Essentially does what we just did, but the HTML does it for us!
+- "Download this script and parse it, but don't actually run any of this code until the DOM content loaded event has completed"
+
+``` html
+<script src="script.js" defer></script>
+```
+
+Pros:
+- Cleaner JS
+- Cleaner HTML
+- JS is not executed until DOM is done loading 
+
+
+### Solution #4: async
+
+async: Similar to defer
+- "Load the script asynchronously. when it is ready, just execute it"
+
+Negatives
+- Can lead to inconsistent behavior (depending on how fast the browser finishes in the DOM/script)
+
+
+### Takeaway from video
+
+Use the `defer` attribute!
+
+``` html
+<script src="script.js" defer></script>
+```
+
+- start connectingJS.html
