@@ -7728,8 +7728,579 @@ Learn more: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Op
 
 ## Notes from the video
 
+### Loose vs. Strict Equality
+
 Equality / Type Coercion
 1. Loose equality
 2. Strict equality
 
+``` js
+// (loose equality)
+console.log(5 == 5);  // true 
+console.log(5 == '5');  // true
+
+// (strict equality)
+console.log(5 === 5); // true 
+console.log(5 === '5'); // false 
+```
+
+### Type Coercion
+
+Implicit Type Coercion: When JavaScript changes the type of 1 or both of the values in the comparison
+- Usually: It tries to convert values to number
+
+Explicit Type Coercion: When we change the types ourselves
+
+``` js
+console.log(Number(true)); // 1
+console.log(Number(false)); // 0
+
+console.log(Boolean(10)); // true
+console.log(Boolean(0)); // false
+
+console.log(typeof String(0)); // string
+console.log(typeof 0); // number
+```
+
+### NaN
+
+NaN: Result when you do math and you cannot do it
+- NaN = "Not a number"
+- It is not equal to anything!
+    - Remember: Any comparison with a coercision to NaN will be false
+
+``` js
+console.log(Number('abcdefg')); // NaN
+console.log(NaN == NaN); // false, even with loose equality
+console.log(Number('abcdefg') == NaN); // false, even with loose equality
+```
+
+### Checking for null and undefined
+
+Use loose equality for null and undefined:
+- The only values that null/undefined are each to are each other!
+    - x == null checks for null and undefined at the same time
+
+``` js
+const x = 5;
+
+console.log(null==null); // true
+console.log(null===null); // true
+console.log(undefined==undefined); // true
+console.log(undefined===undefined); // true
+
+console.log(null==undefined); // true
+console.log(null===undefined); // false
+
+
+
+if ((x === null) || (x === undefined)) { // if x is null or undefined...
+    console.log("x is null or undefined");
+}
+else {
+    console.log("x is NOT null or undefined");
+}
+
+// This below checks the same thing
+// Why: The only values that null/undefined are each to are each other!
+// - it checks for null and undefined at the same time
+if (x == null) { // if x is null or undefined...
+    console.log("x is null or undefined");
+}
+else {
+    console.log("x is NOT null or undefined");
+}
+```
+
+### Object Equality
+
+Comparing objects:
+- We are checking if they are the same object, NOT if the contents are the same
+
+``` js
+console.log({} == {});  // false
+console.log({} === {}); // false
+
+const obj = {};
+console.log(obj == obj); // true
+console.log(obj === obj); // true
+
+const arr = [];
+console.log(arr == arr); // true
+console.log(arr === arr); // true
+
+const arr2 = [];
+console.log(arr == arr2); // false
+```
+
+### Which one should we be using?
+
+95-99% of the time: Use strict equality
+- Not many times we want to assume that objects have same type
+
+1-5% of the time: `x == null`
+- You can also just do the `if ((x === null) || (x === undefined))` method
+
+
+# Lesson 7: Syntactic Sugar and Modern JavaScript
+
+Not as sweet as table sugar, but delightful nonetheless.
+
+## Key Terms
+
+### Arrow Function
+A more concise function syntax
+- Particularly useful: For replacing short anonymous functions
+
+Basic syntax: 
+
+``` js
+(param1, param2) => {
+    doSomething(param1, param2);
+    return 'hello world';
+}
+```
+
+However: If an arrow functions only requires one line, then the curly braces and return keyword can be removed
+- Additionally: when these are used inline ie. for a call to the array map function, the semicolon must be removed
+- Finally: If there is only 1 parameter, the parentheses around the parameter can also be removed
+
+For example: This code will create an array with the values doubled:
+
+``` js
+[1,2,3,4].map(num => num * 2);
+```
+
+Constraints: There are a few constraints to arrow functions (we will explore them in this crash course)
+- Most important constraint: They do not have `this` binding
+- Additionally: Cannot be used as constructors or generators
+
+Learn more: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions
+
+### Desctructing Assignment
+A JavaScript syntax for saving values from an array or object in variables. Example: 
+
+``` js
+const [first, second] = [1,2,3];
+console.log(first); // 1
+console.log(second); // 2
+
+const { name } = { name: 'Conner' };
+console.log(name); // 'Conner'
+```
+
+When destructuring an object, fields can also be renamed. Example: 
+
+``` js
+const { name: firstName } = { name: 'Conner' };
+console.log(firstName); // 'Conner'
+```
+
+Destructuring can also be used in a function parameter, for example: 
+
+``` js
+function printName({name}) {
+    console.log(name);
+}
+```
+
+Learn more: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
+
+### Rest Operator
+A JavaScript operator using `...` for condensing multiple elements into a single array
+- Uses the same syntax as the *spread operator*, but functionally is essentially the opposite
+
+Rest syntax: Can be used in both arrays and objects to get all of the values not be destructed. Example: 
+
+``` js
+const arr = [1,2,3,4];
+const [first, second, ...rest] = arr; // rest is [3, 4]
+
+const obj = {key1: 1, key2: 2, key3: 3, key4: 4};
+const { key1, key2, ...rest } = obj; // rest is {  key3: 3, key4: 4 }
+```
+
+Moreover, rest syntax can be used for function parameters to accept an infinite number of arguments, which are accessible as an array. For example: 
+
+``` js
+function myFunc(...myArguments) {
+    console.log(myArguments);
+}
+
+myFunc(1,2,3,4); // logs [1,2,3,4]
+```
+
+Learn more: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/rest_parameters
+
+### Spread Operator
+A JavaScript operator using `...` for expanding iterables into individual elements
+- Example: `myFunction(...myArray)` would pass each value in myArray as individual arguments to myFunction.
+
+The spread syntax can also be used to combine 2 arrays.
+- For example: `[...arr1, ...arr2]` would make a single array with all of the values of both arrays
+
+Similarly: objects can be spread as well 
+- Example: `{key: 'value', ...otherObj}` would add all of the fields from the other object into this object.
+
+Moreoever, `{...obj}` can be used as a shallow clone of an object, since it creates a new object with the same fields.
+
+Learn more: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax
+
+### Template Literal
+Strings created using backticks `` that allow for inlining expressions, rather than needed concatenation.
+- Inlined expressions use the syntax `${}`
+- For example: ``Hello ${name}`` would have the same output as ` `Hello` + name`
+
+Template literals also allow for *tagging* to write a function the defines custom behavior for the template literals.
+- Tagging can be read about further in the MDN documentation, but doesn't really get used very often.
+
+Learn more: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals
+
+### Null Coalescing
+Also referred to as *nullish coalescing*, an operator using `??` for providing a default value if a value is null.
+- if the value on the left side of the operator is not null or undefined, that value is used
+- otherwise: the value on the right side of the operator is used
+
+Example: 
+
+``` js
+const num = null ?? 1234; // 1234
+const num2 = undefined ?? 1234; // 1234
+const num3 = 5678 ?? 1234; // 5678
+const num4 = '' ?? 1234; // ''
+```
+
+Learn more: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Nullish_coalescing
+
+### Optional Chaining
+A JavaScript operator using `?.` for reading object properties without throwing an error if the object is null
+
+Example: 
+- `person?.company?.website` Will act the same as `person.company.website`, however if any values in the chain are null or undefined, it will return undefined (rather than throwing an error)
+
+Learn more: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Optional_chaining
+
+### Short Circuit Evaluation
+A method of utilizing the evaluation order of JavaScript to conditionally run code.
+- Usually: uses the `&&` operator
+    - Because for it to return true, both the left and right side expressions must be true
+
+- Since the browser runs code from left to right, if it encounters false on the left side, it does not even run the code on the right side (This can be used to conditionally run code)
+
+Example:
+
+``` js
+true && myFunc(); // calls myFunc()
+false && myFunc(); // does NOT call myFunc()
+```
+
+Less commonly: Short circuit evaluation can also be used with the `||` operator
+- This operator only needs 1 expression to be true, so if the left side is true, the right side will not be evaluated
+    - Essentially, the opposite of the behavior with `&&`
+
+Example: 
+
+``` js
+true || myFunc(); // does NOT call myFunc()
+false || myFunc(); // calls myFunc()
+```
+
+## Notes from the video
+
+Making our code more concise and easier to read!
+
+First example: 
+
+
+### Anonymous and Arrow Method
+
+- Arrow method is new
+
+``` js
+const arr = [1,2,3,4];
+
+const doubled = arr.map(double);
+
+function double(num) {
+    return num * 2;
+}
+
+console.log(doubled); // [ 2, 4, 6, 8 ]
+
+// Method #2: This should be the same... good for single callback
+const doubled2 = arr.map(function(num) { // gets rid of function name!
+    return num * 2;
+});
+
+console.log(doubled2); // [ 2, 4, 6, 8 ]
+
+// Method #3: New way: Arrow function!
+const doubled3 = arr.map((num) => {
+    return num * 2;
+});
+
+console.log(doubled3); // [ 2, 4, 6, 8 ]
+```
+
+This doesn't even look that much cleaner... why is this better?
+
+We can inline all of this in 1 line!
+- get rid of return statemnt
+- get rid of curly braces {}
+- get rid of semicolon
+
+``` js
+const arr = [1,2,3,4];
+const doubled = arr.map((num) => num * 2);
+console.log(doubled); // [ 2, 4, 6, 8 ]
+```
+
+Note: This only works with a single line and single expression
+
+One more thing: If there is only 1 parameter, you can get rid of even more!
+- get rid of the parentheses around the parameters
+
+``` js
+const arr = [1,2,3,4];
+const doubled = arr.map(num => num * 2);
+console.log(doubled); // [ 2, 4, 6, 8 ]
+```
+
+This is very concise and easy to read!
+
+### Destructuring Assignment AND ...rest Syntax
+
+``` js
+const arr = [1,2,3,4];
+
+// These both do the exact same thing
+const first = arr[0];
+const second = arr[1];
+// console.log(first, second); // 1 2
+
+const [first, second, ...rest] = arr;
+console.log(first, second); // 1 2
+console.log(rest); // [ 3 , 4]
+console.log(arr); // [ 1, 2, 3, 4 ]
+```
+
+### Destructuring Objects
+
+We can do the above with objects, too!
+
+``` js
+const arr = [1,2,3,4];
+
+const person = {
+    name: "Myles",
+    website: "FrontendExpert",
+};
+
+const { name: firstName, ...rest } = person;
+console.log(firstName); // Myles
+console.log(rest); //  { website: 'FrontendExpert' }
+```
+
+Note: We can also give default values in the case that a value does not exist:
+
+``` js
+const arr = [1,2,3,4];
+
+const person = {
+    name: "Myles",
+    website: "FrontendExpert",
+    company: "Foo",
+};
+
+const { name: firstName, company='AlgoExpert', ...rest } = person;
+console.log(firstName); // Myles
+console.log(company); // Foo (we don't use the defined default value...)
+console.log(rest); //  { website: 'FrontendExpert' }
+```
+
+Desctructure when passing an object as a parameter to a function:
+
+``` js
+const arr = [1,2,3,4];
+
+const person = {
+    name: "Myles",
+    website: "FrontendExpert",
+};
+
+// Old way
+function printName(person) {
+    console.log(person.name);
+}
+
+printName(person); // Myles
+
+// New way
+function printName2({name}) {
+    console.log(name);
+}
+
+printName2(person); // Myles
+```
+
+
+### ...spread Syntax
+
+Spread operator: Similar to ...rest operator
+- Take an array, separate out the values as separate entities
+
+``` js
+const arr = [1,2,3,4];
+
+function add(x, y) {
+    console.log(x + y);
+}
+
+add(arr[0], arr[1]); // 3
+add(...arr); // 3
+
+const arr2 = [1];
+add(...arr2); // NaN
+```
+
+Using spread operator in definition of another array:
+
+``` js
+const arr = [1,2,3,4];
+const arr2 = [5,6,7,8];
+
+const combined = [...arr, 69,  ...arr2];
+console.log(combined);
+```
+
+Using spread to take infinite arguments in a function:
+
+``` js
+const arr = [1,2,3,4];
+
+function logParams(x, ...rest) {
+    console.log(x); // 1
+    console.log(rest); // [ 2,3,4 ]
+}
+
+logParams(1,2,3,4);
+```
+
+### Template Literals
+
+Template Literals: Same thing as an f-string
+
+``` js
+const name = "Myles";
+const age = 25;
+
+console.log(`Hello ${name}, you are ${age}`) // Hello Myles, you are 25
+```
+
+
+### Nullish Coalescing
+
+Nullish Coalescing: Similar to a 1-line if-else statement
+
+``` js
+const name = "Myles";
+
+// Old way
+// if name is null: Default Name
+// if name is NOT null: name
+const defaultName = name != null ? name : 'Default name';
+console.log(`Hello, ${defaultName} !!!`)
+
+// Null coalescing operator (this is cleaner)
+const defaultName2 = name ?? 'Default name';
+console.log(`Hello, ${defaultName2} !!!`)
+```
+
+
+### Optional Chaining
+
+Without chaining:
+
+``` js
+const person = {
+    company: {
+        website: 'AlgoExpert.io',
+    }
+}
+console.log(person.company.website); // AlgoExpert.io
+
+const person2 = {
+    // company: {
+    //     website: 'AlgoExpert.io',
+    // }
+}
+console.log(person2.company.website); // error message !!!
+```
+
+With chaining!
+- Returns undefined in the case that something that your are calling does not exist
+
+``` js
+const person2 = {}
+console.log(person2?.company?.website); // undefined
+```
+
+### Bonus: Combining Nullish Coalescing w/ Optional Chaining
+
+Super helpful for objects coming from an API/codebase that could be nuls
+
+``` js
+const person = {
+    company: {
+        website: 'AlgoExpert.io'
+    }
+}
+console.log(person?.company?.website ?? 'Backup'); // AlgoExpert.io
+
+const person2 = {}
+console.log(person2?.company?.website ?? 'Backup'); // Backup
+```
+
+### Short Circuit Evaluation
+
+Notes
+- More concise than an if-else statements
+- Not good practice (hacky)
+
+``` js
+const shouldRunCode = true;
+
+function logWorld() {
+    console.log('Hello World');
+}
+
+shouldRunCode && logWorld(); // Hello World (same as doing if else)
+```
+
+# Lesson 8: Connecting JavaScript to HTML
+
+A little more nuanced than simply throwing a `<script>` tag into your HTML...
+
+## Key Term
+`<script>`
+The HTML tag for adding JavaScript to the document.
+- Usually: the `<script>` appears in the `<head>` with no children
+    - Instead of children, it usually has the *src* attribute set to the path of the JS file
+
+- By default: Scripts block the browser from continuing to parse/render the rest of the DOM until the script has finished downloading and executing
+    - There are 2 boolean attributes that can change this behavior:
+
+        - defer: Fetch the script asynchronously without blocking the page
+            - Only execute the script after the DOM has finished being parsed
+
+        - async: Fetch the script asynchronously witout blocking the page
+            - Whenever the script is ready, stop parsing the DOM and execute the script
+                - This is usually only for scripts that do not need access to the DOM (otherwise, the behavior would be inconsistent based on how quickly the script downloaded)
+
+Alternatively: Scripts were traditionally placed at the bottom of the `<body>` to ensure the DOM finished loading before running the script
+- However: This is slower than using the *defer* method/attribute, since the script will not be downloaded until reaching the script tag at the end of the body.
+
+Learn more: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script
+
+## Notes from the video
 
