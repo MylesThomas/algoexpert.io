@@ -6029,14 +6029,1707 @@ JS is very important!!
 # Key Terms
 
 ## JavaScript
+The primary programming language of the web
+- Primarily used for adding functionality to websites
+- General purpose, multi=paradigm programming language with dynamic typing
+
+Learn more: https://developer.mozilla.org/en-US/docs/Web/JavaScript
+
+## Paradigm
+A style of programming
+- Oftentimes: languages are built with a specific paradigm in mind
+    - Javascript is known as a multi-paradigm langauge (because it allows for programming in a variety of paradigms)
+
+Major paradigms include:
+
+- Event-driven: Functions can be made to respond to events
+    - ie. when a user clicks on a an element or scrolls down the page
+
+- Functional: Functions can be written as "pure functions" 
+    - ie. functions will always have the same output for a given set of arguments
+    - Support for first class and higher order functions:
+        - First class functions: 
+        - Higher order functions: This means that functions can be treated as normal values, passed as arguments to other functions and returned from functions 
+
+- Object-oriented: Objects can be created as custom data stroes that inherit from each other
+
+- Imperative: Programs can be written by explicitly describing the control flow 
+    - loops/conditionals
+
+- Declarative: Describing desired output (with implicit control flow)
+    - Oftentimes: Associated with functional programming 
+        - ie. using the forEach function to loop over an array, instead of a for-loop
+
+## Primitive
+The most basic data types of a language. In Javascript, there are 7 primitive types:
+
+- Number: Numeric values
+    - no difference between int/floats (integers/decimal values)
+- BigInt: Integers too large to store in a number
+    - Not used often
+- Boolean: true/false
+    - keywords in lowercase
+- String: Sequence of characeters
+- Symbol: A dynamically generated unique value
+- Null
+    - must be assigned (no value)
+- Undefined
+    - value has not been assigned at all
+
+Note: JS has a `typeof` operator that can get the type of a value as a lowercase string
+- Beware: This function has some special casing
+    - example: `typeof function` will return "function" even though functions are just objects
+
+Learn more: https://developer.mozilla.org/en-US/docs/Glossary/Primitive
+
+# Notes from the video
+
+Javascript is constantly evolving
+- ECMAScript: standardized version
+
+Javascript engine:
+- Executes code in the browser
+- Just in time complication (interpreted)
+    - Better performance
+
+Examples shown in the video:
+
+### Numbers
+
+``` js
+// create a variable
+// dynamic typing: you do not need to specify the type of value
+let num = 10; // semicolon denotes end of line, optional (although you should use them)
+
+// print
+console.log(num);
+
+// const = same as let, but you cannot change the value after the fact!
+const num2 = 20;
+// num2 = 999 this would be an error...
+console.log(num2);
+```
+
+``` js
+let num = 10.5;
+let strNum = '10px';
+console.log(Math.random());
+console.log(Number(strNum));
+console.log(parseInt(strNum));
+```
+
+``` js
+let num = 10;
+console.log('10' == num); //compares value
+console.log('10' === num);//compares value AND type
+```
+
+``` js
+// powers
+let num = 10.5;
+console.log(Math.pow(2, 3))
+```
+
+``` js
+console.log(10 ** 'a'); //nan
+console.log(Infinity); //infinity
+console.log(-Infinity);//negative infinity
+console.log(BigInt(100));//100n
+console.log(100n);//100n
+```
+
+``` js
+console.log(typeof 100); //number
+console.log(typeof 100n);//bigint
+```
 
 
-## 
+
+### Strings
+
+``` js
+let str = 'abcd';
+
+console.log(str); //abcd
+console.log(str + 'efg'); //abcdefg
+console.log(str + 1); //abcd1
+
+console.log(str == 'abcd');   //true
+console.log(str == 'abcd123'); //false
+```
+
+``` js
+//template literal
+console.log(`
+Hey
+Myles is ${23}
+Newline
+`)
+```
+
+``` js
+let str = 'abcd';
+
+console.log("Long string\
+keeps going") //long stringkeeps going
+```
+
+``` js
+let str = 'abc';
+
+console.log(str[0]);
+console.log(str.charAt(0));
+console.log(str[1]);
+console.log(str.charAt(1));
+console.log(str[2]);
+console.log(str.charAt(2));
+```
+
+``` js
+let str = 'abc';
+
+console.log(str.includes('a')); //true
+
+console.log(str.includes('z'));//false
+console.log(str.startsWith('z'));//false
+console.log(str.endsWith('z'));//false
+```
+
+``` js
+let str = 'abc';
+
+console.log(str.toUpperCase()); //ABC
+console.log(str.toLowerCase()); //abc
+```
+
+``` js
+let str = 'abcdefg';
+
+console.log(str.substr(1));   //bcdefgf
+console.log(str.substr(1, 2));//bc
+
+console.log(str.slice(1));   //bcdefgf
+console.log(str.slice(1, 2));//b
+```
+
+``` js
+let str = 'abcd';
+
+console.log(str.padStart(3, '-')); //length of  3 min: abcd
+console.log(str.padStart(10, '-'));//length of 10 min: ------abcd
+
+console.log(str.padEnd(3, '-')); //length of  3 min: abcd
+console.log(str.padEnd(10, '-'));//length of 10 min: abcd------
+```
+
+``` js
+let str = '                   abcd';
+
+console.log(str.trim()); //abcd
+console.log(str.trimStart()); //abcd
+console.log(str.trimEnd()); //                     abcd
+```
+
+``` js
+let str = 'a,b,c,d';
+
+console.log(str.split(',')); // returns list/array of [a,b ,c,d]
+```
 
 
-## 
+
+### Objects
+
+``` js
+//brackets: key-value pairs
+//(you can re-assign values of const person, but not person)
+const person = {
+    name: 'Conner',
+    course: 'FrontendExpert', // good practice is leaving the trailing comma!
+}
+
+console.log(person); //{ name: 'Conner', course: 'FrontendExpert' }
+console.log(typeof person); //object
 
 
-## 
+console.log(JSON.stringify(person)); //{"name":"Conner","course":"FrontendExpert"}
+console.log(typeof JSON.stringify(person)); //string
+
+console.log(JSON.parse(JSON.stringify(person))); //{ name: 'Conner', course: 'FrontendExpert' }
+console.log(typeof JSON.parse(JSON.stringify(person))); //object
+
+console.log(person.course); // frontendexpert
+
+person.name = 'Myles';
+console.log(person.name); //Myles
+```
+
+``` js
+//Create new map
+//Map: works similarly to a standard object
+// - difference: Map has the following:
+//     - functions for getting keys/values
+//     - not restricted to keys of strings/symbols
+const map = new Map();
+
+map.set(123, 'hello');
+console.log(map); //Map(1) { 123 => 'hello' }
+
+
+console.log(map.get(123));
+
+map.set(456, 'world');
+console.log(map);//Map(2) { 123 => 'hello', 456 => 'world' }
+console.log(map.size);//2
+
+console.log(map.get(698888));//undefined
+```
+
+``` js
+//Sets
+// - only have unique values (un-ordered list)
+const set = new Set();
+
+set.add('hello');
+set.add('world');
+set.add('world'); // does nothing!
+
+console.log(set); //Set(2) { 'hello', 'world' }
+console.log(set.has('blah blah'));//false
+console.log(set.size);//2
+
+set.delete('hello');
+console.log(set); //Set(1) { 'world' }
+console.log(set.has('world'));//true
+console.log(set.size);//1
+```
+
+Note on Set/Map:
+- Usually used: Objects and arrays
+- Sometimes: Set and Map
+    
+    If you need the following:
+    - keys that are not strings
+
+
+
+### Arrays
+
+Note: Under the hood, arrrays are objects.
+
+``` js
+const arr = [1,2,3];
+
+console.log(arr); //[ 1, 2, 3 ]
+console.log(arr[0]); //1
+
+arr.push(402020);
+console.log(arr.length); //4
+
+console.log(typeof arr); //object
+```
+
+### Functions
+
+``` js
+function addTwo(num = 99) {
+    return num + 2;
+}
+
+console.log(addTwo(3)); //5
+console.log(addTwo()); //101
+```
+
+Notes:
+- Functions can be passed around like standard values
+- Functions are objects
+
+``` js
+function addTwo(num = 99) {
+    return num + 2;
+}
+
+function callFunc(func, param) {
+    console.log(func(param));
+}
+
+callFunc(addTwo, 10);//12
+```
+
+``` js
+function addTwo(num = 99) {
+    return num + 2;
+}
+// it is both an object and a function...
+console.log(typeof addTwo);//function
+console.log(addTwo instanceof Object); //true
+```
+
+
+### Looping
+
+
+``` js
+// For loop
+for (let i=0; i < 4; i++) {
+    if (i==1){
+        continue;
+    }
+    console.log(i);
+} //0,2,3
+```
+
+``` js
+//While loop
+let i = 0;
+while (i < 4) {
+    console.log(i);
+    i ++;
+} //0,1,2,3
+```
+
+Note: This is an interesting way of having the code run BEFORE it checks the condition.
+
+``` js
+// Do loop
+let i=0;
+do {
+    console.log(i);
+    i++;
+}
+while (i < 0); //0
+```
+
+``` js
+// For-of loop
+for (const value of 'abc') {
+    console.log(value);
+}//a,b,c
+```
+
+``` js
+const obj = {
+    name: "Myles",
+    course: "FrontendExpert",
+}
+
+for (const key in obj) {
+    console.log(key);
+} //name,course
+
+for (const key in obj) {
+    console.log(obj[key]);
+} //Myles, FrontendExpert
+
+for (const key in obj) {
+    console.log(key, obj[key]);
+} //name Myles, course FrontendExpert
+```
+
+``` js
+// forEach loop (with arrays)
+[1,2,3].forEach(function(value) {
+    console.log(value);
+})//1,2,3
+```
+
+Note above:
+- Functions was passed in as a parameter
+    - Anonymous function syntax: We did not give it a name
+
+
+### Conditionals
+
+
+``` js
+const condition = false;
+
+if (condition) {
+    console.log('it was true!');
+}
+else if (condition === false) {
+    console.log('it was false!');
+} else {
+    console.log('default');
+}
+```
+
+
+``` js
+// Switch statements
+const myNum = 2;
+
+switch (myNum) {
+    case 1:
+        console.log('it was 1');
+        break;
+    case 2:
+        console.log('it was 2');
+    default:
+        console.log('default (it gets here even if 1 or 2)');    
+}
+```
+
+
+``` js
+const myNum = 10;
+
+console.log(myNum > 5 ? 'Greater than 5' : 'Less than 5');
+// ? meaning: if
+// : meaning: else 
+
+```
+
+
+### Error Handling
+
+``` js
+throw new Error('oh no'); //throws error and does not run
+
+console.log('we do not end up getting to this line of code...');
+```
+
+
+``` js
+try {
+    throw new Error('oh no');
+} catch (error) {
+    console.log(error);
+}
+
+console.log('error was caught, but code still runs after!');
+```
+
+### Comments
+
+
+``` js
+// Single line comment
+```
+
+
+``` js
+/*
+Multi
+line
+comment
+*/
+```
+
+
+### Console function
+
+``` js
+console.log('value'); //prints regular 'value'
+console.error('error message'); //prints in red
+console.debug('debug message'); //rarely used
+
+console.table(
+    [[1, 2], 
+    ['hello', 'world']]
+)
+
+console.count() // 1
+console.count() // 2
+
+console.countReset();
+console.count(); //1
+
+// different counts for different values
+console.count(); //2, because default is already at 1
+console.count('hey'); // starts new at 1
+
+console.time();
+console.timeLog(); // very short time
+console.timeEnd(); //can also use this to reset the default..
+
+console.time('longer');
+for (let i=0; i < 100000000; i ++) {
+    continue;
+}
+console.timeLog('longer'); // longer time
+
+// Trace: logs out where we are in the code
+function foo() {
+    console.trace();
+}
+foo();
+```
+
+
+### Strict mode
+
+Put this string at the top of your file:
+
+``` js
+'use strict';
+```
+
+What this does:
+- Code is executed in slightly stricter manner
+    - Finds bugs for us
+
+Note: can also be used at the function level
+
+``` js
+function foo() {
+    'use strict';
+    x = 5;
+
+}
+foo();
+```
+
+# Lesson 3: Variables and Scoping
+
+What do you call something that is both a paradox and a misnomer
+- a constant variable
+
+# Key Terms
+
+## let
+A keyword for declaring a block-scoped variable 
+- Cannot be accessed before initialization
+
+Learn more: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/let
+
+## var
+A keyword for declaring a function-scoped variable
+- Automatically initialized to `undefined` when it is hoisted
+
+Learn more: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/var
+
+## const
+A keyword for declaring a constant value
+- Has same behavior as variables declared with `let`
+- They cannot be re-assigned, though
+
+Learn more: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/const
+
+## Block Scope
+The behavior of a variable that is only accessible inside of the block it was defined
+- Most of the time: the block will simply be the nearest pair of curly braces to the declaration
+
+## Function Scope
+The behavior of a variable that is accessible anywhere inside of the function it was defined
+
+## Hoisting
+The process by which the JavaScript engine moves variable declarations to the top of their scope ie. allocating memory for them before reaching the line of code where they are declared
+- Variables declared with `var`: Initialized to `undefined` until reaching the line of code that init's the variable
+- Variables declared with `let`/`const`: Not initialized - cannot be accessed before the line of code that init's it
+
+``` js
+console.log(varNum); // undefined
+console.log(letNum); // reference error
+
+var varNum = 5;
+let letNum = 5;
+
+console.log(varNum); // 5
+console.log(letNum); // 5
+```
+
+Learn more: https://developer.mozilla.org/en-US/docs/Glossary/Hoisting
+
+
+# Notes from the video
+
+Variables in JavaScript and the ways we can define them.
+
+Hosting: When a variable is declared, it goes to the top of its scope.
+- Declaration happens first
+
+``` js
+// Hardly a difference
+var varNum = 0;
+let letNum = 0;
+
+console.log('varNum', varNum);
+console.log('letNum', letNum);
+```
+
+``` js
+console.log('varNum', varNum); // undefined: it was hoisted
+console.log('letNum', letNum); // cannot reference letNum before initialization!
+
+var varNum = 0;
+let letNum = 0;
+
+console.log('varNum', varNum);
+console.log('letNum', letNum);
+```
+
+Scoping:
+
+``` js
+function test() {
+    var varNum = 0;
+    let letNum = 0;
+    console.log('varNum', varNum);
+    console.log('letNum', letNum);
+}
+
+test();
+```
+
+Currently:
+- varNum AND letNum are scoped to the entire function
+    - This will not always be the case!
+
+Explanation for this:
+
+``` js
+function test() {
+    if (true) {
+        var varNum = 0;
+        let letNum = 0;
+    }
+    console.log('varNum', varNum);
+    console.log('letNum', letNum);
+}
+
+test();
+```
+
+What happens here:
+- varNum: accessible in the entire function
+- letNum: NOT accessible in the entire function, only in its block
+    - whether true or false, letNum is not declared once that if-statement is gone
+
+Which is better, `var` or  `let`?
+- Most of the time: let
+
+    Why?
+    - Rules that define let are more natural
+        - Hoisting is un-natural
+    - We do not want variables available throughout our function in places we don't want them
+
+Var: Unlike other programming languages
+Let: IS like other programming languages
+- Good for someone coming from Python
+
+
+One more keyword: `const`
+
+``` js
+function test() {
+    const constNum = 0;
+    let letNum = 0;
+
+    letNum = 2; //good
+    constNum = 4;//error!
+
+    console.log('letNum', letNum);
+    console.log('constNum', constNum);
+}
+
+test();
+```
+
+What does const do:
+- It is essentially `let`, but it is constant ie. you cannot change it!
+    - "Constant variable can never have an equal sign after it ever again"
+
+Note: You can mutate constant values, just not reassign them:
+
+``` js
+function test() {
+    const arr = [1,2,3];
+
+    arr.push(4); // good
+    console.log(arr);
+
+    arr = [1,2,3,4] //error
+}
+
+test();
+```
+
+In Javascript: 
+- Most of the time: We want to call functions on our values
+    - Re-assigning is avoided
+
+### In summary:
+
+Most commonly used: `const`
+Used when we need to re-assign: `let`
+Avoid: `var`
+
+
+# Lesson 4: Arrays
+
+The quintessential data structure that can be used in a wide array of different situations
+
+## Key Terms
+
+### Array
+A data structure for storing lists of information
+
+JavaScript arrays:
+- mutable
+- can contain different data types
+    - not recommended, but you can do it
+- has special syntax for creating and updating them
+
+``` js
+const arr = [1,2,3];
+console.log(arr[1]); // 2
+```
+
+Learn more: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
+
+## Notes from the video
+
+Fill method:
+
+``` js
+const arr = new Array(5);
+arr.fill(0);
+console.log(arr); // [0,0,0,0,0]
+```
+
+Edit items in an array:
+
+``` js
+const arr = [1,2,3];
+console.log(arr[2]); // 3
+console.log(arr.includes(3)); //true
+```
+
+indexOf / lastIndexOf:
+
+``` js
+const arr = [1,2,3,3];
+
+console.log(arr.indexOf(3)); //2
+console.log(arr.lastIndexOf(3));//3
+```
+
+Add/remove elements to/from the array:
+
+``` js
+const arr = [1,2,3];
+
+arr.push(4,5,6);//append values to end o(1)
+
+arr.pop(); //remove last o(1)
+
+arr.unshift(69); //add at beginning (as if it was a queve) [o(n)]
+
+console.log(arr); //[69,1,2,3,4,5]
+
+arr.shift(); //remove from beginning
+
+console.log(arr); //[1,2,3,4,5]
+```
+
+Arrays are objects
+- Most data structures in JavaScript are!
+
+``` js
+const arr = [1,2,3];
+
+console.log(typeof arr); //object
+console.log(Array.isArray(arr)); //true
+console.log(arr instanceof Array); //true (not used as often)
+```
+
+Deleting/Replacing items:
+
+``` js
+// .splice(): inplace changes array
+
+// starting index: replacement from
+// n: number of elements we want to delete
+// optional: values to replace the deleted values w/
+let arr = [1,2,3];
+arr.splice(0, 2);
+console.log(arr); //[3]
+
+arr = [1,2,3];
+arr.splice(1, 1);
+console.log(arr); //[1, 3]
+
+arr = [1,2,3];
+arr.splice(0, 1, 'hello', 'world');
+console.log(arr); //[ 'hello', 'world', 2, 3 ]
+```
+
+More arrays:
+
+
+``` js
+// .slice(): take a subset of an array
+
+// starting index: inclusive
+// ending index: exclusive
+
+// n: number of elements we want to delete
+// optional: values to replace the deleted values w/
+const arr = [1,2,3];
+
+const newArr = arr.slice(1, 3);
+console.log(newArr); // [2, 3]
+```
+
+``` js
+// add two arrays together
+const arr = [1,2,3];
+const newArr = arr.concat(['hello', 'world']);
+console.log(newArr);
+```
+
+
+``` js
+// reverse an array (inplace)
+const arr = [1,2,3];
+arr.reverse();
+console.log(arr);
+```
+
+
+``` js
+// .join(): combine all elements in an array into a string
+// - param: delimiter (comma is default delimiter)
+const arr = [1,2,3];
+
+let str = arr.join(' - ');
+
+console.log(arr);
+console.log(str);
+```
+
+Loop through elements in the array:
+
+``` js
+const arr = [1,2,3];
+
+// old way
+for (let i=0; i < arr.length; i++) {
+    console.log(arr[i]);
+}
+
+// for-of loop
+for (const value of arr) {
+    console.log(value);
+}
+
+// forEach
+arr.forEach(function(value, index, array) {
+    console.log(value, index, array);
+});
+
+// forEach WITH 'this' arg
+arr.forEach(function(value, index, array) {
+    console.log(value, index, this);
+}, {num: 10}); // we don't use the 'this' argument very often...
+```
+
+Map function:
+- What it does: Creates a new array based on the return values 
+
+``` js
+const arr = [1,2,3];
+
+const mappedArray = arr.map(function(value, index) {
+    return value + index //+ this.num;
+}, {num: 10});
+
+console.log(mappedArray);
+
+const mappedArray2 = arr.map(function(value, index, array) {
+    console.log(array);
+    return value + index + this.num;
+}, {num: 10});
+
+console.log(mappedArray2);
+```
+
+Functions similar to array.map():
+
+Filter: Creates a new array
+- only adds elements that pass a condition
+
+
+``` js
+const arr = [1,2,3];
+
+const filteredArray = arr.filter(function(value, index, array) {
+    return value > this.num;
+}, {num: 1});
+
+console.log(arr); //1,2,3
+console.log(filteredArray);//2,3
+```
+
+Find: Returns first value that matches a condition
+
+``` js
+const arr = [1,2,3];
+
+const foundValue = arr.find(function(value, index, array) {
+    return value > this.num;
+}, {num: 1});
+
+console.log(arr); //1,2,3
+console.log(foundValue);//2
+```
+
+findIndex: returns the index of a value
+
+``` js
+const arr = [1,2,3];
+
+const foundIndex = arr.findIndex(function(value, index, array) {
+    return value > this.num;
+}, {num: 1});
+
+console.log(arr); //1,2,3
+console.log(foundIndex);//1
+```
+
+Every: Does every element in the array fulfull these conditions?
+
+``` js
+const arr = [1,2,3];
+
+const allPass = arr.every(function(value, index, array) {
+    return value > this.num;
+}, {num: 1});
+
+console.log(arr); //1,2,3
+console.log(allPass);//false
+```
+
+Some: If at least one...
+
+``` js
+const arr = [1,2,3];
+
+const atLeastOnePasses = arr.some(function(value, index, array) {
+    return value > this.num;
+}, {num: 1});
+
+console.log(arr); //1,2,3
+console.log(atLeastOnePasses);//true
+```
+
+Note: I have been keeping them in, but you can remove the parameters from the function that you are not using...
+
+
+.reduce()
+
+Reduce: 
+
+``` js
+const arr = [1,2,3];
+
+const sum = arr.reduce(function(accumulator, currValue) { // can add index and array, not 'this' though
+    console.log('here');
+    return accumulator + currValue;
+})
+
+console.log(arr);
+console.log(sum);
+```
+
+``` js
+// With default value of 0
+const arr = [1,2,3];
+
+const sum = arr.reduce(function(accumulator, currValue) {
+    console.log('here');
+    return accumulator + currValue;
+}, 0)
+
+console.log(arr);
+console.log(sum);
+```
+
+.reduceRight()
+- Works from right to left
+
+``` js
+const arr = [1,2,3];
+
+const sum = arr.reduceRight(function(accumulator, currValue) { // can add index and array, not 'this' though
+    console.log('here');
+    return accumulator - currValue;
+}, 0) // -6
+// removing this will end at 0 because start at 3, then minus 2, minus 1 = 0
+
+console.log(arr);
+console.log(sum);
+```
+
+Sorting arrays:
+
+``` js
+const arr = [5,7,3,0];
+
+arr.sort(); // does it inplace
+
+console.log(arr); // [0,3,5,7]
+```
+
+``` js
+const arr = [5,7,3,0];
+
+arr.sort(compareNumbers);
+
+function compareNumbers(firstNumber, secondNumber) {
+    if (firstNumber == 3) {
+        return -1;
+    }
+    if (secondNumber === 3) {
+        return 1;
+    }
+
+    return secondNumber - firstNumber;
+    
+}
+
+console.log(arr); // [3,7,5,0]
+```
+
+# Lesson 5: Objects
+
+Why is JavaScript a mean programming language? It objectifies almost everything.
+
+## Key Terms
+
+### Object
+The base non-primitive data structure of JavaScript used to store key-value pairs
+- Usually: Keys are the strings
+    - Symbols can also be used
+- Values: Can be any time
+
+Objects are usually declared with the object literal syntax, ie. 
+
+``` js
+const website = {
+    name: 'AlgoExpert',
+    domain: 'algoexpert.io',
+};
+```
+
+Learn more: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#objects
+
+### Symbol
+A primitive value in JavaScript used for unique values
+- Crearted using the `Symbol(description)` function, which returns a unique symbol
+    - Even if two symbols have the same description, they will still be considered unique
+
+- While symbols created with `Symbol(description)` are completely unique, symbols can also be created using `Symbol.for(key)`
+    - This works the same way, except two calls to this function with the same key will return the same symbol (based on a global symbol registry)
+
+Learn more: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol
+
+Note: Primitive vs. Non-primitive
+- Primitive: Immutable (can NOT be modified)
+- Non-Primitive: Mutable (can be modified)
+
+## Notes from the video
+
+Objects: Most basic data structure
+
+``` js
+const myKey = 'key'
+
+const website = {
+    name: 'AlgoExpert',
+    rating: 5,
+    founders: [
+        'Clement',
+        'Antoine',
+    ],
+    isAwesome: true,
+    'multi word key': 0,
+    //this is possible
+    [myKey]: 1234
+    
+}
+
+console.log(website);
+console.log(website.name); //more popular
+console.log(website['name']);//used if you have dash or spaces OR using a variable
+```
+
+How to change the object/website:
+
+``` js
+const website = {
+    name: 'AlgoExpert',
+    rating: 5,
+    founders: [
+        'Clement',
+        'Antoine',
+    ],
+}
+console.log(website.name); //AlgoExpert
+website.name = 'FrontendExpert';
+console.log(website.name); //FrontendExpert
+delete website.name
+console.log(website.name); //undefined
+```
+
+Note: Two objects are not equal to each other based on their values
+
+``` js
+const website = {
+    name: 'AlgoExpert',
+    rating: 5,
+    founders: [
+        'Clement',
+        'Antoine',
+    ],
+}
+
+console.log({} == {}); //false
+
+const obj = {};
+console.log(obj===obj); //true
+```
+
+Some nifty short-hand notation:
+
+``` js
+const name = 'Myles';
+const obj = {
+    name,
+};
+
+console.log(obj); //{ name: 'Myles' }
+```
+
+Another way to make an object:
+
+``` js
+const obj = new Object();
+console.log(obj); //{}
+obj.name = 'Myles';
+console.log(obj); //{ name: 'Myles' }
+```
+
+### Functions constructors
+
+``` js
+const website = {
+    name: 'AlgoExpert',
+    rating: 5,
+    founders: [
+        'Clement',
+        'Antoine',
+    ],
+}
+
+// Functions constructor
+function Website(name, rating, founders) {
+    this.name = name;
+    this.rating = rating;
+    this.founders = founders;
+}
+
+const frontendExpert = new Website('FrontendExpert', 5, ['Myles'])
+
+console.log(frontendExpert); //Website { name: 'FrontendExpert', rating: 5, founders: [ 'Myles' ] }
+```
+
+### Symbols
+
+
+``` js
+
+```
+
+Properties of Symbols that are useful:
+- Hidden from most iteration functions
+
+Scenario: Add a value to an object that we got back from a 3rd party API
+- Want to make sure that our property doesn't interfere with any of the 3rd party API's code
+    - Example: object already has `id`, so we add id as `Symbol(id)`
+
+``` js
+const id = Symbol('id');
+const id2 = Symbol('id2');
+
+
+const obj = {
+    [id]: 1234,
+    [id2]: 0,
+    id: 'hello',
+    id: 'world',
+};
+
+console.log(obj); // { id: 'world', [Symbol(id)]: 1234, [Symbol(id2)]: 0 }
+```
+
+You still cannot have duplicate keys, so it will take the last object given.
+Example: Above
+
+
+Sometimes, you want the symbol to be the same
+- You want the same symbol to exist on multiple different objects 
+
+``` js
+const id3 = Symbol.for('id3');
+const id4 = Symbol.for('id3'); // global symbol registry
+
+console.log(id3===id4); //true
+```
+
+
+### Checking if a key is in an object
+
+``` js
+const website = {
+    name: 'AlgoExpert',
+    rating: 5,
+    founders: [
+        'Clement',
+        'Antoine',
+    ],
+}
+
+// Method #1: in operator (Looks at properties on object AND objects it inherits from)
+console.log('name' in website); //true
+
+// Method #2 (RECOMMENDED): hasOwnProperty (Looks at properties on object)
+console.log(website.hasOwnProperty('name')); //true
+
+// Example of inheritance in action - notice how toString is nowhere coded on this ...
+console.log('toString' in website); //true
+console.log(website.hasOwnProperty('toString')); //false - it is not defined on website object
+
+
+// Method #3: !== undefined (checking if it is not undefined)
+console.log(website.name !== undefined); //true
+website.name = undefined;
+console.log(website.name !== undefined); //false
+```
+
+Add methods to the object we are creating:
+
+``` js
+const website = {
+    name: 'AlgoExpert',
+    rating: 5,
+    founders: [
+        'Clement',
+        'Antoine',
+    ],
+    sayHello: () => console.log('hello!!')
+};
+
+website.sayHello();
+```
+
+
+``` js
+// Better syntax (for writing methods)
+const website = {
+    name: 'AlgoExpert',
+    rating: 5,
+    founders: [
+        'Clement',
+        'Antoine',
+    ],
+    sayHello() {
+        console.log('hello!!')
+    },
+
+    get getRating() {
+        return this.rating;
+    },
+
+    set setRating(value) {
+        this.rating = value;
+    }
+
+};
+
+website.sayHello();
+
+console.log(website.getRating); //notice how we use this as a standard property...
+
+website.setRating = 6;
+console.log(website.getRating);
+```
+
+### Make an object inherit from another object
+
+``` js
+const website = {
+    name: 'AlgoExpert',
+    rating: 5,
+    founders: [
+        'Clement',
+        'Antoine',
+    ],
+};
+
+const obj = {
+    __proto__: website
+};
+
+console.log(obj); // {} (it has no own properties)
+
+// Note: Objects look at the inherited object IF the object itself does not have it
+console.log(obj.name); // AlgoExpert
+console.log(obj.rating); // 5
+```
+
+Adding key-values to the object, and iterating over it:
+
+Own keys and values:
+
+1. Own keys: Object.keys(obj)
+- returns array with the keys
+    - excludes keys that are not its own ie. inherited properties/keys
+    - excludes non-enumerable keys
+        - string names: enumerable (stay)
+        - Object: non-enumerable (does not stay)
+
+2. Own values: Object.values(obj)
+
+3. Own keys AND values: Object.entries(obj)
+- Nested array of key-value pairs
+
+
+``` js
+const website = {
+    name: 'AlgoExpert',
+    rating: 5,
+    founders: [
+        'Clement',
+        'Antoine',
+    ],
+};
+
+const obj = {
+    foo: 'bar',
+    [Symbol('id')]: 0,
+    __proto__: website
+};
+
+console.log(Object.keys(obj));  // ['foo']
+console.log(Object.values(obj)); //['bar']
+console.log(Object.entries(obj));//['foo', 'bar']
+
+Object.entries(obj).forEach(function([key, value]) {
+    console.log(key, value);
+}) // foo bar
+```
+
+How to keep inherited properties:
+
+Method #2: for (key in obj)
+- Keeps: 
+    - Own
+    - Proto (inherited)
+
+- Removes:
+    - non-enumerable
+    - Symbols
+
+``` js
+const website = {
+    name: 'AlgoExpert',
+    rating: 5,
+    founders: [
+        'Clement',
+        'Antoine',
+    ],
+};
+
+const obj = {
+    foo: 'bar',
+    hello: 'hello',
+    [Symbol('id')]: 0,
+    __proto__: website
+};
+
+for (key in obj) {
+    console.log(key);
+} //foo
+// hello
+// name
+// rating
+// founders
+```
+
+
+### How to Copy and Object
+
+Method #1: 
+- Copies:
+    - Enumerable OWN properties
+
+- Does not copy:
+    - Non-Enumerables
+    - Inhertied/Proto
+
+``` js
+const website = {
+    name: 'AlgoExpert',
+    rating: 5,
+    founders: [
+        'Clement',
+        'Antoine',
+    ],
+};
+
+const obj = {
+    foo: 'bar',
+    hello: 'hello',
+    [Symbol('id')]: 0,
+    __proto__: website
+};
+
+const myObj = {
+    original: 123,
+};
+
+console.log(myObj); // { original: 123 }
+
+// 1st arg: Object to copy onto
+// 2nd arg: Object we are taking values from 
+Object.assign(myObj, obj); 
+
+console.log(myObj); // { original: 123, foo: 'bar', hello: 'hello', [Symbol(id)]: 0 }
+```
+
+### More functions
+
+Object.freeze(): Freezes an object
+- "You can no longer change this obejct"
+    - Makes it immutable (does this inplace)
+    - Cannot add new properties
+    - Cannot change properties
+
+Note: You cannot un-freeze a frozen object
+
+``` js
+const website = {
+    name: 'AlgoExpert',
+    rating: 5,
+    founders: [
+        'Clement',
+        'Antoine',
+    ],
+};
+
+console.log(Object.isFrozen(website)); // false
+console.log(website); // { name: 'AlgoExpert', rating: 5, founders: [ 'Clement', 'Antoine' ] }
+
+Object.freeze(website);
+website.name = 'FrontendExpert'; // cannot change existing
+website.foo = 'bar'; // cannot add anything new
+
+console.log(Object.isFrozen(website)); // returns true (it is frozen!)
+console.log(website); // { name: 'AlgoExpert', rating: 5, founders: [ 'Clement', 'Antoine' ] }
+
+// How to unfreeze
+// You can't unfreeze!
+```
+
+Object.seal()
+- Similar to freezing an object
+    - Cannot add new properties
+    - CAN change properties
+
+
+``` js
+const website = {
+    name: 'AlgoExpert',
+    rating: 5,
+    founders: [
+        'Clement',
+        'Antoine',
+    ],
+};
+
+console.log(Object.isSealed(website)); // false
+console.log(website); // { name: 'AlgoExpert', rating: 5, founders: [ 'Clement', 'Antoine' ] }
+
+Object.seal(website);
+website.name = 'FrontendExpert'; // CAN change existing
+website.foo = 'bar'; // cannot add anything new
+
+console.log(Object.isSealed(website)); // returns true (it is frozen!)
+console.log(website); // { name: 'FrontendExpert', rating: 5, founders: [ 'Clement', 'Antoine' ] }
+```
+
+### Last functions
+
+toString(): Turns an object into `[object Object]`
+- Not useful: Does this by default
+
+``` js
+const website = {
+    name: 'AlgoExpert',
+    rating: 5,
+    founders: [
+        'Clement',
+        'Antoine',
+    ],
+};
+
+console.log(website.toString()); // [object Object]
+```
+
+Better way:
+- Why it is useful: Anytime there is an internal functions that needs to convert the object into a function, it's going to call the .toString() function
+
+``` js
+const website = {
+    name: 'AlgoExpert',
+    rating: 5,
+    founders: [
+        'Clement',
+        'Antoine',
+    ],
+};
+
+console.log(website.toString()); // [object Object]
+
+website.toString = function() {
+    return 'Hello World';
+};
+
+console.log(website.toString()); // Hello World
+
+website.toString = function() {
+    return "Website Name: " + website.name;
+};
+
+console.log(website.toString()); // Website Name: AlgoExpert
+```
+
+.valueOf(): Prints out the actual objects
+- Purpose: When object needs to be converted to a primitive
+    - Usually no need to override it, although we will try that below
+
+``` js
+const website = {
+    name: 'AlgoExpert',
+    rating: 5,
+    founders: [
+        'Clement',
+        'Antoine',
+    ],
+};
+
+console.log(website.valueOf()); // { name: 'AlgoExpert', rating: 5, founders: [ 'Clement', 'Antoine' ] }
+
+website.valueOf = function() {
+    return website.rating;
+}
+
+console.log(website.valueOf()); // 5
+```
+
+.toPrimitive(): 
+- Uses a symbol
+    - Function that takes in a hint
+        - number
+        - string
+        - ambiguous (idk)
+
+- This function takes precedence over toString() or valueOf (it overrules them)
+- Can be complicated to edit
+
+``` js
+const website = {
+    name: 'AlgoExpert',
+    rating: 5,
+    founders: [
+        'Clement',
+        'Antoine',
+    ],
+
+    [Symbol.toPrimitive](hint) {
+        if (hint === 'number') {
+            return website.rating;
+        }
+        else if (hint === 'string') {
+            return website.name
+        }
+        else {
+            return 'default';
+        }
+    }
+};
+
+website.toString = function() { // this is over-ruled / ignored
+    return 'Hello World';
+}
+website.valueOf = function() { // this is over-ruled / ignored
+    return 999;
+}
+
+console.log(String(website)); // AlgoExpert
+console.log(Number(website)); // 5
+
+// 
+console.log("\nThese act differently, surprisingly...")
+console.log(10 - website); // 5 (- is subtraction)
+console.log(10 + website); // 10default (+ can be division OR concat - here it concat)
+```
+
+
+## Lesson 6: Equality And Type Coercion
+
+== == ===
+However...
+== !== ===
+
+## Key Terms
+
+### Loose Equality
+The most basic equality operator in JavaScript using `==`.
+- Loose equality compares values regardless of types 
+
+Steps:
+1. If both values are either `null` or `undefined`, return true
+
+2. Convert all `booleans` to `numbers`. `true` converts to 1, `false` converts to 0
+
+3. If comparing a `number` to a `string`, convert the `string` to a `number`
+
+4. If comparing a `object` to a `string`, convert the `object` using its `toString()` OR `valueOf()` methods.
+
+5. If the types are the same, follow the same rules as *strict equality*
+
+In general: Strict equality should be preferred
+- It is easier to predict
+
+Loose equality
+- Can be useful for checking against `null` and `undefined` at once with `value == null`
+
+Learn more: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Equality
+
+### Strict Equality
+A JavaScript equality operator using `===`
+- Compares both values AND types
+
+Steps:
+1. If either value is `NaN`, return false.
+
+2. If the values have different types, return false.
+
+3. If both values are `null` or both values are `undefined`, return true.
+
+4. If both values are `objects`, return true IF they are the same object. Otherwise, false.
+
+5. If both values are of the same primitive type, return true if the values are the same. Otherwise, false.
+
+Learn more: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Strict_equality
+
+## Notes from the video
+
+Equality / Type Coercion
+1. Loose equality
+2. Strict equality
 
 
