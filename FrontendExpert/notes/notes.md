@@ -8419,3 +8419,362 @@ Use the `defer` attribute!
 ```
 
 - start connectingJS.html
+
+
+# Lesson 9: DOM Manipulation
+
+An acceptable form of manipulation.
+
+## Key Term
+
+### Dom Manipulation
+Using JavaScript to change the content, structure, or styles of the page
+
+There are lots of functions/properties related to dom manipulation, but here are the most common ones: 
+
+Getting elements:
+
+- document.getElementById(id): Gets a single element based on its `id` attribute.
+
+- document.querySelector(cssSelector): Gets a single element based on a CSS selector.
+    - If multiple elements match the selector, return the first one
+
+- document.querySelectorAll(cssSelector): Gets all elements matching a CSS selector as a NodeList
+
+- document.getElementsByTagName(tagName): Gets all elements with a specific HTML tag as an HTMLCollection
+
+- document.getElementsByClassName(className): Gets all elements with a specific class as an HTMLCollection
+
+Settings Attributes:
+
+- element.style.property: Sets a CSS property using inline styles
+    - Although, CSS classes should usually be preferred
+    - The style object will only contain inline styles (not those set with CSS)
+
+- element.setAttribute('attribute', 'value'): Sets an HTML attribute to a specific value
+
+- element.textContent: The text content of an element, including that of any children.
+    - Note: this is slightly different from the following:
+        - element.innerText, which only gets text that is actually rendered
+        - element.innerHTML, which only gets the entire HTML code as a string
+        
+- element.attribute: An alternative to setAttribute function
+    - Attributes can be directly edited via their property name
+    - Example: `element.value` would get the value attribute from element
+
+- element.classList: An object for updating CSS classes
+    - Specifically: this contains 3 primary functions
+        - add(className)
+        - remove(className)
+        - toggle(className)
+
+Adding And Removing Elements: 
+
+- document.createElement(tagName): Creates a new HTML element
+
+- document.createTextNode(text): Creates a text node as an alternative to setting textContext
+
+- document.createDocumentFragment(): Creates a document fragment, which is useful for appending multiple elements at once after a loop
+
+- element.appendChild(element): Appends an element to the end of the contents of another element
+
+- element.append(node1, node2, ...): Appends 1 or more nodes (elements OR text) to the end of the contents of another element
+
+- element.prepend(node1, node2, ...): Prepends 1 or more nodes (elements OR text) to the beginning of the contents of another element
+
+- element.remove(): Removes the element from the DOM
+
+Sizes and scrolling:
+
+- window.innerWidth: The width of the browser window
+
+- window.innerHeight: The height of the browser window
+
+- window.getComputedStyle(element): Gets styles as they are currently rendered on the page
+    - converted to pixels
+
+- element.clientHeight: The height of visible content and padding
+
+- element.offsetHeight: The height of visible content, padding, borders, and scrollbars
+
+- element.scrollHeight: The height of all content and padding, including content scrolled out of the view
+
+- element.offsetTop: The distance from the outer top border of the element to the inner top border of the nearest positioned parent
+
+- element.scrollIntoView(): Scrolls the container so the element is in view
+
+- element.scrollTo(optionsObj): Scrolls the element to a specified *top* value in the options object
+    - Additionally: `behavior: 'smooth'` will create a smooth transition
+
+
+## Notes from the video
+
+Interacting with the dome using markup!
+
+### DOM Manipulation Overview
+
+What our JS/HTML/CSS current have:
+- A basic page
+    - 3 list items
+    - scrollable div
+
+Couple notes:
+
+``` css
+#scrollable {
+    overflow: auto;
+    /* If the content is larger than the height, make it have a scroll bar  */
+}
+```
+
+Let's move over to the JS file and start manipulation the DOM with JavaScript!
+
+### Steps to view JS/HTML/CSS in Google Chrome:
+
+Method #1: 
+- Command Line: start FrontendExpert/javascript_crash_course/9_dom_manipulation/domManipulation.html
+
+- Right click > Inspect > Console
+    - When you write JavaScript code, save your .js file and refresh the browser to see it
+
+        ![example of js code in browser](../javascript_crash_course/9_dom_manipulation/figures/0.png)
+
+
+Method #2: 
+- Change into directory: cd FrontendExpert/javascript_crash_course/9_dom_manipulation
+- Check for version of node.js: node -v
+- Install the command-line http server: npm install http-server -g
+- Run the command-line http server: http-server
+- http://127.0.0.1:8080 > Ctrl-C > Click on HTML File
+- Right click > Inspect > Console
+
+
+Note: If you get this error: "cannot be loaded because running scripts is disabled on 
+this system.", do the following:
+- Powershell > Run as Admin > Yes
+- View current execution policy: Get-ExecutionPolicy
+    - Mine says 'Restricted'
+- Change the execution policy: Set-ExecutionPolicy RemoteSigned > y
+    - RemoteSigned meaning: This policy enables you to run locally-created scripts, while scripts downloaded from the internet must be signed by a trusted publisher to execute.
+- Verify the new policy: Get-ExecutionPolicy
+- Close and reopen the PowerShell window to apply the changes.
+
+Note: If you get this error "Devtools failed to load source map: Could not load content for ...", do the following:
+- Google Chrome > Right click > Inspect > Settings > Sources 
+- Uncheck the following:
+    - "Enable JavaScript source maps"
+    - "Enable CSS source maps"
+
+### Selecting Elements
+
+document object `document`: Contains most of the functions for interacting with the DOM
+
+``` js
+// Ways of grabbing 1 elements
+const secondLi = document.getElementById('second-li'); // takes in html property named second-li
+const firstLi = document.querySelector('li'); // takes in first CSS selector named li
+console.log(firstLi);
+console.log(secondLi);
+
+// Get all queries for a selector
+const listItems = document.querySelectorAll('li'); // comes in an iterable NodeList
+console.log(listItems); 
+
+console.log(listItems.length); // 3
+
+// Iterate over NodeList
+// 1
+listItems.forEach(li => {
+    console.log(li); // []
+})
+// 2
+Array.from(listItems).map(li => {
+    console.log(li); // []
+})
+
+// More ways to get multiple elements
+// Note: do NOT recommend getting these way
+// NodeList > HTMLCollection
+// - Example: HTMLCollection does not have .forEach()
+console.log(document.getElementsByClassName('list-item')); // add class="list-item" to an HTML item to get this
+console.log(document.getElementsByTagName('li')); // HTMLCollection with 3 list items
+```
+
+
+### Editing DOM Nodes
+
+``` js
+const listItems = document.querySelectorAll('li'); // 
+
+console.log(listItems.style); // undefined 
+
+// listItems[0].style.color = 'red'; // change text color
+// listItems[0].style.backgroundColor = 'blue'; // change background color
+listItems[0].textContent = 'Changed!'; // change the text
+
+// we don't use these as much:
+listItems[0].value = 5; // change the value's order in the listItems (makes the #'s start at 5)
+listItems[0].setAttribute('value', '7'); // same as above (pass in as string)
+listItems[0].setAttribute('class', 'blue big'); // changes this to be of class='blue' and 'big'
+
+// removes / add
+listItems[0].classList.remove('big'); // changes 'blue big' into just 'blue'
+listItems[0].classList.remove('blue'); // changes 'blue' into just ''
+listItems[0].classList.add('big', 'blue'); // adds it right back
+
+// toggle: If class is already there, remove it! if not, add it!
+listItems[0].classList.toggle('big'); // removes big
+listItems[0].classList.toggle('big'); // add big
+
+// change className (used less often: best to use classList)
+// listItems[0].className = 'blue big'; //
+```
+
+### Creating DOM Nodes
+
+
+``` js
+const listItems = document.querySelectorAll('li');
+
+// Create DOM node
+const p = document.createElement('p'); // nothing apppears on the page yet...
+p.textContent = "Hello World";
+
+// Add to the DOM
+document.body.appendChild(p); // appendChild: takes in nodes
+document.body.append('appended text'); // append: works with text OR nodes
+document.body.prepend('prepended text'); // preppend: works with text OR nodes
+
+const text = document.createTextNode('text Node'); 
+p.append(text); // adds text node to the already existing p node
+
+// Working with editable innerHTML (NOT recommended)
+console.log(document.querySelector('ol').innerHTML); // 
+document.body.innerHTML += '<p>HTML Test String</p>'; 
+// document.body.innerHTML += '<script>doSomethingBad()</script>'; 
+
+document.body.innerHTML = ''; // exception: clears out the entire element (useful for removing an entire container)
+console.log(document.innerHTML); // 
+```
+
+
+#### Creating DOM Nodes in a loop
+
+``` js
+const listItems = document.querySelectorAll('li');
+const p = document.createElement('p');
+const text = document.createTextNode('text Node'); 
+p.append(text); 
+
+document.body.prepend(p);
+
+for (let i = 0; i < 3; i++) {
+    const parent = document.querySelector('ol');
+    const li = document.createElement('li');
+    li.textContent = `List item with i=${i}`;
+    parent.append(li); 
+}
+
+// Issues with this loop:
+// 1. We don't need to cal querySelector every loop
+// 2. Looping with .append() means you need to render the page at every loop
+// - Fix with a list OR
+// - Fix with a fragment (your own little DOM - not on the page so does not cause renders!)
+//     - Better option: Fragment
+const parent2 = document.querySelector('ol');
+//const listItemsToAdd = [];
+const fragment = document.createDocumentFragment();
+for (let i = 0; i < 3; i++) {
+    const li2 = document.createElement('li');
+    li2.textContent = `List item with i=${i}`;
+    //listItemsToAdd.push(li2);
+    fragment.append(li2); 
+}
+//parent.append(...listItemsToAdd); // 
+parent.append(fragment); 
+```
+
+### Removing items from the DOM
+
+``` js
+const listItems = document.querySelectorAll('li');
+const p = document.createElement('p');
+const text = document.createTextNode('text Node'); 
+p.append(text); 
+document.body.prepend(p);
+
+// const parent = document.querySelector('ol');
+// const fragment = document.createDocumentFragment();
+// for (let i = 0; i < 3; i++) {
+//     const li = document.createElement('li');
+//     li.textContent = `List item with i=${i}`;
+//     fragment.append(li); 
+// }
+// parent.append(fragment);
+
+// Removing items from the DOM
+console.log(listItems[0].parentNode); // <ol> ... </ol>
+// listItems[0].parentNode.removeChild(listItems[0]); old way
+listItems[0].remove(); // new way
+console.log(listItems[0].parentNode); // null ('List Item 1' is gone)
+```
+
+### DOM Sizes
+
+``` js
+const listItems = document.querySelectorAll('li');
+
+console.log(window.innerWidth); //  width  = 339
+console.log(window.innerHeight); // height =  842
+
+console.log(listItems[0].style.fontSize); // empty string (font size is not set on element, so it is not on style)
+
+// Get what the browser is currently displaying, instead!
+let a = window.getComputedStyle(listItems[0]).fontSize;
+console.log(a); // 16px (root element is set to this, so)
+
+listItems[0].classList.add('big'); 
+let b = window.getComputedStyle(listItems[0]).fontSize;
+console.log(b); // 32px (16px * 2em = 32px)
+```
+
+
+#### Scrollable Container Sizes
+
+
+``` js
+const listItems = document.querySelectorAll('li');
+
+const scrollable = document.getElementById('scrollable'); // grabs the scrollable element
+
+// Remember: it is currently overflowing - take that into account when we get sizes!
+console.log(scrollable.clientHeight); // 90: height of visible content of the pattern (90 = 70 + 10 borderpx on each side)
+console.log(scrollable.offsetHeight); // 100: clientHeight + border (90 + 5px border each side)
+console.log(scrollable.scrollHeight); // 342: total height of content (even content out of view) + padding
+
+// offsetTop: distance from outer border to inner positioned parent border
+console.log(scrollable.offsetTop); // Scrollable container to top of the page
+
+console.log(scrollable.querySelectorAll('p')[0].offsetTop); // 26: 1st list item, to top of scrollable container (border + padding = 26)
+console.log(scrollable.querySelectorAll('p')[5].offsetTop); // 196: 6th list item, to top of scrollable container
+```
+
+
+### Scrolling
+
+Important: Sometimes we need to automatically scroll the content
+
+
+``` js
+const listItems = document.querySelectorAll('li');
+const scrollable = document.getElementById('scrollable'); // grabs the scrollable element
+
+// Move the scrolable down to a certain item (without touching mouse)
+scrollable.querySelectorAll('p')[5].scrollIntoView();
+
+// How to smoothly transition:
+scrollable.scrollTo({
+    top: scrollable.querySelectorAll('p')[2].offsetTop,
+    behavior: 'smooth'
+});
+```
