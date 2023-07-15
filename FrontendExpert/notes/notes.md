@@ -9083,3 +9083,404 @@ scrollable.addEventListener('click', event => {
 Why this is better:
 - only 1 event listener
 - less code
+
+
+# Lesson 11: Promises
+
+We promise you that by the time you finish this video, you'll understand how promises work in JS
+- Can then do cool asynchronous stuff
+- Could also just abandon frontend dev
+
+## Key Terms
+
+### Promise
+An object used for asynchronous operations
+- These objects have a state of `pending`, `fulfilled`, or `rejected`
+
+How to create a promise: `Promise()` constructor, which takes in a callback function (aka an *executor*)
+- This callback function has 2 callback options as params:
+    - resolve(value): Fulfills the promise + sets its value
+    - reject(error): Rejects the promises and sets an error message
+
+- The promise object has 3 primary functions:
+    - then(fulfilledFn, rejectedFn): Calls fulfilledFn if the Promise is fulfilled, rejectedFn if tis is rejected.
+        - Returns a new fulfilled promise with the return value of the callback function.
+
+    - catch(rejectedFn): Calls rejectedFn if the promise is rejected.
+        - Returns a new fulfilled Promise with the return value of the callback function
+
+    - finally(callback): Calls the callback function whenever the promise is settled (fulfilled OR rejected)
+
+Since these functions all return a new Promise, they can be chained together, ie:
+
+``` js
+promise.then(doX).then(doY).catch(handleError).finally(doZ)
+```
+
+Learn more: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise
+
+
+### async function
+A function declared using `async`: Causes the function to implicitly return a Promise and allowing for usage of the `await` keyword
+- Asynchronous functions are primarily an alternative syntax to chaining calls to `Promise.then`
+
+Learn more: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function
+
+### await
+A keyword indicating that JS should wait for a Promise to settle before continuing execution of the code.
+- Traditionally, this is only available in *async functions*, but it can also be used at the top level of modules.
+
+Learn more: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await
+
+
+## Notes from the video
+
+Promises and Asynchronous code
+
+Promises:
+- contains a state
+    - pending
+    - fulfilled
+    - rejected
+
+``` js
+// state -> pending, fulfilled, rejected
+
+const promise = new Promise((resolve, reject) => {
+    resolve(2);
+});
+
+console.log(promise); // Promise { 2 }
+
+const promise2 = new Promise((resolve, reject) => {
+    // resolve(2);
+});
+
+console.log(promise2); // Promise { <pending> }
+
+const promise3 = new Promise((resolve, reject) => {
+    reject(2);
+});
+
+console.log(promise3); // Promise { <rejected> 2 } AND throws an error!
+```
+
+Steps to run this:
+- save code
+- Ctrl-Alt-N
+
+Note: We have not learned how to catch the error above yet.
+
+### Creating Promises
+
+This example shows how promises work
+- after 1 second: pending
+- after 1.5 seconds: it has been fulfilled
+
+``` js
+// state -> pending, fulfilled, rejected
+
+const promise = new Promise((resolve, reject) => {
+    setTimeout(() => resolve(2), 1000);
+});
+
+console.log(promise); // Promise { <pending> }
+
+setTimeout(() => console.log(promise), 1500); // Promise { 2 }
+```
+
+Note: setTimeout is not the best way to do this
+- won't work since we don't know much long processes will take beforehand...
+
+### .then() Method
+
+What .then() does: 
+- Takes in a callback function that has a value ie. arrow function
+- Waits for the promise to settle before running the callback function
+    - (it is waiting for the state to change from `pending` to `fulfilled`)
+
+
+``` js
+const promise = new Promise((resolve, reject) => {
+    setTimeout(() => resolve(2), 1000);
+});
+
+console.log(promise); // Promise { <pending> }
+
+promise.then(value => console.log(value)); // 2
+```
+
+### Catching Erros
+
+2nd parameter of .then(): A callback function in the case of an error
+- Can also use '.catch()'
+
+``` js
+// state -> pending, fulfilled, rejected
+
+const promise = new Promise((resolve, reject) => {
+    //setTimeout(() => resolve(2), 1000);
+    setTimeout(() => reject(new Error('Something went wrong')), 1000);
+});
+
+console.log(promise); // Promise { <pending> }
+
+promise.then(
+    value => console.log(value), // calls this is resolve
+    error => console.log('oh no ' + error) // calls this bc we have reject on line 5
+); 
+
+// Another way to do the same thing!
+promise.then(console.log).catch(error => console.log('Oh no ' + error));
+```
+
+How does this work?
+- .then() returns itself a promise with the input value
+    - passes value through if it is not resolved
+- .catch() does the same thing
+    - except with reject, of course
+
+One last way to make a promise or reject:
+
+``` js
+let promise = Promise.resolve(3); 
+console.log(promise); // Promise { 3 }
+promise.then(console.log).catch(error => console.log('Oh no ' + error)); // 3
+
+promise = Promise.reject(3); 
+console.log(promise); // Promise { <rejected> }
+promise.then(console.log).catch(error => console.log('Oh no ' + error)); // Oh no 3
+```
+
+### Chaining .then() calls
+
+``` js
+let promise = Promise.resolve(3);
+
+console.log(promise); 
+
+// 1. normal
+promise
+    .then(value => value * 2)
+    .then(value => value + 1)
+    .then(console.log)
+    .catch(error => console.log('Oh no... ' + error)); // 7
+
+// 2. catching error
+promise
+    .then(value => value * 2)
+    .then(value => value + 1)
+    .then(value => {
+        throw new Error('Something went wrong'); // this throws an error
+    })
+    .then(console.log) // we never get here...
+    .catch(error => console.log('Oh no... ' + error)); // this catches the error!
+
+// 3. catching error AND still having a return value
+promise
+    .then(value => value * 2)
+    .then(value => value + 1)
+    .then(value => {
+        throw new Error('Something went wrong'); 
+    })
+    .then(console.log)
+    .catch(error => {
+        console.log('Oh no... ' + error) // still spits out error...
+        return 210;
+    })
+    .then(console.log); // 210
+```
+
+### .finally()
+
+Works just like .then and .catch
+- 1 difference: Does not take/get value or error message as a parameter (takes no parameters)
+- it always runs (regardless of )
+
+``` js
+let promise = Promise.resolve(3);
+
+console.log(promise); 
+
+promise
+    .then(value => value * 2)
+    .then(value => value + 1)
+    .then(value => {
+        throw new Error('Something went wrong'); 
+    })
+    .then(console.log)
+    .catch(error => {
+        console.log('Oh no... ' + error) 
+        return 210;
+    })
+    .then(console.log)
+    .finally(() => console.log('Done!')); // this gets run at the end (no matter what)
+```
+
+Next, a few more Promise functions:
+
+### Promise.all()
+
+What it does:
+- takes in an array
+    - this array will be an array of promises
+
+- it returns a new promise!
+
+``` js
+let promise = Promise.resolve(3);
+
+console.log(promise); 
+
+Promise.all([
+    Promise.resolve(3),
+]).then(console.log); // [ 3 ]
+
+Promise.all([
+    Promise.resolve(3),
+    Promise.resolve(2),
+]).then(console.log); // [ 3 ,2 ]
+```
+
+So, what is the point of this Promise.all() function?
+- It waits for all of the promises to settle
+
+Why is this good?
+- If any of the promises in the array `reject`, the whole thing rejects
+    - This is good because: You can catch rejects? 
+
+``` js
+let promise = Promise.resolve(3);
+
+Promise.all([
+    Promise.resolve(3),
+    Promise.resolve(2),
+    new Promise((res, rej) => setTimeout(() => res(5), 1000))
+]).then(console.log).catch(console.log); // [ 3, 2, 5]
+```
+
+### Promise.race()
+
+Promise.race(): Whichever promise solves first, that's the value we get!
+
+``` js
+let promise = Promise.resolve(3);
+
+Promise.race([
+    new Promise((res, rej) => setTimeout(() => res(5), 5000)),
+    new Promise((res, rej) => setTimeout(() => res(3), 3000)),
+    new Promise((res, rej) => setTimeout(() => res(1), 1000)),
+    
+]).then(console.log).catch(console.log); // 1
+
+// If another one rejects, it still takes the fastest accept
+Promise.race([
+    new Promise((res, rej) => setTimeout(() => res(5), 5000)),
+    new Promise((res, rej) => setTimeout(() => rej(3), 3000)), // notice how this is 'rej'
+    new Promise((res, rej) => setTimeout(() => res(1), 1000)),
+    
+]).then(console.log).catch(console.log); // 1
+```
+
+### Promise.any()
+
+Promise.any(): The first promise to fulfill!
+- in order of the list (it waits for any to have a state of `fulfilled`)
+
+If none fulfull: We must catch the error!
+- it is a different error ie. an error that says EVERYTHING failed
+    - We can still catch it tho
+
+``` js
+let promise = Promise.resolve(3);
+
+Promise.race([
+    new Promise((res, rej) => setTimeout(() => rej(5), 5000)), // rej
+    new Promise((res, rej) => setTimeout(() => rej(3), 3000)), // rej
+    new Promise((res, rej) => setTimeout(() => rej(1), 1000)), // rej
+    
+]).then(console.log).catch(() => console.log('All rejected')); // All rejected
+```
+
+
+### async / await
+
+#### async
+
+async: makes a function implicity return a `Promise`
+
+``` js
+function tester() {
+    return 3;
+}
+
+console.log(tester()); // 3
+
+async function testerAsync() {
+    return 3;
+}
+
+console.log(testerAsync()); // Promise { 3 }
+```
+
+This is nice, but we also get another value: We can use the await keyword
+
+#### await
+
+await: Waits for the promise to settle before it continues
+- similar to .then()
+- you can only use `await` when inside of an `async` function!
+    - top level of module, technically too...
+
+``` js
+async function tester() {
+    const value = await new Promise((res, rej) => setTimeout(() => res(3), 1000)); // Promise { <pending> }
+    console.log(value); // 3
+}
+
+console.log(tester()); // the 2 above outputs:
+
+tester(); // 3
+```
+
+#### How to catch an error with async / await
+
+``` js
+async function tester() {
+    try {
+        const value = await new Promise((res, rej) => {
+            // setTimeout(() => res(3), 1000)
+            setTimeout(() => rej(new Error('Error: Something went wrong')), 1000);
+        });
+        console.log(value);
+    } catch (error) {
+        console.log('Oh no ' + error);
+    }
+}
+
+tester(); // changes to rej in line 4, so this runs as 'Oh No Error: Something went wrong'
+```
+
+And if you don't want to use the try/catch syntax.....
+- Combine the 2 syntaxes!
+
+Remember:
+- asynchronous functions always return promises
+
+
+``` js
+async function tester() {
+    return await new Promise((res, rej) => {
+        setTimeout(() => rej(new Error('Error: Something went wrong')), 1000);
+    });
+}
+
+tester().then(console.log).catch(error => console.log("Oh No " + error)); // returns same error
+```
+
+### Takeaways from Video
+
+Takeaways:
+- Many different ways to do the same thing
+    - it is up to your preference async/await vs. then/catch
+        - async/await: newer version
