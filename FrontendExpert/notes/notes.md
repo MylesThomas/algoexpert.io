@@ -8778,3 +8778,308 @@ scrollable.scrollTo({
     behavior: 'smooth'
 });
 ```
+
+# Lesson 10: Event-Driven Programming
+
+The old adage "better to be proactive than reactive" does not apply here!
+
+## Key Terms
+
+### Event-Driven Programming
+A programming paradigm where code runs as a response to events
+- Usually: initiated by the user
+
+How to create an event listener: `element.addEventListener(eventName, callback, useCapture)`
+- If the 3rd argument is `true`, the callback will fire during the capturing phase (instead of the default bubbling phase)
+
+Additionally: `addEventListener` can be called with an options object as the 3rd parameter instead of the `useCapture` boolean. This object can contain the following possible values:
+
+- capture: The same as the boolean argument option; `true` for capturing, `false` for bubbling
+
+- once: if `true`, automatically removes the event listener after the event fires one time
+
+- passive: if `true`, indicates to the browser that `event.preventDefault()` will not be called. 
+    - Useful for the browser to optimize performance
+        - (especially w/ mobile scrolling events such as `touchstart` and `touchmove` to indicate to the browser that scrolling will not be cancelled)
+
+- signal: An `AbortSignal`, usually coming from an `AbortController`.
+    - If the signal's `abort()` method is called, the event listener will be removed
+
+To remove an event listener:
+- `element.removeEventListener(eventName, callback, useCapture)`
+OR 
+- `element.removeEventListener(eventName, callback, optionsObj)`
+    - Uses the same parameters as creating the event listener
+
+
+### Event Propogation
+The process by which an event travels through the DOM to call event listeners on nested elements.
+
+Consists of 3 phases:
+1. Capturing: The event travels down from the root of the document to the event target
+2. Target: The event fires on the event target
+3. Bubbling: The event travels up from the event target to the root of the document
+
+At any point in the propogation process, an event listener can call `event.stopPropogation()`, which will stop the propogation process.
+
+
+### Event Delegation
+The process of using a single event listener on a parent element to manually delegate events to children (rather than using event listeners on each child)
+
+Event delegation takes advantage of *event propogation*
+- Example: After clicking on a button, that event will bubble up to the parent container
+
+In the event a container has many children that all have similar event listeners, event delegation can make substantial performance improvements
+- Lowers total number of active event listeners
+- The `event.target` property can be used to determine which child was the source of the event
+
+
+## Notes from the video
+
+### addEventListener()
+
+``` js
+const button = document.querySelector('button'); // select the button with JS
+
+// Event propogation: 
+// 1. capturing: starts at root, traverse down DOM until target
+// - no event listeners are actually called
+// 2. target: fire the event on the actual element
+// 3. bubbling: when we move back up
+// - calls events on all elements we see
+button.addEventListener('click', onClick); // When this button is clicked, run this command!
+document.body.addEventListener('click', onClick); // 
+
+function onClick(event) {
+    // console.log(event);
+    // console.log(event.type);
+    console.log(event.target);
+    console.log(this); // usually: same as event.target (not always, as in this case)
+    // console.log('you clicked the button!');
+}
+```
+
+Test it out:
+- cd FrontendExpert/javascript_crash_course/10_event_driven_programming
+- node -v
+- npm install http-server -g
+- http-server
+- http://127.0.0.1:8080
+- Right click > Inspect > Console
+
+OR 
+- start FrontendExpert/javascript_crash_course/10_event_driven_programming/eventDrivenProgramming.html
+
+
+How to stop dealing with Propogation?
+
+### stopPropogation()
+
+"Stop going through any more phases"
+
+``` js
+const button = document.querySelector('button'); 
+button.addEventListener('click', onClick);
+// document.body.addEventListener('click', onClick); // doesn't get called!
+document.body.addEventListener('click', onClick, true); // true: has it fire during capture phase (1st)
+
+
+function onClick(event) {
+    //event.stopPropagation();
+    console.log(event.target);
+    console.log(this); 
+}
+```
+
+Note: Not all events propogate
+
+
+### preventDefault()
+
+Prevents our browser's default behavior from occurring
+- Doesn't get used a ton
+
+``` js
+function onClick(event) {
+    event.preventDefault(); // stops browser's behavior 
+    console.log(event.target);
+    console.log(this); 
+}
+```
+
+### 3rd parameter: Options Object
+
+4 different possibles values:
+
+#### 1. capture
+- true: fire during capture phase
+- false: fire during bubbling phase
+
+#### 2. once
+- true: first 1x
+- false: keeps firing
+
+#### 3. passive
+- true: we are not going to call event.preventDefault
+    - this is good for specific events ie. touchscreen/touchmove
+- false: 
+
+#### 4. signal
+- You can abort an event ie. remove the event listener
+
+
+``` js
+const button = document.querySelector('button');
+
+button.addEventListener('click', onClick, {
+    capture: true,
+    once: true,
+    passive: true,
+    signal: AbortController.signal
+});
+
+// abortController.abort(); // removes the event listener
+
+function onClick(event) {
+    console.log(event.target);
+    console.log(this); 
+}
+```
+
+### removeEventListener()
+Manually get rid of an event listener.
+
+Nothing will happen in this script:
+
+``` js
+const button = document.querySelector('button');
+
+button.addEventListener('click', onClick);
+
+button.removeEventListener('click', onClick);
+
+function onClick(event) {
+    console.log(event.target);
+    console.log(this); 
+}
+```
+
+### Common Events
+
+`dblclick`: You need to press the button twice to fire the event.
+`mousedown`: You need to press the button down to fire the event.
+`mouseup`: You need to press the button up to fire the event.
+
+
+``` js
+const button = document.querySelector('button');
+
+// We usually just use click, but these are other options:
+
+button.addEventListener('dblclick', onClick); // double 
+button.addEventListener('mousedown', onClick); // when mouse goes down
+button.addEventListener('mouseup', onClick); // when mouse goes up
+
+function onClick(event) {
+    console.log(event.target);
+    console.log(this); 
+}
+```
+
+### Keyboard keys down:
+- There is also `keyup`
+
+``` js
+window.addEventListener('keydown', event => {
+    console.log(event.code); // prints the key your press
+});
+```
+
+### Scrollable
+
+scrollTop: How far down we are scrolling
+
+``` js
+const scrollable = document.getElementById('scrollable');
+
+scrollable.addEventListener('scroll', event => {
+    console.log(event.target.scrollTop);
+})
+```
+
+mouseenter: Logs out the x,y coordinates of where the mouse is
+mousemove: Logs out the x,y when you move the mouse 
+- Fires even more
+
+``` js
+const scrollable = document.getElementById('scrollable');
+
+scrollable.addEventListener('mouseenter', event => { // mousemove
+    console.log(event.pageX, event.pageY);
+})
+```
+
+### Drag and Drop
+
+First: Add the following to your HTML
+- What this means: This element CAN be draggable
+    - (only images default to draggable - need to set it manually)
+
+``` html
+<!--  -->
+<button draggable="true">Click Me</button>
+```
+
+``` js
+const scrollable = document.getElementById('scrollable');
+const button = document.querySelector('button');
+
+button.addEventListener('dragstart', event => {
+    console.log(event);
+});
+
+// How to drop the element somewhere
+scrollable.addEventListener('drop', event => {
+    scrollable.prepend(button);
+});
+
+// Fires whenever you hover over
+// - prevents default behavior so that we can now drop it inside of the scrollable
+scrollable.addEventListener('dragover', event => {
+    event.preventDefault();
+});
+```
+
+### Event Delegation
+
+Event Delegation: Sometimes we have some container that we need to run events on the contents of the container
+- All contents may have the same event listener
+- The more event listeners we add to the browser, the slower our page runs
+    - Not a problem with 10, but it can if you scale up
+
+Goal of Event Delegation: 
+- Have event listener be on the parents
+- Utilize propogation to have parents call functions based on target of event ie. which child was clicked on
+
+Example (with a scrollable container):
+
+``` js
+const scrollable = document.getElementById('scrollable');
+const button = document.querySelector('button');
+
+scrollable.addEventListener('click', event => {
+    // "If we click on something inside of the container"
+    if (event.target !== this) {
+        event.target.textContext = 'Clicked'; // if you click on a paragraph, the text changes!
+    }
+    else {
+        event.target.textContext = 'You broke something';
+    }
+});
+
+// Note: This callback should use a standard function to create a 'this' context
+```
+
+Why this is better:
+- only 1 event listener
+- less code
