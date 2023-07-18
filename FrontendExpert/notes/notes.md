@@ -1004,7 +1004,7 @@ HTML tag for providing extra metadata about a webpage
     - favicons are created using the < link> tag:
 
         ``` html
-        <link rel="icon" href"favicon.png" />
+        <link rel="icon" href="favicon.png" />
         ``` 
 
 ## ```<base>```
@@ -1021,7 +1021,7 @@ Tag for setting the document base URL
     <a href="/frontend">FrontendExpert</a>
     ```
 
-https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+Learn more: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
 
 ## My notes from video:
 
@@ -4334,7 +4334,7 @@ Now that we have written the right HTML, we need to write responsive CSS!
 
 Adding media queries:
 
-First, hat exactly is a media query?
+First, what exactly is a media query?
 
 According to Tim:
 
@@ -9484,3 +9484,494 @@ Takeaways:
 - Many different ways to do the same thing
     - it is up to your preference async/await vs. then/catch
         - async/await: newer version
+
+
+# Lesson 12: Working With The Server
+
+Why did the man name his dog "JavaScript"?
+Because it was always up for a game of fetch !
+
+## Key Term
+
+### fetch
+A JavaScript function for making network requests.
+
+`fetch(url)`: Returns a pending promise
+- Once the network request completes, the promise will either resolve or reject
+    - Any response other than a network error will result in a resolved Promise
+    - The `url` param can either be a string OR `URL` object
+
+This function can also take an options object as a 2nd parameter. Here are some of the most common options:
+
+- method: The request method as a string
+    - ie. 'GET' or 'POST'
+
+- body: The body of the request
+    - Oftentimes: used to pass `FormData`
+
+- headers: Headers to be added to the network request
+    - Oftentimes: by creating `Headers` object
+        - standard objects work here too!
+
+- signal: An *AbortSignal*, usually coming from *AbortController*
+    - If the signal's `abort()` method is called, the request will be aborted
+
+When the request comes back from the server, the Promise returned by fetch will resolve to a `Response` object.
+
+This object has a variety of properties and methods for interacting with the network response
+
+Here are some useful responses:
+
+- response.text(): Returns a Promise with a text representation of the response body
+
+- response.json(): Returns a Promise with an object representation of the response body
+
+- response.status: A number representation of the response status code
+    - Successful request: 200-299 range (usual it is 200)
+
+- response.ok: A boolean represenation of the response status code
+    - Successfuly request: true
+    - Everything else: false
+
+- response.headers: A `Headers` object containing the headers included with the response.
+
+Learn more: https://developer.mozilla.org/en-US/docs/Web/API/fetch
+
+
+## Notes from the video
+
+### Intro
+
+Fetch ie. how we interact with the server.
+
+Code we start out with:
+
+``` html
+<!-- Get this faster with 'html:5' -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Fetch</title>
+    <script src="fetch.js" defer></script>
+</head>
+<body>
+    <h1>Fetch</h1>
+    <form>
+        <label for="name">Name</label>
+        <input type="text" name="name" id="name">
+        <button>Submit</button>
+    </form>
+</body>
+</html>
+```
+
+``` js
+
+```
+
+Summary of base code:
+- basic HTML file with a name input and submit button
+- JS file with 4 API's
+    - pretend they were already implemented and came from a backend Dev
+
+
+### Configuring a mock API on localhost:3000
+
+Doing the work that the back end developer "did" in the video:
+
+Notes:
+- [Quick learning on RESTful APIs](https://aws.amazon.com/what-is/restful-api/)
+- [Instructions](https://dev.to/myogeshchavan97/how-to-easily-create-and-host-your-own-rest-api-without-writing-a-single-line-of-code-2np4)
+
+Steps:
+
+1. Set local environment / Install the json-server npm package
+- cd FrontendExpert\javascript_crash_course\12_working_with_the_server
+- npm init -y
+- npm install json-server
+
+2. Create a new .gitignore file so that node _modules will not be pushed to Github
+- New file > .gitignore > node_modules
+- Why: 
+    - The node_modules folder has a massive size (up to Gigabytes).
+    - It is easy to recreate the node_modules folder via packages.json.
+    - It is unnecessary to commit code that you didn't write (in most cases).
+
+- .gitignore File:
+
+    ```
+    node_modules
+    ```
+
+3. Create a new file db.json
+
+``` json
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "David",
+      "age": 30
+    },
+    {
+      "name": "John",
+      "id": 2,
+      "age": 40
+    }
+  ]
+}
+```
+
+4. Open package.json file and add the scripts section inside it:
+
+``` json
+"scripts": {
+    "start": "json-server db.json",
+}
+```
+
+5. Start the application
+- npm start
+    - view it here: http://localhost:3000/
+        - click /users under the resources section, you will see the contents of db.json
+
+Note: To have json formatted, install the JSON Formatter browser extension
+- https://json-formatter.js.org/
+OR
+- https://chrome.google.com/webstore/detail/json-formatter/gpmodmeblccallcadopbcoeoejepgpnb
+
+
+Congratulations! you've just written your own REST API server without writing a single line of code
+- Now we can make GET, POST, PUT, PATCH and DELETE API calls to our own API.
+
+6. Setup Postman desktop to host your API
+- it appears he is using [Postman](https://www.postman.com/), which is an API platform for building/using APIs.
+    - Sign up for Free > Sign up with Google > Accept
+    - Download Desktop App > Windows 64-bit > run .exe
+    - Sign in > Continue using with Google Account > Open Postman
+
+7. Create a new collection for Users API Service
+Collection = A grouping of saved requests (easy for re-using certain API requests)
+- My workplace > Collections > Create a new Collection
+    - Rename > 'Users API Service'
+
+8. Save some requests into the collection
+
+- Making Get API request to get all users
+    - Users API Service > Add Request > Ctrl-E to rename > 'Get users' > GET > http://localhost:3000/users > Send > Ctrl-S to save
+        - Note: you should see the list of 2 objects
+        
+- Making POST API request to add a new user
+    - Users API Service > Add Request > Ctrl-E to rename > 'Add user' > POST > http://localhost:3000/users > Body > Add the code below to 'raw' (Change from 'text' to 'JSON' on the right) > Send > Ctrl-S to save
+
+        ``` json
+        {
+            "id": 3,
+            "name": "Mike",
+            "age": 38
+        }
+        ```
+
+        - Note: go back to 'Get users', you should see the new/3rd object in the list of data
+
+- Making PUT API request to update a user
+    - Users API Service > Add Request > Ctrl-E to rename > 'Update user' > PUT > http://localhost:3000/users/3 > Body > Add the code below to 'raw' (Change from 'text' to 'JSON' on the right) Send > Ctrl-S to save
+
+        ``` json
+        {
+            "name": "Myles",
+            "age": 25
+        }
+        ```
+
+        - Note: go back to 'Get users', you should see the updated/3rd object in the list of data
+
+- Making DELETE API request to delete a user
+    - Users API Service > Add Request > Ctrl-E to rename > 'Delete user' > DEL > http://localhost:3000/users/1 > Send > Ctrl-S to save
+        - Note: go back to 'Get users', you should no longer see the 1st piece of data
+    
+9. Save the changes
+- Command line: s
+    - This will save the db.json as db-183888448.json
+
+10. Optional: Deploy the application
+- I chose not to do this because this is already part of a Git repo
+
+### Configuring 4 APIs/RESTful API on localhost:3000
+
+0. Create a new collection for these 4 APIs
+- Collections > Create new Collection > Rename 'Frontend Expert JS Lesson 12'
+
+1. Regular GET (returns text)
+
+...
+
+
+### GET Request
+
+First, make sure that you have a command prompt open that is keeping localhost:3000 alive.
+
+Next, open up .html file in Port 5050 (Inspect > Console will have results from .js file)
+- VSCode > Go Live > Inspect > Console
+    - Note: The API's in his video are not shown but we know they are on 8080... I ended up using Port 3000 with npm start + Postman Desktop
+
+``` js
+// Ugly way
+// start: ?
+// key: firstName
+// &: more 
+// key: lastName
+fetch(BASE_API + '?firstName=Myles&lastName=Thomas') // (another way of doing the 2 lines below)
+```
+
+### URL Query Parameters
+
+Open a new command prompt
+- cd FrontendExpert\javascript_crash_course\12_working_with_the_server
+
+``` js
+const BASE_API = 'http://localhost:3000/users'; // GET
+const JSON_API = 'http://localhost:3000/users'; // same as bove, comes back as json
+const POST_API = 'http://localhost:3000/users'; // POST
+const SLOW_API = 'http://localhost:3000/users'; // GET, except it is slow
+
+console.log(fetch(BASE_API));
+
+// Making a request to the API
+const url = new URL(BASE_API); 
+url.searchParams.set('firstName', 'Myles'); // key => value 
+url.searchParams.set('lastName', 'Thomas');
+
+fetch(url)
+    .then(res => res.text()) // Put the response into text
+    .then(console.log) // Log the text
+    .catch(error => console.error('oh no ' + error));
+
+console.log('After fetching...');
+```
+
+Notes: 
+- after fetching.... will run first
+    - the asynchronous nature will have the Promise be pending while the rest of the code runs
+
+
+### XMLHttpRequest
+
+What is XMLHttpRequest: Another way to make requests
+- old version before fetch() was implemented
+- we won't use this much, if at all...
+
+``` js
+// XML HTTP Request (Another way of doing above...)
+const request = new XMLHttpRequest();
+request.addEventListener('load', function() {
+    console.log(this.responseText);
+});
+
+request.open('GET', BASE_API);
+request.send();
+```
+
+
+### async / await
+
+This is an alternative to using chains!
+
+``` js
+const BASE_API = 'http://localhost:3000/users'; // GET
+const JSON_API = 'http://localhost:3000/users'; // same as bove, comes back as json
+const POST_API = 'http://localhost:3000/users'; // POST
+const SLOW_API = 'http://localhost:3000/users'; // GET, except it is slow
+
+// How to use async/await (instead of chaining then functions)
+async function main() {
+    // Setup
+    const url = new URL(BASE_API);
+    url.searchParams.set('firstName', 'Myles');
+    url.searchParams.set('lastName', 'Thomas');
+
+    // Make fetch request
+    try {
+        const response = await fetch(url); // waits for fetch to resolve
+        const text = await response.text(); // waits for response to resolve
+        console.log(text);
+
+        // logging helpful stuff...
+        console.log(response.status);
+        console.log(response.ok);
+
+    } catch (error) {
+        console.error('oh no ' + error);
+    }
+}
+
+main(); // 200, true
+```
+
+
+### Parsing JSON
+
+Using JSON API instead of BASE_API
+- make sure to use response.json() instead of response.text()
+    - can use `response.headers` with an if-else if for some reason, we don't know what the return value will be...
+
+Notes:
+- Fetching from BASE_API:
+    - return: text = text()
+        - no need to use JSON.parse(text)
+
+- Fetching from JSON_API:
+    - return: obj = json()
+        - use JSON.parse(text)
+
+- Can use `response.headers` to figure out what our API is returning
+    - we should know this already!!
+
+
+``` js
+const BASE_API = 'http://localhost:3000/users'; // GET
+const JSON_API = 'http://localhost:3000/users'; // same as bove, comes back as json
+const POST_API = 'http://localhost:3000/users'; // POST
+const SLOW_API = 'http://localhost:3000/users'; // GET, except it is slow
+
+async function main() {
+    try {
+        const response = await fetch(JSON_API); 
+        console.log(response.headers.get('content-type')); 
+
+        // const obj = await response.json();
+        // console.log(obj);
+
+        // this does the same thing...
+        const text = await response.text();
+        console.log(JSON.parse(text));
+
+        console.log(response.status);
+        console.log(response.ok);
+
+    } catch (error) {
+        console.error('oh no ' + error);
+    }
+}
+
+main(); // 200, true
+```
+
+
+### POST API
+
+With post API: Need to tell fetch we are making a post!
+- GET is the default, that's why we did not before...
+- Use an inline object/dict
+    - Use JSON.stringify(), which turns an object/JSON object into a JS notation string
+
+``` js
+const BASE_API = 'http://localhost:3000/users'; // GET
+const JSON_API = 'http://localhost:3000/users'; // same as bove, comes back as json
+const POST_API = 'http://localhost:3000/users'; // POST
+const SLOW_API = 'http://localhost:3000/users'; // GET, except it is slow
+
+async function main() {
+    const data = {
+        id: 11,
+        name: 'Chris',
+        age: 26,
+    };
+    console.log('data: ' + data);
+    console.log('JSON.stringify data: ' + JSON.stringify(data));
+
+    const headers = new Headers();
+    headers.append('Content-Type', 'application/json; charset=utf-8');
+    console.log('headers: ' + headers.get('Content-Type'));
+    console.log('JSON.stringify headers: ' + JSON.stringify(headers));
+
+    const options = {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers
+    };
+    console.log('options: ' + options);
+    console.log('JSON.stringify options: ' + JSON.stringify(options));
+
+    try {
+        const response = await fetch(POST_API, options); 
+        console.log('content type: ' + response.headers.get('content-type')); 
+        
+        const text = await response.text();
+        //console.log(JSON.parse(text));
+        console.log(text);
+
+        console.log(response.status);
+        console.log(response.ok);
+
+    } catch (error) {
+        console.error('oh no ' + error);
+    }
+}
+
+main();
+```
+
+
+### Working With Forms
+
+Using the HTML page as the input for the name!
+
+First, add event listener to the form
+- form.addEventListener('submit', onSubmit): 
+
+``` js
+const BASE_API = 'http://localhost:3000/users'; // GET
+const JSON_API = 'http://localhost:3000/users'; // same as bove, comes back as json
+const POST_API = 'http://localhost:3000/users'; // POST
+const SLOW_API = 'http://localhost:3000/users'; // GET, except it is slow
+
+const form = document.querySelector('form'); // gets the form
+form.addEventListener('submit', onSubmit) // listens for the submit button
+
+async function onSubmit(event) {
+    event.preventDefault(); // default = go to the url we submitted a form to (we don't want this)
+
+    const options = {
+        method: 'POST',
+        // note: FormData != JSON
+        body: new FormData(form) // has all key-value pairs from HTML
+    };
+
+    try {
+        const response = await fetch(POST_API, options);
+        const text = await response.text();
+        console.log(text);
+    } catch (error) {
+        console.error('Oh no ' + error);
+    }
+}
+```
+
+
+### Aborting Requests
+
+When working with code that doesn't come back quickly, we may want to add abortController
+- abortController: calls a function after 2 seconds
+    - "if this doesn't go through in 2 seconds, abort the fetch request!"
+        - we will fall into the catcherror
+
+``` js
+const SLOW_API = 'http://localhost:3000/users'; // GET, except it is slow
+
+async function main(event) {
+    const abortController = new AbortController();
+    setTimeout(() => abortController.abort(), 2000); // this function is called after 2 seconds
+
+    try {
+        const response = await fetch(SLOW_API, {
+            signal: abortController.signal // signal takes in the signal property, aborting fetch treq.
+        });
+
+        const text = await response.text();
+        console.log(text);
+    } catch (error) {
+        console.error('Oh no ' + error);
+    }
+}
+```
