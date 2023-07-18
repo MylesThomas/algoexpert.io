@@ -9975,3 +9975,261 @@ async function main(event) {
     }
 }
 ```
+
+
+# Lesson 13: Timers and Intervals
+
+Why did the JavaScript timer stop running?
+- it didn't do enough interval training...
+
+## Key Terms
+
+### setInterval
+A JavaScript function for calling a function repeatedly over an interval.
+
+Example: `setInterval(myFunction, 1000);`
+- Calls myFunction every 1 second
+    - however, could take longer if other code needs to finish running
+- Function Returns an ID
+- Interval can be cancelled by calling `clearInterval(intervalID);`
+
+Learn more: https://developer.mozilla.org/en-US/docs/Web/API/setInterval
+
+### setTimeout
+A JavaScript function for delaying execution of a callback function.
+
+Example: `setTimeout(myFunction, 1000);`
+- Calls myFunction after 1 second
+    - however, could take longer if other code needs to finish running
+- Function Returns an ID
+- Timeout can be cancelled by calling `clearTimeout(timeoutID);`
+
+Learn more: https://developer.mozilla.org/en-US/docs/Web/API/setTimeout
+
+### requestAnimationFrame
+A JavaScript function for calling a callback function before the next browser repaint.
+- Oftentimes; Used for animations to update the animation every frame
+
+Example: `requestAnimationFrame(myFunction);` would call myFunction before the next repaint
+- Function Returns an ID
+- Callback can be cancelled by calling `cancelAnimationFrame(animationFrameID);`
+
+Learn more: https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame
+
+
+## Notes from the video
+
+### Intro
+
+Timers:
+- intervals: call a function repeatedly over ie. every 1 second
+- timeouts: delay the execution of a function ie. some amount of time
+- call a function for every frame on the screen
+
+### Getting Setup
+
+``` html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Timers</title>
+    <script src="timers.js" defer></script>
+</head>
+    <body>
+        <div id="count">0</div>
+        <button id="start">Start</button>
+        <button id="stop">Stop</button>
+    </body>
+</html>
+```
+
+``` js
+// start/stop/count elements
+const start = document.getElementById('start');
+const stop = document.getElementById('stop');
+const count = document.getElementById('count');
+
+// event listeers
+start.addEventListener('click', startTime);
+start.addEventListener('click', stopTime);
+
+// functions for event listeners
+function startTime() {
+    //
+}
+
+function stopTime() {
+    //
+}
+```
+
+html: start/stop with a counter at 0
+js: blank functions (rn) that respond when you hit start/stop buttons
+
+How to get environment ready:
+- Go Live with your html
+    - VSCode > Go Live
+
+- View .js outputs 
+    - Right click in Chrome > Inspect > Console
+
+- Update your .js file to see changes
+
+
+### Intervals
+
+Note; If you keep pressing the 'start' button, it counts faster
+- you are creating more intervals to increase the count!
+
+``` js
+// start/stop/count elements
+const start = document.getElementById('start');
+const stop = document.getElementById('stop');
+const count = document.getElementById('count');
+
+// event listeers
+start.addEventListener('click', startTime);
+stop.addEventListener('click', stopTime);
+
+let timerID;
+
+
+// functions for event listeners
+function startTime() {
+    //window. (this is optional)
+    timerID = setInterval(() => {
+        console.log('starting...');
+        count.textContent++; // add 1/increment
+    }, 500); // 500 ms = 0.5 seconds
+}
+
+function stopTime() {
+    clearInterval(timerID);
+}
+```
+
+Notes:
+- start, then stop, it will stop
+- start, start, then stop, you cannot fully stop because you lost the `timerID` for the 1st one...
+
+
+### Timeouts
+
+Timeout: Works just like intervals!
+- waits 1 second, then calls the function
+- does NOT repeat it 
+    - calls it 1x
+- also returns an ID
+
+Notes:
+- If you clear the timeout ie. clearTimeout(timeoutID), even with 0ms timeout, it will never run
+    - This is because of the event loop...
+
+- clearInterval and clearTimeout both do the exact same thing!
+    - good practice: use the appropriate name for the function you are using
+
+``` js
+// start/stop/count elements
+const start = document.getElementById('start');
+const stop = document.getElementById('stop');
+const count = document.getElementById('count');
+
+// event listeers
+start.addEventListener('click', startTime);
+stop.addEventListener('click', stopTime);
+
+let timerID;
+
+let timeoutID = setTimeout(() => {
+    console.log('timeout');
+}, 500);
+
+// clearInterval(timeoutID);
+
+// functions for event listeners
+function startTime() {
+    timerID = setInterval(() => {
+        count.textContent++;
+    }, 500); 
+}
+
+function stopTime() {
+    clearInterval(timerID);
+}
+```
+
+
+### Animation Frames
+
+Animation Frames: similar to setInterval
+- every time the browser is about the paint, it checks if there are `requestAnimationFrame`
+    - if yes, will call a callback function
+
+How to cancel the animation frame: `cancelAnimationFrame(animationFrameID);`
+
+``` js
+// start/stop/count elements
+const start = document.getElementById('start');
+const stop = document.getElementById('stop');
+const count = document.getElementById('count');
+
+// event listeers
+start.addEventListener('click', startTime);
+stop.addEventListener('click', stopTime);
+
+let animationFrameID;
+
+function startTime(timestamp) { // time since 'time origin'
+    console.log(timestamp);
+    // timerID = setInterval(() => {
+    //     count.textContent++;
+    // }, 500); 
+    count.textContent++;
+    animationFrameID = requestAnimationFrame(startTime);
+}
+
+function stopTime() {
+    cancelAnimationFrame(animationFrameID);
+}
+```
+
+### performance.now() + Date.now()
+
+performance.now(): Same as timestamp
+- gets number of milliseconds since 
+
+Date.now(): 
+- has more functions you can get creative with
+    - day of 5 = Friday
+
+``` js
+const start = document.getElementById('start');
+const stop = document.getElementById('stop');
+const count = document.getElementById('count');
+start.addEventListener('click', startTime);
+stop.addEventListener('click', stopTime);
+
+let animationFrameID;
+
+// performance.now()
+// Date.now()
+setTimeout(() => {
+    console.log(performance.now()); // 
+    console.log(Date.now()); // # of milliseconds past Jan 1 1970
+}, 1000);
+
+// Another way to log the dates
+const date = new Date(2025, 0, 10, 9, 25, 10, 30); 
+date.setMonth(9);
+console.log("date" + date);
+
+function startTime(timestamp) { // time since 'time origin'
+    console.log(timestamp);
+    count.textContent++;
+    animationFrameID = requestAnimationFrame(startTime);
+}
+
+function stopTime() {
+    cancelAnimationFrame(animationFrameID);
+}
+```
