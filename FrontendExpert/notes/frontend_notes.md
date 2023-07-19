@@ -10660,3 +10660,484 @@ This: Usually a runtime binding
 - ie. it is based on the context
 - most of the time: keywords will do what you want
     - be aware of intracacies
+
+
+# Lesson 16: Classes
+
+If you have only worked with languages that use class-based inheritance so far, then JavaScript's prototype-based inheritance will seem like anything BUT prototypical.
+
+## Key Terms
+
+### Prototypal Inheritance
+The inheritance model used in JavaScript.
+- Key difference between prototypal/classical inheritance:
+    - prototypal: objects only inherit from other objects
+    - other: using class blueprints
+
+### Prototype Chain
+The chain of inheritance created through object prototypes.
+- When a property does not exist on an object, JavaScript will look to its prototype
+    - If it doesn't exist on that object, it will look to its prototype
+        - continues until chain ends w/ a null prototype
+
+Internally: The prototype is stored on the `[[Prototype]]` property, but we cannot directly access this property.
+
+We have alternative ways to get/set prototypes:
+
+- `obj.__proto__`: Property was the original way to get/set the prototype of an object
+    - is now depracted
+    - still useful for debugging
+
+- `Object.getPrototypeOf(obj)`: Returns the prototype object of `obj`.
+
+- `Object.setPrototypeOf(obj, proto)`: Sets the prototype object of `obj` to `proto`.
+
+- `Object.create(proto)`: Creates a new object with the prototype set to `proto`.
+
+Learn more: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Inheritance_and_the_prototype_chain
+
+### Function Constructor
+A function intended to be used to construct an object using the `new` operator.
+
+When the new operator is used, a new object is automatically created.
+- The prototype of the new object is then set to the `prototype` property of the constructor function
+    - Remember: functions are just objects
+- Finally: The constructor function is called with the new object bound to `this`.
+
+By default: The `prototype` property of the function will be an object with its `constructor` property set to the function itself
+- This can be changed
+
+For example:
+
+``` js
+function Person(name) {
+    this.name = name;
+}
+
+// This object will become the [[Prototype]] of
+// any objects resulting from a new Person() call
+Person.prototype = {
+    constructor: Person,
+    isHuman: true
+}
+
+const clement = new Person('Clement');
+console.log(clement.isHuman); // true, comes from prototype object.
+```
+
+### Classi
+A JavaScrpt syntax to emulate that of classical inheritance
+- For the most part: it is syntactic sugar on top of function constructors
+    - classes are actually just functions under the hood
+
+Example class would look like:
+
+``` js
+class Person {
+    static isHuman = true; // public static field
+    #age; // private instance field
+
+    constructor(name, age) {
+        this.name = name; // public instance field
+        this.#age = age;
+    }
+
+    // instance method
+    speak() {
+        console.log('Hello this is ' + this.name);
+    }
+
+    // instance getter function
+    get age() {
+        return this.#age;
+    }
+
+    // instance setter function
+    set age(value) {
+        this.#age = value;
+    }
+}
+
+
+const conner = new Person('Conner', 24);
+conner.speak(); // logs 'Hello this Conner'
+console.log(conner.age); // getter fun returns 24
+conner.age = 25; // calls setter functions
+
+console.log(conner.#age); // Error (cannot access private field)
+console.log(conner.name); // "Conner"
+console.log(conner.isHuman); // undefined
+console.log(Person.isHuman); // true
+```
+
+Classes can also extend other classes
+- Internally: This creates a prototype chain
+- In the class constructor `super` can be used to call the parent constructor
+- `super.method()` can also be used in the class to call parent classes.
+
+For example:
+
+``` js
+class Child extends Person {
+    constructor(name, age, grade) {
+        super(name, age);
+        this.grade = grade;
+    }
+}
+```
+
+Learn more: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes
+
+## Notes from the video
+
+### Setup
+
+Create an empty .js file named classes.
+
+### Prototypal Inheritance
+
+Other languages: "Blueprint style classes"
+
+JavaScript: Objects inherit from other instantiated objects
+
+In practice:
+
+``` js
+const person = {
+    isHuman: true
+};
+
+// child will inherit from person
+// prototype: person
+const child = Object.create(person);
+
+// cannot do the following, so we must init with a Object.create()
+//child.[[Prototype]] = person;
+
+// this could work, but is depracated
+//child = {};
+//child.__proto__ = person;
+
+console.log(person); // 
+
+console.log(child); // it is empty at init...
+console.log(child.isHuman); // child doesn't have isHuman, but its prototype does!
+
+child.maxAge = 18;
+console.log(child.maxAge); // 18
+console.log(person.maxAge); // undefined
+```
+
+Alternatives to this syntax used above:
+
+``` js
+const person = {
+    isHuman: true
+};
+
+// 1. creates object with [[Prototype]] of person
+// 2. assign all values from 2nd object
+const child = Object.assign(Object.create(person), {
+    maxAge: 18
+});
+
+console.log(child.maxAge); // 18
+console.log(person.maxAge); // undefined
+```
+
+Other methods, which are discouraged...
+- Object.setPrototypeOf(child, person)
+- __proto__: person
+- .create() with extra args
+
+An example showing how an object has access to its parents/proto:
+
+``` js
+const person = {
+    isHuman: true
+};
+
+const child = Object.create(person);
+child.maxAge = 18;
+
+const john = Object.create(child);
+john.name = 'John';
+
+console.log(john.__proto__.__proto__); // { isHuman: true }
+console.log(john.__proto__); // { maxAge: 18 }
+console.log(john); // { name: 'John' }
+
+// Recommended (better) syntax
+console.log(Object.getPrototypeOf(Object.getPrototypeOf(john))); // { isHuman: true }
+console.log(Object.getPrototypeOf(john)); // { maxAge: 18 }
+console.log(john); // { name: 'John' }
+```
+
+
+One more thing to show: If properties change on any object, properties change on prototype as well:
+- They are reference to live objects, not copies or anything like that!
+
+``` js
+const person = {
+    isHuman: true
+};
+
+const child = Object.create(person);
+child.maxAge = 18;
+
+const john = Object.create(child);
+john.name = 'John';
+
+console.log(john.maxAge); // 18
+
+child.maxAge = 69;
+
+console.log(john.maxAge); // 69
+```
+
+Almost anything that is not a primitive is an object:
+
+``` js
+const person = {
+    isHuman: true
+};
+
+const child = Object.create(person);
+child.maxAge = 18;
+
+const john = Object.create(child);
+john.name = 'John';
+
+const funcProto = Object.getPrototypeOf(() => {});
+console.log(Object.getOwnPropertyNames(funcProto));
+// [
+//     'length',      'name',
+//     'arguments',   'caller',
+//     'constructor', 'apply',
+//     'bind',        'call',
+//     'toString'
+//   ]
+
+const arrayProto = Object.getPrototypeOf(([]));
+console.log(Object.getOwnPropertyNames(arrayProto));
+// [
+//     'length',      'constructor',    'concat',
+//     'copyWithin',  'fill',           'find',
+//     'findIndex',   'lastIndexOf',    'pop',
+//     'push',        'reverse',        'shift',
+//     'unshift',     'slice',          'sort',
+//     'splice',      'includes',       'indexOf',
+//     'join',        'keys',           'entries',
+//     'values',      'forEach',        'filter',
+//     'flat',        'flatMap',        'map',
+//     'every',       'some',           'reduce',
+//     'reduceRight', 'toLocaleString', 'toString',
+//     'at',          'findLast',       'findLastIndex'
+//   ]
+
+```
+
+Takeaway:
+- Arrays and Objects are objects
+    - Objects with prototype set to object/array as prototype
+
+### Function Constructors
+
+What does the 'new' keyword actually do?
+- This one:
+
+    ``` js
+    // simple constructor function
+    function Person(name) {
+        console.log('constructor is ran'); // this is called when a new person is created
+        this.name = name;
+    }
+
+    const conner = new Person('Conner');
+    console.log(conner); // Person { name: 'Conner' }
+    console.log(conner.name); // Conner
+
+    const myles = new Person('Myles');
+    console.log(myles); 
+    console.log(myles.name);
+    ```
+
+- every function has a function name .prototype
+    - different than __proto__
+    - it is a standard property on the function Object
+        - What is it? an object itself / a blueprint for how the new keyword is going to work
+
+First thing that we need: Constructor
+- always need a constructor
+    - default constructor: Person itself
+
+    ``` js
+    Person.prototype = {
+        constructor: Person, // function that the prototype is on
+        isHuman: true
+    }
+    ```
+
+- other properties added:
+    - isHuman: when this gets added to the prototype, it is also added to Conner
+
+So, then what are the properties inside of the constructor?
+- Instance Properties
+    - different names
+    - same prototypes
+
+Examples:
+
+``` js
+// simple constructor function
+function Person(name) {
+    console.log('constructor is ran');
+    this.name = name;
+}
+
+Person.prototype = {
+    constructor: Person, // function that the prototype is on
+    isHuman: true
+}
+
+const conner = new Person('Conner');
+console.log(conner); // Person { name: 'Conner' }
+console.log(conner.name); // Conner
+
+// These next 2 lines of code do the same thing.
+// (this works because the constructor for conner == Person)
+const myles = new conner.constructor('Myles');
+//const myles = new Person('Myles');
+console.log(myles); 
+console.log(myles.name);
+
+console.log("\n");
+console.log('are the names the same?');
+console.log(myles.name === conner.name);
+console.log('are the prototypes the same?');
+console.log(Object.getPrototypeOf(conner) === Object.getPrototypeOf(myles));
+
+// Adding another key-value pair to the prototype
+Person.prototype['helloworld'] = 69;
+console.log(myles.helloworld); // 69
+console.log(conner.helloworld); // 69 (both can access it!)
+
+// Idea of sharing prototypes works with functions too....
+Person.prototype.speak = function() {
+    console.log('Hello this is ' + this.name);
+    console.log(this.isHuman);
+}
+console.log(myles.speak());
+console.log(conner.speak());
+
+// instanceof: is Person in the prototype chain?
+// note: setting prototypes with 'setPrototypeOf' is a bad idea
+console.log(conner instanceof Person);
+console.log(myles instanceof Person); // true
+```
+
+### Polyfills
+
+Polyfills: a piece of code (usually JavaScript on the Web) used to provide modern functionality on older browsers that do not natively support it
+
+``` js
+// Check if push exists.. if not, we define it!
+console.log(Array.prototype.push)
+if (Array.prototype.push === undefined) {    
+    console.log('Creating a function for push...');
+    Array.prototype.push = function(value) {
+        this[this.length] = value;
+    }
+}
+
+const arr = [1,2,3];
+arr.push(4); // calls the function we just defined
+console.log(arr);
+```
+
+Useful for when old browsers don't have something!
+
+### Classes
+
+Modern class syntax: 
+
+``` js
+class Person {
+    // "fields" of the class
+    static isHuman = true;
+
+    // constructor 
+    constructor(name) {
+        this.name = name;
+    }
+
+    // methods for the class
+    speak() {
+        console.log('Hello this is ' + this.name);
+    }
+
+    // this can only be called by person because it is static....
+    static greet() {
+        console.log('greetings!')
+    }
+
+    // getters
+    get getName() {
+        return this.name;
+    }
+
+    // setters
+    set changeName(value) {
+        this.name = value;
+    }
+}
+
+const conner = new Person('Conner');
+const clement = new Person('Clement');
+
+conner.speak();
+
+//conner.isHuman = false; (cannot do this with the static property above)
+console.log(Person.isHuman); // true
+console.log(conner.isHuman); // undefined
+console.log(clement.isHuman);// undefined (static means it is for the Person class, not individual humans)
+
+```
+
+### Inheritance with Classes
+
+Inheritance with Classes
+
+``` js
+class Person {
+    constructor(name) {
+        this.name = name;
+    }
+    speak() {
+        console.log('Hello this is ' + this.name);
+    }
+}
+
+// Child: instance of Person 
+// Person: -
+class Child extends Person {
+    #age; // private age
+
+    constructor(name, age) {
+        super(name) // calls constructor of class we are inheriting from! ie. Person
+        this.#age = age;
+    }
+}
+
+const child = new Child('John', 10);
+child.speak();
+console.log(child instanceof Person); // true
+console.log(child instanceof Child);  // true
+console.log(Person instanceof Function); // reminder that Person is a function, under the hood 
+```
+
+Notes on Private variables:
+- cannot access via age (undefined) or #age (error)
+    - this holds through with classes that inherit from it
+
+- Private fields are not available on every browser
