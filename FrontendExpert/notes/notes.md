@@ -10233,3 +10233,189 @@ function stopTime() {
     cancelAnimationFrame(animationFrameID);
 }
 ```
+
+
+# Lesson 14: Closures
+
+Closures: An important concept that you absolutely must understand
+- They are used all of the time!
+- You have already used them without knowing it
+
+## Key Terms
+
+### Closure
+A function, along with a saved reference to the lexical environment it was defined it.
+- Simply put: This means functions have access to all of the variables in the scope at the time of definition, even if the parent function has retured.
+
+Learn more: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Closures
+
+### Lexical Environment
+An internal data structure used for keeping track of identifiers (variable and function names) and their values
+- A lexical environment stores all of the locally available identifiers as well as a reference to the parent environment
+
+### Lexical Scoping
+The scoping system in JavaScript that ensures all code blocks have access to all identifiers in their parent environment
+- When an identifier is not defined locally: JavaScript will look to the parent environment for it
+    - If still not found: It will look in the grandparent's environment
+        - the cycle continues..., and then it looks in the global envir
+
+
+## Notes from the video
+
+### Setup
+
+Starting out JS file:
+
+``` js
+const globalNum = 5;
+
+function logNum() {
+    const localNum = 1;
+    console.log(globalNum + localNum);
+}
+
+logNum();
+```
+
+### Closures Overview
+
+What is happening? Lexical Scoping
+
+logNum has access to the following:
+- local variables
+- global variables (via closure)
+    - local scope is used first, but then it will look at parent, parent's parent, up to global
+
+``` js
+function example() {
+    const num = 5; // this is never looked at (local scope declared a 10)
+
+    function logNum(num) {
+        console.log(num);
+    }
+
+    logNum(10);
+}
+
+example(); // 10
+```
+
+An example using a return function:
+
+``` js
+function example() {
+    const num = 5;
+
+    return function() {
+        console.log(num);
+    }
+}
+
+const innerFunction = example();
+
+innerFunction(); // 5
+```
+
+Many programming languages: Garbage collector collects because the example is done running
+
+JavaScript: Creates a closure
+- constant `innerFunction` still has access to `num`
+
+### Applications of Closures
+
+Private methods:
+
+``` js
+function makeFunctions() {
+    let privateNum = 0;
+
+    function privateIncrement() {
+        privateNum ++;
+    }
+
+    return {
+        logNum: () => console.log(privateNum),
+        increment: () => {
+            privateIncrement();
+            console.log('Incremented!');
+        }
+    }
+}
+
+const { logNum, increment } = makeFunctions();
+const { logNum: logNum2, increment: increment2 } = makeFunctions();
+
+logNum(); // 0
+console.log(privateNum); // would return an error (out of scope)
+increment();
+logNum(); // 1
+
+// logNum2 has access to different variables!
+// - created with different calls to makeFunctions()
+//     - They have different parents
+logNum2(); // 0
+increment2();
+logNum2(); // 1
+```
+
+What is going on here:
+
+- Functions `makeFunctions()` returns 2 functions.
+    - 2 things that are private to the private scope:
+        - const: privateNum
+        - function: privateIncrement()
+            - the outside does not have access to these 
+
+    - 2 things that are public to external
+        - function: logNum
+        - function: increment
+
+
+### Interview Question Example
+
+``` js
+for (let i = 0; i < 3; i++) {
+    setTimeout(() => {
+        console.log(i);
+    }, 500);
+} // 0,1,2
+
+console.log(i); // error!
+
+for (var i = 0; i < 3; i++) {
+    setTimeout(() => {
+        console.log(i);
+    }, 500);
+} // 3,3,3
+
+console.log(i); // 3
+```
+
+What happens here:
+- Closure is created
+    - even when the for loop is finished 500 ms later, `console.log(i)` has access to the i variable
+
+What happens if you change `let` to `var`?
+- let: 0,1,2
+- var: 3,3,3
+
+Why?
+- let: *Block scoped* 
+    - only scoped inside of those curly bracews
+        - when you use let in a for loop, it creates a 'new' variable with each iteration
+
+- var: *Function scoped*
+    - scoped globally (since we are not in a function)
+        - we get the same i variable each time
+            - you still end up doing an `i++` at the end (which is why you get 3,3,3 and not 2,2,2)
+
+### Parting Notes
+
+Think about scoping of let vs. Var
+- let: new variable
+- var: same variable each time
+
+Which closures are being created?
+- If closures are created at time of declaration of function, none of the time is it executed
+
+(In the example, closures are created during the loops, even though function is not created for 500 ms)
