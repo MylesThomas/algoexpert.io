@@ -10419,3 +10419,244 @@ Which closures are being created?
 - If closures are created at time of declaration of function, none of the time is it executed
 
 (In the example, closures are created during the loops, even though function is not created for 500 ms)
+
+
+# Lesson 15: This
+
+This might be the most confusing concept in JavaScript.
+
+## Key Term
+
+### this
+A JavaScript keyword for referencing the context in which the current code is running
+
+The value of `this` is determined at runtime. In the browser, it follows these rules:
+
+1. At the top level of a file (ie. the global context), `this` refers to the global object, the `window`
+
+2. In a standard function without strict mode, `this` refers to the global object, the `window`
+
+3. In a standard function in strict mode, `this` is undefined.
+
+4. In an object method, `this` refers to that object.
+
+5. In a constructor function, `this` refers to the object being constructed.
+
+6. When using event listeners, the object being listened to will be bound to `this` (assuming a standard function was used)
+- Example: `element.addEventListener('click', func)`
+    - This would bind `element` to `this` inside of `func`.
+
+Arrow functions do not create their own `this` context (they just retain the value of the enclosing context)
+
+JavaScript also provides 3 functions for binding the value of this to functions:
+
+1. func.bind(thisArg): Returns a function with `thisArg` bound to `this`.
+
+2. func.call(thisArg, x, y): calls `func(x, y)` with `thisArg` bound to `this`.
+
+3. func.apply(thisArg, [x, y]): calls `func(x, y)` with `thisArg` bound to `this`.
+
+Learn more: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this
+
+## Notes from the video
+
+### Setup / "this" keyword overview
+
+``` html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>This</title>
+    <script src="this.js" defer></script>
+</head>
+<body>
+    <button>Click Me</button>
+</body>
+</html>
+```
+
+``` js
+console.log(this); // Window
+```
+
+Starting:
+- HTML: button that says click me
+    - Deploy to Port 5500 with 'Go Live' > Inspect > Console
+
+- JS: Logs out the Window
+
+
+### "this" in Functions
+
+``` js
+'use strict';
+
+console.log(this); // Window
+
+function logThis() {
+    console.log(this);
+}
+
+logThis(); // undefined
+```
+
+Strict mode causes it to be undefined.
+
+
+### "this" in Objects
+
+``` js
+'use strict';
+
+function logThis() {
+    console.log(this);
+}
+
+const obj = {
+    num: 10,
+    logThis
+}
+
+obj.logThis(); // When in an object, the 'this' keyword is the object itself!
+```
+
+### "this" in Event Listeners
+
+``` js
+'use strict';
+
+const button = document.querySelector('button');
+
+button.addEventListener('click', logThis);
+
+function logThis() {
+    console.log(this);
+}
+
+const obj = {
+    num: 10,
+    logThis
+}
+
+obj.logThis(); // Logs out what it was listening to ie. the Button (when clicked!)
+```
+
+
+### "this" in Arrow Functions
+
+Slight nuance if it is an arrow function!
+- they do NOT get their own `this`
+
+``` js
+'use strict';
+
+const logThis = () => {
+    console.log(this);
+}
+
+const button = document.querySelector('button');
+
+button.addEventListener('click', logThis);
+
+const obj = {
+    num: 10,
+    logThis
+}
+
+obj.logThis(); // Logs out window
+```
+
+
+### Binding "this"
+
+Passing as the `this` parameter:
+
+Bind: Functions of another function
+- 
+
+``` js
+'use strict';
+
+function logThis(x, y) {
+    console.log(this);
+    console.log(x, y);
+}
+
+const obj = {
+    num: 10
+};
+
+logThis(); // undefined
+
+const boundLogThis = logThis.bind(obj, 10, 20);
+
+// We get the obj because we pass it into the bind
+boundLogThis(); // {num: 10}; 10,20
+
+
+logThis.call(obj, 10, 20); // gets the some reponse of {num: 10}; 10,20
+
+
+// .apply(): works the same as call
+logThis.apply(obj, [10, 20]); // gets the some reponse of {num: 10}; 10,20
+```
+
+Takeaway: `this` should almost ALWAYS be an object!
+
+
+### Array Functions
+
+``` js
+'use strict'; // makes it log 'undefined' instead of the window
+
+[1,2,3].forEach(function(num) {
+    console.log(this);
+    console.log(num);
+});
+```
+
+Reminder: Arrow functions will log out the Window
+- global this
+
+Next: `this` argument of the callback function
+
+``` js
+'use strict'; // makes it log 'undefined' instead of the window
+
+[1,2,3].forEach(function(num) {
+    console.log(this);
+    console.log(num);
+}, {num: 10}); // we log out this object all 3 times
+```
+
+### "this" in Classes
+
+`this` will refer to current object when called in a class method:
+
+``` js
+'use strict';
+
+class Person {
+    constructor(name) {
+        this.name = name;
+    }
+
+    // method on the class
+    speak() {
+        console.log('Hello, I am ' + this.name);
+    }
+}
+
+const conner = new Person('Conner');
+const clement = new Person('Clement');
+
+conner.speak(); // Hello, I am Conner
+clement.speak(); // Hello, I am Clement
+```
+
+### Takeaways
+
+This: Usually a runtime binding
+- ie. it is based on the context
+- most of the time: keywords will do what you want
+    - be aware of intracacies
