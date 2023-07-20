@@ -11508,3 +11508,263 @@ console.log(generator.next()); // undefined, true
 
 - We don't use these much
     - good to know for technical interviews
+
+
+# Lesson 19: Modules
+
+Modules = a fancy way of saying "files"
+
+## Key Terms
+
+### Module
+JavaScript code that runs in isolation, without "polluting" the global namespace
+
+Traditionally: Modules were implemented using *immediately invoked function expressions*
+Modern: we use `type="module"` attribute that can be added to script tags. This attribute has a few effects:
+- Identifiers at the top level will be scoped to the file (rather than globally)
+- The file will be in strict mode, by default
+- The `await` keyword can be used at the top level
+- The script will be deferred by default
+
+Modules can then access each other by using the `import` / `export` keywords.
+
+Example:
+
+``` js
+// File 1:
+export const num = 10;
+
+// File 2:
+import { num } from 'file1.js';
+```
+
+Learn more: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules
+
+### Immediately Invoked Function Expression (IIFE)
+A function that is immediately called after its definition
+- Can be useful for a variety of purposes
+    - most notably: create a function scope to isolate code with
+
+There are a few ways to define an IIFE.
+- Most common: Using an anonymous / arrow function
+    - This function is then wrapped in (), which causes it to be treated as an expression
+    - Finally, () is added to call the function
+
+Example:
+
+``` js
+(function() {
+    console.log('Wahoo!');
+})();
+```
+
+Learn more: https://developer.mozilla.org/en-US/docs/Glossary/IIFE
+
+## Notes from the video
+
+### Setup
+
+Steps:
+- make new file 'modules.html', 'Person.js', 'helpers.js', 'modules.js'
+    - new cmd
+    - cd FrontendExpert\javascript_crash_course\19_modules
+    - echo > modules.html
+    - echo > Person.js
+    - echo > helpers.js
+    - echo > modules.js
+
+- start up localhost:5500
+    - Code out HTML file and keep it open
+    - VSCode > Go live > Right click when in .html file > Inspect > Console
+
+### Modules Overview
+
+HTML File with 3 scripts
+- Person: 
+- helpers: 
+- modules: 
+
+Let's show how these JS files have access to each other:
+
+``` js
+// These js files have access to each other
+
+frontendExpert(); // FrontendExpert is the best!
+
+const conner = new Person('Conner');
+conner.sayHello(); // Hi, this is Conner
+```
+
+Good practice: Keep different files for different parts of code
+- Example of Amazon: cannot fit everything into 1 file!
+    - individual classes
+    - helper functions
+
+We want to do this WITHOUT polluting the global namespace!
+- added all variables to the global is bad
+    - naming conflicts
+    - coding conflicts with frameworks
+
+- we want files scoped to their files
+    - take individual parts of the files and export them
+
+So, how do we make sure the 'conner' constant is only accessible in modules.js?
+
+### Functions as Modules
+
+What we know:
+- constants are scoped to their block
+- variables defined with var are scoped to a function
+
+If we put all of our code in a function....
+
+``` js
+function myModule() {
+    frontendExpert(); 
+
+    const conner = new Person('Conner');
+    conner.sayHello();
+}
+
+myModule(); // both get printed as before
+```
+
+- we are no longer in the global namespace (we are in a function)
+- Issue:
+    - we have a new global identifier ie. `myModule()`, which can now be called by any other file
+    - How to solve this problem?
+
+How to solve this problem:
+- Method #1: anonymous function
+    - this does not work bc no function to call
+
+- Method #2 - Good solution: Wrap entire function in parentheses
+    - What this does: "JavaScript, teach what is in this of these () as an expression"
+        - we won't have to give a name to the function
+        - add () to the end to call the function
+
+This does what we want!
+- same output as before
+- does not mess with global namespace
+
+``` js
+(function() {
+    frontendExpert(); 
+
+    const conner = new Person('Conner');
+    conner.sayHello();
+})();
+```
+
+What is this: Immediately invoked function expression
+
+Only problem now: We cannot access the functions from other .js files because they are inside of a function
+
+### type="module" HTML Attribute
+
+type="module": Add the immediately invoked function
+- Removes from global namespace
+    - no need to refer either
+
+``` js
+<script src="Person.js" type="module"></script>
+<script src="helpers.js" type="module"></script>
+<script src="modules.js" type="module"></script>
+```
+
+We could now remove the IIFE and put code back how it was. 
+
+We stil have a problem: The files no longer have access to each other!
+- We most export it so that other files can import them...
+
+### import / export
+
+We can solve our problem with imports/exports:
+
+helpers.js:
+
+``` js
+export function algoExpert() {
+    console.log('AlgoExpert is the best!');
+}
+
+export function frontendExpert() {
+    console.log('FrontendExpert is the best!');
+}
+```
+
+modules.js:
+
+``` js
+//import * as helpers from './helpers.js';
+//import * as person from './Person.js';
+import { algoExpert as algo, frontendExpert as frontend } from './helpers.js';
+import { Person } from './Person.js';
+
+algo();
+frontend();
+
+const conner = new Person('Conner');
+conner.sayHello(); 
+```
+
+Note: You can export classes, just like functions
+
+Person.js:
+
+``` js
+//export 
+class Person {
+    constructor(name) {
+        this.name = name;
+    }
+
+    sayHello() {
+        console.log(`Hi, this is ${this.name}`);
+    }
+}
+//export default Person;
+//export { Person as default }; // this is rare to see
+export { Person };
+```
+
+
+export default: Instead of using {} syntax, you could use this
+- I do not like this
+- Solid choice if it is a class file with 1 export
+
+### import()
+
+Dynamically import modules: If imports are coming from a server, we want to be careful
+- only import when truly necessary
+
+How to use this: `await`
+- adding `type="module"` in the HTML allows us to use `await`, even though we are not inside of a function!
+
+``` js
+const shouldSayFrontend = true;
+
+if (shouldSayFrontend) {
+    //const importedObj = await import ('./helpers.js');
+    const { frontendExpert } = await import ('./helpers.js');
+    frontendExpert();
+}
+```
+
+Other changes that `type="module"` invokes:
+- strict mode is on automatically ie. 'use strict'
+- it changes what `this`
+    - it will be undefined
+
+Major change: We can import/export code without polluting the global namespace!
+
+### nomodule scripts
+
+Finally: We can do this with HTML in the case our browser does not import modules...
+- script tag that tells browser to ignore the first 3 script tags
+- in the case that 
+    - good for handling users who use an old browser
+
+``` html
+<script src="nomoduleversion.js" nomodule></script>
+```
