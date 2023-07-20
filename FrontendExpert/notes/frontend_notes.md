@@ -11141,3 +11141,152 @@ Notes on Private variables:
     - this holds through with classes that inherit from it
 
 - Private fields are not available on every browser
+
+
+# Lesson 17: Currying
+
+Currying  = weird (so pay attention)
+
+## Key Term
+
+### Currying
+The process of transforming a function to treat its parameters as a sequence of individual function calls that each take one parameter
+
+Example:
+- regular: func(a, b, c)
+- currying: func(a)(b)(c)
+
+Currying is achieved by creating functions that return other functions (kinda like chaining) and they take advantage of *closures*
+
+For example - a curried sum function:
+
+``` js
+function curriedSum(a) {
+    return function(b) {
+        return a + b
+    };
+}
+```
+
+This could then be used to create partial version of this function. For example:
+
+``` js
+// Add Four function
+const addFour = curriedSum(4);
+addFour(10); // 14
+```
+
+
+## Notes from the video
+
+### What is currying
+
+Function Currying/Curried versions of functions:
+- each parameter is its own function call!
+
+### Curried Sum
+
+``` js
+// regular
+function sum(a, b, c) {
+    return a + b + c;
+}
+
+// curried
+function curriedSum(a) {
+    return function(b) {
+        return function(c) {
+            return a + b + c;
+        }
+    }
+}
+
+console.log(sum(1,4,10)); // 15
+console.log(curriedSum(1)(4)(10)); // 15
+```
+
+Due to closures created, all 3 of these variables are still in scope!
+- inside innermost function...
+
+### curry() Function
+
+curry(): Takes in a function as parm, returns it as curried function
+
+``` js
+function sum(a, b, c) {
+    return a + b + c;
+}
+
+function subtract(a, b, c){
+    return a - b - c;
+}
+
+function curry(func) {
+    return function(a) {
+        return function(b) {
+            return function(c) {
+                return func(a, b, c);
+            }
+        }
+    }
+}
+
+const curriedSum = curry(sum);
+const curriedSubtract = curry(subtract);
+
+console.log(sum(1,4,10)); // 15
+console.log(curriedSum(1)(4)(10)); // 15
+console.log(curriedSubtract(1)(4)(10)); // -13
+```
+
+Instead of returning a+b+c, your return `func(a, b, c)`
+- pass in sum function as the parameter
+
+We can simplify even more with arrow functions!
+
+``` js
+function curry(func) {
+    return (a) => {
+        return (b) => {
+            return (c) => {
+                return func(a, b, c);
+            }
+        }
+    }
+}
+```
+
+One step further: Implicit returns
+
+``` js
+function curry(func) {
+    return (a) => (b) => (c) => func(a, b, c);
+}
+```
+
+Nice!
+
+### When to use Currying
+
+I was thinking this at first: Why the hell would I ever use this?
+
+Answer: Most of the time you do not!
+
+Use cases we may want to use it: Part of another functions
+
+Example:
+
+``` js
+function sum(a, b, c) {
+    return a + b + c;
+}
+
+function curry(func) {
+    return (a) => (b) => (c) => func(a, b, c);
+}
+
+const curriedSum = curry(sum);
+
+const addFour = curriedSum(4);
+console.log(addFour(10)(10)); // 24
+```
