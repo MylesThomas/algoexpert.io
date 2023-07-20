@@ -11290,3 +11290,221 @@ const curriedSum = curry(sum);
 const addFour = curriedSum(4);
 console.log(addFour(10)(10)); // 24
 ```
+
+
+# Lesson 18: Generators
+
+While these bad boys won't bring the lights back on during a blackout, they'll reliably/efficiently power your applications whenever they are called upon!
+
+## Key Term
+
+### Generator
+An iterable object created by using a *generator function*.
+
+Generator function: Defined by using `function+`. Then, each `yield` results in another item being added to the iterable generator object.
+
+A generator object has 3 methods:
+1. next(value): Returns an object with the next value in the iterator and a *done* boolean.
+- Optionally: passes a value back into the generator function
+
+2. return(value): Adds a passed in argument to the iterable results and ends iteration.
+
+3. throw(error): Throws an error, stopping code execution unless the error is caught.
+
+Example: 
+
+``` js
+function* genNumbers() {
+    const x = yield 1;
+    yield x + 2;
+    yield 3;
+}
+
+const generatorObj = getNumbers();
+console.log(generatorObj.next().value); // 1
+console.log(generatorObj.next(3).value); // 5
+console.log(generatorObj.return(7).value); // 7
+console.log(generatorObj.next().value); // undefined
+```
+
+Learn more: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator
+
+## Notes from the video
+
+### Overview
+
+Generators:
+- generator functions
+- generators
+
+`yield`: Similar to return, pauses the function where it was
+- can do it multiple times to resume execution of the function
+
+`generator.next()`: Executes the functions until it gets to a yield
+- value: the value yielded
+    - can also get this with `generator.next().value`
+- done: false ie. we are not to the end of the function yet
+
+``` js
+function* genNumbers() {
+    yield 1;
+    yield 2;
+    yield 3;
+    return 4;
+    yield 5; // we never get to this line of code
+}
+
+const generator = genNumbers(); // create the generator
+
+console.log(generator.next()); // 1, false
+console.log(generator.next()); // 2, false
+console.log(generator.next()); // 3, false
+console.log(generator.next()); // 4, true (return object OR no more yields makes it done)
+console.log(generator.next()); // undefined, true
+```
+
+### return statements in Generators
+
+Once you hit the return statement, as seen above:
+- value: the return value
+- done: true
+    - anything after will be value=undefined, done=true
+
+### Passing values into Generator Function
+
+``` js
+function* genNumbers(count) {
+    for (let i=0; i < count; i++) {
+        yield i;
+    }
+}
+
+const generator = genNumbers(3);
+
+console.log(generator.next()); // 1, false
+console.log(generator.next()); // 2, false
+console.log(generator.next()); // 3, false
+console.log(generator.next()); // undefined, true
+console.log(generator.next()); // undefined, true
+```
+
+### Iterating with For-of loop
+
+``` js
+function* genNumbers(count) {
+    for (let i=0; i < count; i++) {
+        yield i;
+    }
+    return 5; // we never get here
+}
+
+const generator = genNumbers(3);
+
+for (value of generator) {
+    console.log(value); // 0,1,2
+}
+```
+
+Note: This method ignores the return statement
+- Avoid these for of loops, tbh
+
+### Passing Values Through calls to Generator.next()
+
+``` js
+function* genNumbers(count) {
+    const value = yield 0;
+    yield value + 3;
+}
+
+const generator = genNumbers(3);
+
+console.log(generator.next()); // 0, false
+console.log(generator.next(5)); // 8, false
+// value was set at 0, but we changed it to 5 with generator.next(5), and then 5+3 = 8
+```
+
+
+### generator.return()
+
+generator.return(): Similar to return statement inside of generator function
+- 
+
+Example: 
+
+``` js
+function* genNumbers(count) {
+    const value = yield 0;
+    yield value + 3;
+}
+
+const generator = genNumbers(3);
+
+console.log(generator.next()); // 0, false
+console.log(generator.return(5)); // 5, true
+console.log(generator.return()); // undefined, true
+console.log(generator.next(5)); // undefined, true
+```
+
+### generator.throw()
+
+generator.throw(): Throws an error instead of running the code
+- halts execution
+
+Note:
+- .return() lets your get to code after it, .throw() does not
+
+Example: 
+
+``` js
+function* genNumbers(count) {
+    const value = yield 0;
+    yield value + 3;
+}
+
+const generator = genNumbers(3);
+
+console.log(generator.next()); // 0, false
+console.log(generator.throw(new Error('There was an error'))); // throws error
+
+console.log(generator.next(5)); // we don't get to run this...
+```
+
+### Yielding to Generators
+
+Now, look at generator functions that call each other!
+
+Yielding to Generators
+- use * to yield to another generator
+
+``` js
+function* generator1() {
+    yield 1;
+    yield 2;
+}
+
+function* generator2() {
+    yield 3;
+    yield 4;
+}
+
+function* getNumbers(count) {
+    yield* generator1();
+    yield 2.5;
+    yield* generator2();
+}
+
+const generator = getNumbers();
+
+console.log(generator.next()); // 1, false
+console.log(generator.next()); // 2, false
+console.log(generator.next()); // 2.5, false
+console.log(generator.next()); // 3, false
+console.log(generator.next()); // 4, false
+
+console.log(generator.next()); // undefined, true
+```
+
+### Takeaways
+
+- We don't use these much
+    - good to know for technical interviews
