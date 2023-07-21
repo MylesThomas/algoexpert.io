@@ -12055,3 +12055,264 @@ function processChunk(start) {
     }
 }
 ```
+
+
+# Lesson 21: Web Workers
+
+JS just became multithreaded!
+
+## Key Term
+
+### Web Worker
+A browser API for running scripts in a separate thread from the main execution thread.
+- A worker object is created with the `Work(filePath)` constructor function
+    - The argument to this function is a path to another .js file (that runs in a separate thread)
+
+Workers can send messages back and forth with the main thread via the `postMessage(message)` method and the `onmessage` event. For example:
+
+``` js
+// main JavaScript file
+const worker = new Worker ('worker.js');
+worker.postMessage('hello');
+worker.addEventListener('message', (event) => {
+    console.log(event.data); // 'world'
+});
+
+// worker.js
+postMessage('world');
+addEventListener('message', (event) => {
+    console.log(event.data); // 'hello'
+});
+```
+
+In general: Most workers are dedicated workers
+- Dedicated workers: They can only communicate with the script that created them
+    - `SharedWorker`: can also be created to share a worker with multiple tabs or iframes
+        - doesn't have widespread support across browsers yet...
+
+
+## Notes from the video
+
+### Setup
+
+``` html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Web Workers</title>
+    <script src="webWorkers.js" defer></script>
+</head>
+<body>
+    <button id="slow">Slow Operation</button>
+    <button id="say-hello">Say Hello</button>
+</body>
+</html>
+```
+
+``` js
+// webWorkers.js
+const slowButton = document.getElementById('slow');
+const sayHelloButton = document.getElementById('say-hello');
+
+slowButton.addEventListener('click', slowOperation);
+sayHelloButton.addEventListener('click', sayHello);
+
+function slowOperation() {
+    for (let i = 0; i < 30000000000; i++) {
+        1 + 2;
+    }
+    console.log('slow operation finished');
+}
+
+function sayHello() {
+    console.log('hello world');
+}
+```
+
+``` js
+// worker.js
+```
+
+Steps:
+- create the webWorkers.html file
+    - html:5
+- create webWorkers.js and worker.js
+- VSCode > Go live on Port 5500 > Inspect > Console
+
+### Intro
+Web Workers = API provided by the browser
+- not a core part of JavaScript
+- something added to browsers to make our lives easier
+- Purpose: run code in a separate thread
+    - sometimes we have code that takes a long time, we don't want the block entire page!
+
+### Dedicated Workers
+
+Example: 
+
+webWorkers.html: 
+- 2 buttons
+    - slow
+    - say hello
+
+webWorkers.js
+- select both buttons with `document.getElementBy()`
+- add click events on both buttons
+    - slow operation iterates from 0 to 10000000
+    - say hello goes right away to console.log()
+
+How to fix this by using web worker:
+
+``` js
+// webWorkers.js
+function slowOperation() {
+    const pathToWorkerWhoRunsSeparateThread = 'worker.js';
+    const worker = new Worker(pathToWorkerWhoRunsSeparateThread);
+}
+```
+
+``` js
+// worker.js
+for (let i = 0; i < 30000000000; i++) {
+    1 + 2;
+}
+console.log('slow operation finished');
+```
+
+Now that the long slow operations is done in a different thread, you can do the following:
+- press 'slow operation' and wait
+- press 'say hello' and have it work
+
+Note: Cannot do any DOM manipulation in the worker...
+- no access to the document
+
+
+Next: Sometimes we want workers to interact with the main thread.
+- let's use `worker.postMessage()` to do so:
+
+``` js
+// webWorkers.js
+function slowOperation() {
+    const pathToWorkerWhoRunsSeparateThread = 'worker.js';
+    const worker = new Worker(pathToWorkerWhoRunsSeparateThread);
+    worker.postMessage(10);
+}
+```
+
+``` js
+// worker.js
+// add event listener
+// - optional: self: reference to worker global scope (it works without self...)
+//      - similar to window object in JS
+//self.
+addEventListener('message', event => {
+    console.log(event.data);
+});
+
+// this does the same thing
+// onmessage = function(event) {
+//     console.log(event.data);
+// }
+
+console.log('slow operation finished');
+```
+
+Next: How to send info from worker.js to main file
+
+``` js
+// worker.js
+addEventListener('message', event => {
+    console.log(event.data);
+
+    postMessage(event.data + 10);
+});
+```
+
+``` js
+// webWorkers.js
+function slowOperation() {
+    const pathToWorkerWhoRunsSeparateThread = 'worker.js';
+    const worker = new Worker(pathToWorkerWhoRunsSeparateThread);
+    worker.postMessage(10);
+
+    worker.addEventListener('message', event => {
+        console.log(event.data);
+    });
+}
+```
+
+Note: This happens via events, so it happens asynchronously!
+- that is why 'slow operation finished' logs out before the 10 or the 20
+    - need to wait for info to be sent between main/worker
+    - also need to wait because call stack is not empty
+
+A few more methods for worker:
+
+worker.terminate(): Stop the worker from running
+- prevents anything from happening, before the worker can do anything
+
+```js
+worker.terminate();
+```
+
+### Shared Workers
+
+To this point: We have only looked at dedicated workers
+- dedicated workers: Workers only accessible from the script that created them
+    - ie. in this case the main script
+
+- shared workers: Acessible 
+    - different tabs in the same domain
+    - iFrames, as well
+
+Note: Almost no mobile browsers support this, so don't use this in production!
+- good to know bc might become more common in the future
+
+
+Biggest difference: Almost everything in a shared worker is specific to a port
+- that is how the worker keeps track of who it is communicating with
+
+Recommendation: Use worker.port.onmessage
+- if you use the addEventListener() way, you will need to start the ports
+    - who wants to do that!
+        - can do it with `worker.port.start`...
+
+Changes:
+1. get the ports
+- usually ports is length 1 for the 1 port
+    - usually only 1 port per connection....
+
+2. port.onmessage
+- take a function that does our work
+    - make sure to do port.postMessage
+
+``` js
+// webWorkers.js
+worker.port.onmessage = function(event) {
+    console.log(event.data);
+};
+```
+
+We also need to make changes to worker file to make it a `shared worker`:
+- instead of listening to messages at top level, we need to listen for a `connect` event
+    - connect fires whenever something connects to this specific worker
+        - reason we have this: there can be multiple connections, need to handle them individually
+``` js
+// worker.js
+worker.port.onmessage = function(event) {
+    const port = event.ports[0]; // 1st in array of length=1
+
+    port.onmessage = function(event) {
+        port.postMessage(event.data);
+        // console.log(event.data); may not be able to post to console in some browsers..
+    };
+};
+```
+
+### Quick Recap
+
+When you have a slow operation that does not depend on the DOM... use a web worker.
+- it does not block the main thread
+- browser still works as usual!
+
+Note: Still would prefer to do everything on the server (if you can), the browser is not going to be as powerful as the server.
