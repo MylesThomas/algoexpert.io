@@ -11768,3 +11768,290 @@ Finally: We can do this with HTML in the case our browser does not import module
 ``` html
 <script src="nomoduleversion.js" nomodule></script>
 ```
+
+
+# Lesson 20: The Event Loop
+
+If JavaScript is a single-threaded programming language, then how is it able to run code a-synchronously?
+
+The answer might throw you for a loop...
+
+## Key Terms
+
+### JavaScript Engine
+A program used to execute JS code.
+
+These engines can differ a lot in implementation across browsers, but for the most part there are 2 primary components
+
+1. Heap: Used for memory allocation to story objects
+- Think of an unstructured data store
+
+2. Call Stack: A stack data structure that is used to keep track of currently executing functions
+- Each function call pushes a stack frame onto the stack
+    - stack frame has info about the function and its local variables
+- When a function ends, it is popped off the stack
+    - Note: If the stack is empty, there is no code running
+
+### JavaScript Runtime Environment
+The larger environment that JS is executed in. 
+- In the browser, this environment provides access to a variety of *web APIs*
+    - These APIs include functions for timers, HTTP requests, DOM manipulation, and more
+
+### Event Loop
+The concurrency model within JavaScript.
+- This is a constantly running loop within the browser
+
+Roughly follows this algorithm:
+1. Remove one task from the task queue
+2. Execute code until the call stack is empty
+3. Execute microtasks one at a time until the microtask queue is empty
+4. Render any changes to the DOM
+5. Go to step 1
+
+Learn more: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Event_loop
+
+### Task Queue
+A queue data structure for storing asynchronous callbacks to be added to the call stack
+- Also known as: Messaging Queue, Callback Queue, Macrotask Queue
+
+Web APIs move callbacks into the task queue, where they wait for the call stack to be empty before executing.
+
+### Microtask Queue
+A queue data structure for storing microtasks, similar to the task queue.
+
+Microtasks are primarily used for callback functions passed to `promise.then()`, `promise.catch()`, and `promise.finally()` as well as their `async`/`await` equivalents.
+- Additionally: microtasks can be manually queued using the `queueMicrotask()` function
+
+Microtasks can be considered to have a higher priority than standard tasks, since the entire microtask queue must be empty before the browser will move onto a new task.
+
+### Chunking
+A process for preventing slow functions from clogging the *call stack*, and thus making the entire page unresponsive.
+- Core idea: take large tasks, split them into smaller ones
+
+In practice: Chunking is usually achieved by using `setTimeout` after some iterations, forcing future chunks to move to the end of the task queue.
+
+
+## Notes from the video
+
+### Concurrency in JavaScript
+
+JavaScript code is single threaded.
+- Event loop / concurrency model is a weird name then... (misnomer)
+
+Single Threaded
+- 1 task executed at a time
+
+How does it do multiple things at once?
+- it lies in the event loop
+
+### JavaScript Engine
+
+JavaScript Engine: 
+- Each browser has a JS engine 
+    - chrome has v8 engine
+- each browser/engine has 2 things:
+    - heap: memory allocation
+    - call stack: current executing
+
+
+### Call Stack Example
+
+Simple Example:
+
+![Call Stack Example](./figures/javascript/0.png)
+
+### JavaScript Runtime Engine
+
+What happens if instead of foo() we do setTimeout(foo, 500)?
+- it does not work
+- we need another component for the system to work
+
+JavaScript Engine is not doing all of the work - JavaScript Runtime Environment!
+- provides functionality ontop of JS
+- provides web APIs
+    - setTimeout
+    - fetch for HTTP requests
+
+What happens when we call setTimeout: It calls on an API
+- the code runs completely separate from our own (outside of engine)
+    - when setTimeout is complete, it pops off call stack
+    - browser keeps back of 500ms delay and callback to function foo()
+
+What happens after 500ms ie. how does foo() get called?
+- Task Queue
+
+Task Queue: Data Structure
+- when function is finished, Web API queues up foo() in the task queue
+- task queue waits for call stack to be empty...
+    - when it is, removes 1st task from queue and sends to call stack
+        - in this example: task queue sends foo() to call stack AFTER main() is finished
+
+### The Event Loop
+
+This overall process: The Event Loop
+1. Dequeue 1 task
+2. Execute until the call stack is empty (task is complete!)
+3. Render DOM changes
+4. Repeat!
+- will sit and wait if nothing to do
+
+Key point: rendering does not happen in the middle of a task, it always happens after a task has been completed.
+
+### Event Loop Example
+
+![Example](./figures/javascript/1.png)
+
+### setTimeout(func, 0)
+
+There is still more nuance to see!
+
+What happens if we call setTimeout with no delay ie. setTimeout(func, 0)?
+- callback function does not run immediately
+    - runs when stack is empty AND any tasks in front of it are done
+    - low priority: "We can run the function, but wait for everything else to finish"
+
+[Example](./figures/javascript/2.png)
+
+Notes:
+- logWorld() gets stuck in the Task Queue (has to wait until call stack is empty ie. main() is finished)
+
+Key takeaway: Even with the 0 second delay, it still has the wait for all other code to be finished
+
+### Slow Tasks
+
+Avoid Slow Tasks!!
+- they can block the page from rendering
+- good rule: keep big computations on the server
+    - more computational power on server than browser
+        - chunking can help
+        - web workers can help by running program separate of main
+
+Another example:
+
+[Example](./figures/javascript/3.png)
+
+Notes:
+- if superSlowFunction takes a minute, then the 1s delay for logWorld() has to wait that entire time in the task queue
+    - UI will be completely unresponsive
+    - besides the 1s delay, there is a lot of waiting
+
+### Challenge Problem
+
+Challenge Problem: What does mystery() do here?
+
+``` js
+function mystery() {
+    console.log('first');
+    setTimeout(() => console.log('second'), 1000);
+    setTimeout(() => console.log('third'), 0);
+    console.log('fourth');
+    
+}
+```
+
+Steps:
+- mystery() is called
+- console.log('first') is called and goes to console output 
+- console.log('second') is called and after a 1s wait, Web API sends it to task queue
+- console.log('third') is called and after a 0s wait, Web API sends it to task queue
+    - console.log('third') is ahead of console.log('second') in task queue (it was sent there first)
+
+- console.log('fourth') is called and goes to console output
+- mystery() pops off, and now the call stack is empty.
+
+- the task queue begins to empty (into the call stack)
+    - console.log('third') goes to the call stack, then console output
+    - finally, console.log('second') goes to the call stack, then console output
+
+
+### Promises
+
+What about promises? We must change our model to account for these.
+- We need to add a 2nd queue to account for these: Micro task queue!
+
+![Micro Task Queue]
+
+Micro task queue: Role is to hold the callback function of promises
+- anything to promise.then(), promise.catch(), promise.finally()
+- async / await use it the same way
+
+Micro Task Queue follows slightly different rules than the task queue!
+
+### Event Loop Algorithm Re-visited
+
+![New Event Loop](./figures/javascript/4.png)
+
+New Event Loop Rules:
+
+1. Dequeue 1 task
+2. Execute until the call stack is empty (task is complete!)
+3. Execute all micro tasks until queue is empty
+- this includes promises, etc.
+4. Render DOM changes
+5. Repeat!
+- will sit and wait if nothing to do
+
+### Event Loop Pseudocode
+
+Psuedo code, after adding in the micro task queue:
+
+``` js
+while (true) {
+    if (!taskQueue.isEmpty()) {
+        execute(taskQueue.dequeue());
+    }
+
+    while (!microTaskQueue.isEmpty()) {
+        execute(microTaskQueue.dequeue());
+    }
+
+    reRender();
+}
+```
+
+### Promises Example
+
+Example to combine all of these concepts:
+
+![Promises Example](./figures/javascript/5.png)
+
+Notes:
+- the 2nd .then() does not move into the micro task queue until after the 1st .then() is in the call stack
+    - ie. after superSlowFunction() and console.log('3') are done
+- logOne() goes last
+
+### Why The Event Loop Matters
+
+- Timers are not exact: Event a setTimeout() with 0 delay does not happen immediately
+    - To be precise, need to use combination of date times and performance.now()
+    - Good to know for interview for precision
+
+- Promise callbacks can be delayed: If there are too many callbacks in microtask queue or if call stack is waiting for another function to finish
+    - Promise callbacks still get higher priority than event/timer callbacks
+
+- Slow tasks can be completely blocking: Avoid at all costs
+    - chunking can help
+
+### Chunking
+
+Chunking: Split slow tasks into smaller ones
+
+``` js
+function chunkedSlowFunction() {
+    setTimeout(processChunk, 0, 0); // 0 = no delay
+}
+
+// idea: after each 100,000 iterations, by making next chunk use
+// setTimeout and push it to the back of the task queue,
+// this frees up call stack for tasks/micro tasks to continue
+// Powerful for clearing up these issues! (should ignore alltogether tho...)
+function processChunk(start) {
+    const end = start + 100000; // depends on your use case...
+    for (let i = start; i < end; i++) {
+        doCalculations(i);
+    }
+    if (end < 100000000) {
+        setTimeout(processChunk, 0, end + 1); 
+    }
+}
+```
