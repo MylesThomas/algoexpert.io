@@ -12316,3 +12316,314 @@ When you have a slow operation that does not depend on the DOM... use a web work
 - browser still works as usual!
 
 Note: Still would prefer to do everything on the server (if you can), the browser is not going to be as powerful as the server.
+
+
+# Lesson 22: Browser Storage
+
+These cookies tend to persist far longer than the delicious ones in your cupboard...
+
+## Key Terms
+
+### Cookies
+The simplest form of browser storage
+- Comprised of key-value pairs
+- Most often: set by the server to store information 
+    - ie. logged in user account
+- Also: can be created via `document.cookie` in JS
+
+### Local Storage
+
+
+Learn more: https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage
+
+### Session Storage
+
+
+Learn more: https://developer.mozilla.org/en-US/docs/Web/API/Window/sessionStorage
+
+### IndexedDB
+
+
+Learn more: https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API
+
+## Notes from the video
+
+### Setup
+
+Write browserStorage.html: 
+- html:5
+
+``` html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>BrowserStorage</title>
+    <script src="browserStorage.js" defer></script>
+</head>
+<body>
+    <h1>Browser Storage</h1>
+</body>
+</html>
+```
+
+- Create browserStorage.js
+- Open .html file > Go Live on Port 5500 > Inspect > Console
+
+### Cookies
+
+Browser Storage: Have that information persist across sessions ie. you close a tab
+
+Cookies: Most traditional form of browser storage
+- key value pairs
+- confusing API to work with
+
+``` js
+// appending values to document.cookie
+document.cookie = 'user=Conner'; // user=Conner 
+document.cookie = 'course=FrontendExpert'; // 'userConner; course=FrontendExpert 
+
+// changing value
+document.cookie = 'user=Myles'; 
+
+// logging
+console.log(document.cookie); // contains every cookie on a page
+```
+
+Notes:
+- cookes expire when the session ends
+    - you can change the timeframe
+
+Deleting cookies: You cannot!
+- you can set it to expire immediately, though
+
+``` js
+// utc formatted date (more traditional)
+document.cookie = 'user=Clement; expires=`${new Date().toUTCString()}`'
+// max age (# of seconds)
+document.cookie = 'user=Clement; max-age=0' // this is WAY cleaner!!
+```
+
+More args:
+
+- path: path within website where cookie is used
+    - root
+    - root/my_directory
+
+``` js
+document.cookie = 'user=Clement; path=/my_directory';
+```
+
+- secure: only allows https (no http)
+    - does not take in a value
+
+``` js
+document.cookie = 'user=Clement; secure';
+```
+
+- samesite: "We don't ever want this cookie to be shared across origin"
+    - strict
+
+``` js
+document.cookie = 'user=Clement; samesite=strict';
+```
+
+Try putting this in your script, and then do the following:
+- Inspect > Application > Storage > Cookies > localhost:5500
+- You will see the cookies you just saved
+    - checkbox under 'Secure' for HTTPS only
+    - 'Strict' for samesite
+
+
+So... how do we get the values from our cookies?
+
+current format when logged to console: `course=FrontendExpert; user=Clement`
+
+Let's try and get these values!
+
+``` js
+const course = document
+    .cookie
+    .split('; ')
+    .find(cookie => cookie.startsWith('course=')) // keep = sign to make sure we get the course
+    // now get the value...
+    .split('=')[1]; // grab second value because [0] would be 'course' here
+
+console.log(course); // FrontendExpert
+```
+
+What this code did:
+- iterate through array of cookies
+- return value that 1st matches the callback function
+
+
+Takeaway from Cookies
+- difficult to deal with
+    - lots of string manipulation!
+    - really good libraries out there to do this for you...
+
+### Web Storage
+
+Web Storage API: Contains key value pairs (just like cookies)
+- easier to work with
+- more space to allocate with (if you run out of space for cookies)
+- more specific to browser / JS
+    - cookies are set by the server, for example
+
+- local storage: 
+    - does not expire (have to manually delete)
+    - 
+
+- session storage: 
+    - expires at end of session
+    - 
+
+How to use local storage?
+
+``` js
+localStorage.setItem('user', 'Conner'); // set items
+localStorage.setItem('course', 'FrontendExpert');
+console.log(localStorage.getItem('user'));
+console.log(localStorage.getItem('course'));
+
+localStorage.removeItem('user') // delete 1 item
+console.log(localStorage.getItem('user'));
+console.log(localStorage.getItem('course'));
+
+localStorage.clear(); // delete it all
+console.log(localStorage.getItem('user'));
+console.log(localStorage.getItem('course'));
+```
+
+Session Storage?
+- do the same thing but change localStorage to sessionStorage
+
+How to look at local and session storage:
+- Inspect > Application > Storage
+    - local storage > localhost:5500
+    - session storage > localhost:5500
+
+### IndexedDB
+
+IndexedDB: Much more complicated (less popular)
+- used for data more complex than key-values
+    - Object store database
+        - can store JS objectsa
+            - even entire files!
+
+        - not a relational database
+
+Notes:
+- everything is asynchronous
+    - addEventListener() is used
+
+``` js
+// Create/Open up a database (makes a new one named '')
+// - name of database: myDatabase
+// - version number: 1
+const request = indexedDB.open('myDatabase', 1);
+
+// upgradeneeded: first the first time we make a database OR when we upgrade the database
+request.addEventListener('upgradeneeded', event => {
+    // 
+    const database = event.target.result;
+
+    // create database object store
+    // - keyPath: the primary key
+    const store = database.createObjectStore('users', {keyPath: 'id'}); 
+
+    // creates another index that you can grab from later on
+    // - a way to quickly search the store
+    //     - param 1: name for the index
+    //     - param 2: which object key to look through
+    store.createIndex('name', 'name');
+
+    // adding new records
+    store.add({
+        id: 0,
+        name: 'Conner',
+        course: 'FrontendExpert'
+    });
+
+    store.add({
+        id: 1,
+        name: 'Clement',
+        course: 'AlgoExpert'
+    });
+})
+```
+
+How to view:
+- Inspect > Application > Storage > IndexedDB > users
+
+About the users page:
+- key path: id
+- Value: the entire JS object/dict
+
+About the name index page:
+- Key path: name
+- Primary key: id
+- Value: The entire JS object/dict
+
+Connecting to a database that already exists
+- 'success' happens whenever you connect to a database
+
+``` js
+const request = indexedDB.open('myDatabase', 1);
+
+// sucess: first the first time we make a database OR when we upgrade the database
+request.addEventListener('success', event => {
+    const database = event.target.result;
+    
+    // use transactions to update the database
+    database
+        .transaction(['users'], 'readwrite') // 
+        .objectStore('users')
+        .add({
+            id: 2,
+            name: 'Ryan',
+            course: 'MLExpert'
+        }),
+
+    // delete
+    database
+        .transaction(['users'], 'readwrite') // 
+        .objectStore('users')
+        .delete(1); // deletes id=1
+})
+```
+
+View changes:
+- Inspect > Application > Storage > IndexedDB > users > Press refresh
+
+Finally: Get values from the database
+
+``` js
+const request = indexedDB.open('myDatabase', 1);
+
+request.addEventListener('success', event => {
+    const database = event.target.result;
+
+    // get is asynchronous, need to wait for success event, so save into a request
+    const req = database
+        .transaction(['users'], 'readwrite')
+        .objectStore('users')
+        //.get(0); // get the index of id=1
+
+        // you can also get via index of name, since we created that index
+        .index('name') // note: this is non-unique, would return the 1st row with name == 'Ryan'
+        .get('Ryan'); // 
+
+    req.addEventListener('success', event => {
+        console.log(event.target.result.name);
+        console.log(event.target.result);
+    })
+
+})
+```
+
+### Takeaways
+
+We don't use this often...
+- Recommended: Local storage/session storage
+- IndexedDB > cookies
+    - everything has its own use case tho...
