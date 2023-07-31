@@ -12627,3 +12627,6 @@ We don't use this often...
 - Recommended: Local storage/session storage
 - IndexedDB > cookies
     - everything has its own use case tho...
+
+
+# Lesson 23: 
