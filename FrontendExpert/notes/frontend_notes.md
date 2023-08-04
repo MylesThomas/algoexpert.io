@@ -12627,3 +12627,344 @@ We don't use this often...
 - Recommended: Local storage/session storage
 - IndexedDB > cookies
     - everything has its own use case tho...
+
+
+# Lesson 23: Data Structures with JavaScript
+
+You thought you would escape data structures.. think again
+
+## Key Terms
+
+### Map
+
+A built-in JavaScript class for holding key-value pairs. 
+
+While similar to standard objects, there are a few key differences:
+- Maps keys can be ANY type (object keys must be strings or symbols)
+- Maps maintain insertion order for iteration (objects do not)
+- Maps cannot easily be converted the JSON (objects can...)
+- Mapps cannot utilize the prototype chain for inheritance (Objects can and do oftentimes...)
+
+Learn more: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map
+
+### Set
+
+A built-in JavaScript class for holding unique values, of any type.
+
+Values are considered unique if they are different primitives or references to different objects (this means that two different objects with the same contents are considered unique from one another)
+
+Values in Sets are kept in insertion order for when the Set is iterated over.
+
+Learn more: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set
+
+### WeakMap
+
+A built-in JavaScript class for holding key-value pairs, similar to the Map class.
+
+2 primary differences:
+- WeakMap can only hold objects as keys
+    - primitive values cannot be added as keys
+
+- WeakMaps hold "weak" references to objects, meaning that they do not prevent the objects from being garbage collected.
+    - If no other references to an object exist, it can be garbage collected and automatically removed from the WeakMap
+        - Because of this, you cannot iterate over WeakMaps
+
+Learn more: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap
+
+### WeakSet
+
+A built-in JavaScript class for holding unique values, of any type, similar to the Set class.
+
+However, a WeakSet acts just like a WeakMap, meaning that the values must all be objects, and references to those objects are "weakly" held.
+
+Learn more: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakSet
+
+## Notes from the video
+
+### Setup
+
+```sh
+cd javascript_crash_course
+mkdir 23_data_structures_with_javascript
+cd 23_data_structures_with_javascript
+echo > dataStructures.js
+```
+
+### Intro
+
+Goal of video: NOT to teach data structures
+- Purpose: How to use the common data structures in JS
+
+Even if you are doing a frontend interview, you may get data structures questions.
+
+### Stacks
+
+There is no Stack in JavaScript. You can use an array though:
+
+```js
+const stack = [];
+stack.push(1);
+stack.push(2);
+console.log(stack.pop()); // 2
+```
+
+Remember: 
+- Stack: Last in, First out
+
+### Queue
+
+Just like stacks, you can use arrays for these:
+
+```js
+const queue = [];
+queue.push(1);
+queue.push(2);
+console.log(queue.shift()); // 1
+```
+
+Remember: 
+- Stack: First in, First out
+
+Note: Shift is usually less efficient than pop
+- Use .pop() if you can
+    - .shift() used to be O(n), whereas pop is always O(1)
+
+You can always used a linked list instead of an array, too.
+
+### Maps
+
+Option #1: JavaScript Object
+- Used throughout the course
+
+Option #2: Map
+
+```js
+const map = new Map();
+map.set('test', 123);
+map.set(10, 'ten');
+
+console.log(map.get('test')); // 123
+console.log(map.get(10)); // 'ten'
+console.log(map.size) // 2
+
+console.log(map.has('three-thousand')); // false
+map.set('three-thousand', 3000); 
+console.log(map.has('three-thousand')); // true
+
+
+map.set({}, 41);
+console.log(map.has({})); // false
+
+const obj = {};
+map.set(obj, 42); 
+console.log(map.has(obj)); // true
+
+map.delete(10);
+console.log(map); // Map(4) { 'test' => 123, 'three-thousand' => 3000, {} => 41, {} => 42 }
+map.clear();
+console.log(map); // Map(0) {}
+```
+
+Next, how to iterate through the map:
+
+```js
+
+```
+
+OK: When to use map vs. object?
+
+Answer: Usually, it does not matter!
+
+When does it matter, tho?
+- Using keys that are not string/symbol: MAP
+- Concerned about iterating through the map in order: MAP
+- Something very simple: OBJECT
+- Sending object to server via JSON: OBJECT
+- Need inheritance: OBJECT
+
+One final component of maps: If you have data already in the format of arrays, you can use that to instantiate the map
+
+```js
+// 2d array with each value in the array being another array
+const map = new Map([['test', 123], [10, 'ten']]);
+
+const iter = map.entries();
+console.log(iter.next().value); // [ 'test', 123 ]
+console.log(iter.next().value); // [ 10, 'ten' ]
+console.log(iter.next().value); // undefined
+```
+
+### Sets
+
+Sets: Very similar to map
+- maps: key value pairs
+- sets: just values
+    - map where you don't care about values
+
+```js
+const set = new Set();
+
+// add to set
+set.add(123);
+set.add(456);
+console.log(set); // Set(2) { 123, 456 }
+
+// check if value is in the set
+let bool = set.has(69);
+console.log(bool); // false
+
+set.add({});
+bool = set.has({});
+console.log(bool); // false
+
+// delete elements
+console.log(set.has(123)); // true
+set.delete(123);
+console.log("deleting 123...");
+console.log(set.has(123)); // false
+
+// iterate through set
+for (value of set) {
+    console.log("for loop:"); 
+}
+set.forEach(value => {
+    console.log("using for each method...")
+})
+
+
+// iters
+const iter = set.values(); // can use .entries() or .keys(), values==keys
+console.log(iter.next().value); // 456
+console.log(iter.next().value); // {}
+console.log(iter.next().value); // undefined
+
+// remove duplicates from an array
+const arr = [1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3];
+console.log(arr);
+console.log(Array.from(new Set(arr))); // [ 1, 2, 3 ]
+```
+
+
+### WeakSets + WeakMaps
+
+```js
+const weakSet = new WeakSet();
+
+// weakSet.add(123); // error
+weakSet.add({});
+console.log(weakSet); // WeakSet { <items unknown> }
+```
+
+Purpose:
+- WeakSet does not prevent garbage collection
+    - traditionally: object cannot be garbage collected because a set or map is using it
+    - other times when you want the object to be removed 
+        - if you don't need the object anymore: it gets removed from the WeakSet
+
+```js
+const weakSet = new WeakSet();
+const set = new Set();
+
+
+// immediately invoked function expression
+(function() {
+    let obj = {"value": 1};
+    weakSet.add(obj);
+    set.add(obj);
+
+    obj = {"value": 69};
+    weakSet.add(obj);
+    set.add(obj);
+
+})();
+
+// once it is done, the obj can be garbage collected.
+console.log(weakSet); // WeakSet { <items unknown> }
+console.log(set); // Set(2) { { value: 1 }, { value: 69 } }
+```
+
+Final point: You cannot iterate through weakSet
+- you cannot check the size ie. with `.size`
+    - it says undefined or `<items unknown>`
+        - you need to use the `.has(obj)` to find if something is in it.
+
+### Linked Lists
+
+Linked Lists
+- not provided by JavaScript (need to implement with a class or library)
+- we will implement this linked list `Node` with a class/constructor
+
+```js
+class Node {
+    constructor(value) {
+        this.value = value;
+        this.next = null;
+    }
+}
+
+class LinkedList {
+    constructor(){
+        this.head = null;
+    }
+
+    addStart(value) {
+        const node = new Node(value);
+        // const tempHead = this.head
+        // this.head = node;
+        // node.next = tempHead;
+        node.next = this.head;
+        this.head = node;
+    }
+
+    addEnd(value) {
+        const node = new Node(value);
+        // iterate and add at the end...
+        let curr = this.head;
+
+        if (curr == null) {
+            this.head = node;
+            return;
+        }
+
+        while (curr.next) {
+            curr = curr.next;
+        }
+
+        curr.next = node;
+    }
+}
+
+const list = new LinkedList();
+list.addStart(1);
+list.addStart(2);
+list.addStart(3);
+list.addStart(4);
+
+list.addEnd(69);
+
+console.log(list); // LinkedList {
+//     head: Node { value: 4, next: Node { value: 3, next: [Node] } }
+//   }
+
+console.log(list.head); // Node {
+//     value: 4,
+//     next: Node { value: 3, next: Node { value: 2, next: [Node] } }
+//   }
+
+console.log(list.head.next.next.next.next); // Node { value: 69, next: null }
+
+console.log(list.head.next.next.next.next.next); // null
+
+```
+
+### Git
+
+```sh
+cd algoexpert.io
+git status
+git add .
+git commit -m "Completed Lesson 23 of FrontendExpert's JavaScript Course"
+git push -u origin main
+git status
+git log --oneline
+```
