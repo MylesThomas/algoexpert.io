@@ -12990,3 +12990,123 @@ A collection pre-written JS code that provides some additional structure to a pr
 
 ## Notes from the video
 
+### Frameworks vs. Libraries
+
+Frameworks and Libraries
+- used interchangably, but completely different things
+
+Libraries: Collection of re-usable functions, "not opinionated"
+- does not care how/where you use them
+- they will work anywhere in your code
+
+Framework: A provided structure for your code, "opinionated"
+- concept: inversion of control: design pattern in which custom-written portions of a computer program receive the flow of control from a generic framework.
+
+
+### Utility Libraries
+
+Utility Library: Set of functions, fairly generic
+- underscore: over 100 utility functions
+    - useful for manipulating objects, arrays, functions, etc.
+
+- lodash: purpose was to make a more consistent API for underscore
+    - aimed for better performance
+
+End result: 2 very good libraries
+- pick which one you like!
+- you can also use both...
+
+### jQuery
+
+jQuery: DOM manipulation library
+- can be used instead of `fetch`
+- historically: largest library on the web
+    - over time, many have been adopted by other libraries/frameworks
+        - some have even become part of JS
+        - it is less popular than it used to be
+
+Many people's opinion: Don't use jQuery on new projects
+
+### React
+
+React: Most popular library right now (made by Facebook)
+- declarative user interface library: we use React to built out user interfaces
+- JSX syntax for HTML in JavaScript: ability to write HTML inside of JS
+    - React handles a lot of the work for us
+
+React is the most framework-y library we use, but it is still a library, technically!
+- key distinction: library for building out key components
+    - building our own html elements, then React keeps a virtual DOM (is not rendered by browser yet)
+        - react DOM takes the virtual dom and combines with normal DOM (visible to user)
+
+At its core: React provides functions to make components
+- is not opinionated!
+
+### Angular
+
+Angular: Framework for developing web applications (Made by Google)
+- Angular (new) vs. Angular.js (older)
+- Reusable components with HTML templates
+    - we are writing actual HTML
+
+- Comes with a collection of libraries and developer tools
+    - besides syntax, this is biggest difference between React
+    
+Newest version of Angular ie. `Angular`: Defaults to TypeScript
+- usually, it comes down to what you prefer
+
+Common thought: Angular is harder to learn
+
+### Vue
+
+Vue: Progressive framework for building user interface
+- Components built with HTML templates (also supports JSX)
+- Uses a virtual DOM, similar to React
+
+Best part about Vue: It is easy to add to a project
+- you can use it incrementally, like a library adding little parts of Vue into your project
+
+Result of this flexibility: Very popular recently! 
+- Vue is very easy to learn
+
+### Choosing a Framework
+
+How to choose which to use, when there are 1000s there?
+- learning curve: some are way harder (depends on person)
+    - documentation: if they have good documentation, it is a good one to learn easier
+
+- open source community: community around the framework ie. with React/Angular, there is a lot of support
+    - the extra libraries made on top of the framework are the best
+    - not just the community building it (they are active)
+
+Remember: You do not ALWAYS need a framework!
+- example: quick portfolio website: do you really need a framework?
+    - would be easier with Vanilla HTML/CSS/JS
+
+### Other Tools
+
+Does not fall in category of Framework or Library...
+
+Babel: Compiler for supporting new features in older browsers
+- the ultimate polyfill
+
+Webpack: Module bundler
+- idea: creates a dependency graph
+    - goes through all modules you use, and get all modules that those modules need
+        - puts it all in 1 js file
+
+- alternatives: rollup
+
+Typescript: Superset of JS
+- Programming language/framework around js
+- "Strong typing": The main difference
+    - include typing in our JS to prevent bugs
+    - largest strong typing library/framework
+        - flowJS is similar, with different syntax
+
+Node: Backend JS runtime environment
+- You can use JS for the backend with Node
+- Most commonly used
+    - alternatives: Dino
+
+Note: We have not used Node because this is a frontend course...
