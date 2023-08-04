@@ -12629,7 +12629,6 @@ We don't use this often...
     - everything has its own use case tho...
 
 
-<<<<<<< HEAD
 # Lesson 23: Data Structures with JavaScript
 
 You thought you would escape data structures.. think again
@@ -12969,6 +12968,25 @@ git push -u origin main
 git status
 git log --oneline
 ```
-=======
-# Lesson 23: 
->>>>>>> d02289c40faa9663911d0981d30a5cc1696c9434
+
+
+# Lesson 24: JavaScript Frameworks
+
+Another "React is good, Angular is bad" type of video?
+
+## Key Terms
+
+### JavaScript Library
+
+A collection of pre-written JS code
+- Usually: in the form of function that can be called throughout other projects to simplify the development process
+
+### JavaScript Framework
+
+A collection pre-written JS code that provides some additional structure to a project
+- Often said: Frameworks are more "opinionated" than libraries
+    - frameworks call your code
+    - your code calls a library
+
+## Notes from the video
+
