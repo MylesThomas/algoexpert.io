@@ -1036,7 +1036,7 @@ HTML head tag
     - accessiblity
 
 
-# HTML Crash Course
+# CSS Crash Course
 
 ![alt text for screen readers](./figures/css/intro.png)
 
@@ -5968,7 +5968,7 @@ Note: Right before JavaScript Crash Course, I decided to put figures in their ow
 ---
 # JavaScript Crash Course
 
-# Lesson 1 - Introduction
+# Lesson 1: Introduction
 
 JavaScript is the 3rd (and arguably most important) pillar of the holy trinity of the modern web
 
@@ -6024,7 +6024,7 @@ Also, you may be asked to write JS to add functioality to webpage
 
 JS is very important!!
 
-# Lesson 2- JavaScript Basics
+# Lesson 2: JavaScript Basics
 
 # Key Terms
 
@@ -6235,8 +6235,6 @@ let str = 'a,b,c,d';
 
 console.log(str.split(',')); // returns list/array of [a,b ,c,d]
 ```
-
-
 
 ### Objects
 
@@ -13505,3 +13503,211 @@ git status
 git log --oneline
 q
 ```
+
+
+# Lesson 26: TypeScript
+
+console.log('did we hit this?')
+...
+console.log('i give up...')
+
+## Key Term
+
+### Developer Tools
+
+A set of tooling provided by the browser the simplify the process of debugging frontend code.
+- Example: Chrome comes with the Chrome DevTools
+
+## Setup
+
+Directory:
+
+```sh
+cd javascript_crash_course
+mkdir 26_debugging_strategies
+cd 26_debugging_strategies
+echo > debuggingStrategies.html
+echo > debuggingStrategies.css
+echo > debuggingStrategies.js
+
+```
+
+```html
+<!-- debuggingStrategies.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> -->
+    <title>Debugging Strategies</title>
+    <link rel="stylesheet" href="debuggingStrategies.css" />
+    <script src="debuggingStrategies.js" defer></script>
+</head>
+<body>
+    <div id="circle"></div>
+    <button>Move Right</button>
+</body>
+</html>
+```
+
+```css
+/* debuggingStrategies.css */
+#circle {
+    position: relative;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: red;
+    margin-bottom: 12px;
+}
+```
+
+```js
+// debuggingStrategies.js
+const button = document.querySelector('button');
+
+button.addEventListener('click', moveRight);
+
+function moveRight() {
+    const circle = document.getElementById('circle');
+    const { left } = getComputedStyle(circle);
+    circle.style.left = left + 10;
+}
+```
+
+What are code is doing:
+- html: div that creates a red circle in the output, with a button
+- css: makes circle visible
+    - uses position relative so that the button moves the circle to the right a bit everything
+        - it modifies the 'left' attribute
+- js: selected the button
+    - added event handler
+        - get circle
+        - get computed style of left value
+        - set value to be previous value + 10
+
+Fire this up in the development/local server:
+- Make sure that 'Live Server' extension is download to VSCode
+- Open up debuggingStrategies.html
+- Start the live server
+    - 'Go Live' button in bottom right
+
+This will run the live server, and open your .html file in Google Chrome on Port 5500. 
+
+To see console.log() and other debugging later, you should Open up the Inspect Page:
+- Right click on .html page > Inspect > Console
+
+One more thing: Chrome added support for source maps, so if you are using chrome, do the following:
+
+- Go to the developer tools (F12 in the browser), then select the gear in the upper right corner, and go to Settings.
+
+- Then, in Settings/Preferences, look for Sources, and disable the options:
+    - "Enable JavaScript source maps"
+    - "Enable CSS source maps"
+
+Note: You can also view HTML this way:
+- Download 'HTML Preview' extension
+- Toggle Preview - ctrl+shift+v
+- Open Preview to the Side - ctrl+k v
+
+Another Note: As it currently stands, our program does not work how we want it to!
+
+## Notes from the video
+
+How do we figure out what is wrong with our program?
+
+### console.log()
+
+console.log(): Most simple way to debug code, also very powerful
+- May be only debugger allowed to use during a coding interview!
+
+Let's look at the console:
+- Check for error messages
+- Track through code where error/mishap is occurring
+
+```js
+const button = document.querySelector('button');
+
+console.log(button); // expected: <button>Move Right</button>
+
+button.addEventListener('click', moveRight);
+
+function moveRight() {
+    const circle = document.getElementById('circle');
+    const { left } = getComputedStyle(circle);
+
+    console.log(left);
+
+
+    // circle.style.left = left + 10;
+
+    // get correct number + concat with pixels
+    circle.style.left = parseInt(left) + 10 + 'px'; // everytime i click it goes from 0 -> 10 -> 20 -> 30
+}
+
+```
+
+Note:
+- Jumping around to areas that could be problematic is better than putting prints everywhere
+
+
+### debugger;
+
+debugger: At each `debugger` breakpoint, JavaScript will stop executing, and let you examine JavaScript values.
+- Has different effect depending on environment:
+    - Chrome: If DevTools is open, a debugger will open up
+    - Others: may be ignored
+        - But fortunately, all modern browsers have a built-in JavaScript debugger.
+
+```js
+const button = document.querySelector('button');
+
+button.addEventListener('click', moveRight);
+
+function moveRight() {
+    debugger;
+    const circle = document.getElementById('circle');
+    const { left } = getComputedStyle(circle);
+    // console.log(left);
+    // circle.style.left = parseInt(left) + 10 + 'px';
+    // back to not working for the example...
+    circle.style.left = left + 10;
+}
+
+```
+
+Valuable information that you can see now that the debugger paused:
+- Scope: Any variables
+    - this: button
+    - circle: undefined
+
+- We now have options to move through the code:
+    - play button: keep going
+    - step over: 
+    - step into: 
+    - step out:
+    - step: Click this to get to the next line of code
+        - if you keep clicking next, you will notice that adding 10 to 0px won't work!
+
+- You can also hover over values to see what they are
+
+Remove the debugger statement and move on.
+
+```js
+function moveRight() {
+    // debugger;
+    ...
+}
+```
+     
+### Breakpoints
+
+How to debug with 1000s of lines of code?
+
+Head to Chrome > Inspect > Sources > Event Listener Breakpoints
+
+
+### Network Tab
+
+
+
