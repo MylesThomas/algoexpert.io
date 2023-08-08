@@ -13110,3 +13110,398 @@ Node: Backend JS runtime environment
     - alternatives: Dino
 
 Note: We have not used Node because this is a frontend course...
+
+### Git
+
+```sh
+cd algoexpert.io
+git status
+git add .
+git commit -m "Completed Lesson 24 of FrontendExpert's JavaScript Course"
+git push -u origin main
+git status
+git log --oneline
+q
+```
+
+
+# Lesson 25: TypeScript
+
+JavaScript, but better in every (?) single way!
+
+## Key Term
+
+### TypeScript
+
+A superset of JavaScript addigng static typing.
+- Primary purpose: prevent bugs related to incorrect types + improve development workflow
+
+Note: Browsers only understand JavaScript, so TypeScript is compiled back into JS
+
+Learn more: https://www.typescriptlang.org/
+
+## Setup
+
+Directory:
+
+```sh
+cd javascript_crash_course
+mkdir 25_typescript
+cd 25_typescript
+echo > typescript.ts
+```
+
+And now for TypeScript installation:
+
+```sh
+npm install -g ts-node
+tsc -v
+```
+
+[Reference Link](https://stackoverflow.com/questions/44764004/ts-node-is-not-recognized-as-an-internal-or-external-command-operable-program)
+
+## Notes from the video
+
+### Introduction to TypeScript
+
+TypeScript = A supserset of JS
+- What this means: JS syntax is valid for TypeScript, but TypeScript has more syntax
+    - TypeScript lets you declare types
+
+```ts
+// works in JS (typescript.js)
+let test = 123;
+test = 'string';
+console.log(test);
+
+// does NOT work in TypeScript (typescript.ts)
+let test = 123;
+test = 'string';
+console.log(test);
+```
+
+Manually declare a type:
+
+```ts
+let test: number = 123; // good
+// let test: number = '123'; (error since '123' is not a number)
+console.log(test);
+```
+
+The special any type: 
+- basically a bail-out
+- good for converting scripts, it is a catch-all
+    - converts to standard JS rules
+
+```ts
+let test: any = 123;
+test = '456789';
+console.log(test);
+```
+
+Note: This type coercion is typically a bad idea.
+
+What is the correct way to do this?
+
+```ts
+let test: number | string | boolean = 123;
+
+test = '456789';
+console.log(test); // '456789'
+
+test = 0;
+console.log(test); // 0
+
+test = true;
+console.log(test); // true
+
+test = {};
+console.log(test); // error!
+```
+
+Union type: "the variable can either be a string, or number"
+- if you try to assign to something else, you get an error.
+
+We can even name these union types as custom types:
+
+```ts
+type NumString = number | string;
+let test: NumString = 123;
+test = 'string456';
+console.log(test);
+```
+
+What to use a custom type for: 
+- Useful for using same type for multiple variables
+    - Make sure they stay in sync
+
+Now, these types we use do not need to be generic JS.
+
+Here is an example of that:
+
+```ts
+type State = 'off' | 'on';
+let test: State = 'off';
+test = 'on';
+console.log(test);
+
+test = 'on1'; // this would cause an error
+```
+
+Great for:
+- boolean, with more values
+- example: Status
+    - success
+    - failure
+    - error
+    - pending
+
+### Enums
+
+Another way to handle the Union String case...
+
+Enum = Enumerated Value
+- 
+
+```ts
+enum State {
+    On = 'on',
+    Off = 'off',
+}
+
+let test: State = State.Off;
+test = State.On;
+console.log(test); // on
+```
+
+Instead of using the raw strings, we use the enum.
+- If you do not init enum with values, you will get 0, 1, 2, ...
+    - On: 0
+    - Off: 1
+
+### Functions
+
+Let's look at a basic function:
+
+```ts
+function add(x, y) {
+    return x + y;
+}
+```
+
+This can create errors in JS. Why?
+- if you pass in a string, it will concat the values (instead of math addition)
+
+TypeScript can help easily fix this:
+
+```ts
+function add(x: number, y: number): number {
+    return x + y;
+}
+
+const x = add(2, 2);
+console.log(x); // 4
+```
+
+What did we do here:
+- Set input types to number
+- Set return type to number
+
+If we do not want to return anything, we would set return type to void:
+
+```ts
+function add(x: number, y: number): void { // if you leave return type as number, you get an error
+    // return x + y;
+    console.log(x + y);
+}
+
+add(2, 2);
+```
+
+### Objects & Interfaces
+
+Objects
+
+Let's start with 2 basic Objects:
+
+```ts
+const conner = {
+    name: 'Conner',
+    course: 'FrontendExpert',
+};
+
+const clement = {
+    name: 'Clement',
+    course: 'AlgoExpert',
+};
+
+```
+
+Types: Working as we expect
+- Both key/values are strings
+
+Clement and Connor are both the same type. How we we make sure it stays that way?
+
+Interface!
+
+Interface: 
+- Created similarly to Enums
+
+```ts
+interface Instructor {
+    name: String;
+    course: String;
+}
+
+const conner: Instructor = {
+    name: 'Conner',
+    course: 'FrontendExpert',
+    // age: 24, (this would give an error)
+};
+
+const clement: Instructor  = {
+    name: 'Clement',
+    course: 'AlgoExpert',
+};
+
+```
+
+Notes:
+- You say what the keys are with the objects
+    - Traditional way: semicolon after the value
+    - Newer TypeScript way: comma after the value
+
+- We changed the declaration to have type 'Instructor'
+    - If you try and add the `age` key to connor, you get an error
+        - Type: 
+
+We have made sure that connor and clement stay the same type!
+
+What if we want age to be optional?
+
+```ts
+interface Instructor {
+    name: String;
+    course: String;
+    age?: number;
+}
+
+```
+
+Notes:
+- Put a ? before the semicolon for the optional param to avoid an error in Clement's Instructor
+
+Next, we can use interfaces with classes:
+
+```ts
+interface Instructor {
+    name: string;
+    course: string;
+    age ?: 24;
+}
+
+class AlgoExpertInstructor implements Instructor {
+    name: string;
+    course: string;
+
+    constructor(name: string) {
+        this.name = name;
+        this.course = 'AlgoExpert';
+    }
+}
+
+const tim = new AlgoExpertInstructor('Tim');
+console.log(tim); // AlgoExpertInstructor { name: 'Tim', course: 'AlgoExpert' }
+```
+
+Notes:
+- We created a class
+    - This class implements the Instructor Interface
+
+- String vs. string
+    - String: JavaScript string object
+    - string: primitive value
+        - usually we want the lowercase...
+
+
+### Generics
+
+Generics: Using the 
+- Can be used in powerful ways with our functions and interfaces
+
+Example: Let's say we have an array
+- We have numbers AND a string for '4'
+    - TypeScript does not prevent this
+    - We can change this so that it give it a type
+        - Strong typed like C++!
+
+```ts
+const arr: Array<number> = [1,2,3,4];
+console.log(arr); // [ 1, 2, 3, 4 ]
+
+// const arr2: Array<number> = [1,2,3,4, 'string does not belong', ];
+console.log(arr); // this won't print anything because of an error
+
+
+```
+
+Using it with an interface:
+
+```ts
+interface GetterSetter<Key, Value> {
+    set: (key: Key, value: Value) => void;
+    get: (key: Key) => Value;
+    
+}
+
+class StringNumGetterSetter implements GetterSetter<string, number> {
+    map: Map<string, number> = new Map();
+
+    set(key: string, value: number): void {
+        this.map.set(key, value);
+    }
+
+    get(key: string): number {
+        // error: Typescript: Type 'string | undefined' is not assignable to type 'string'
+        // return this.map.get(key);
+
+        // fix; Using the non-null assertion operator to solve the error
+        // ie. non-null assertion
+        return this.map.get(key)!; // 👈️ non-null assertion
+    }
+}
+```
+
+Notes:
+- Created new interface that describes the shape of an object
+    - Has functions inside of it
+        - Get key (function)
+        - Set key (function)
+
+    - What is the type that these functions return?
+        - Key: generic
+        - Value: generics
+
+
+### Takeaways on TypeScript
+
+TypeScript: Recommended for any large-medium sized project
+- Can prevent bugs
+- Can also add extra layer of complexity with small projects
+
+This video: High level TypeScript concepts
+- You cannot master it without going through documenation / using it in your own codebase
+    - Even better: Complete AlgoExpert problems with TypeScript!
+
+### Git
+
+```sh
+cd algoexpert.io
+git status
+git add .
+git commit -m "Completed Lesson 25 of FrontendExpert's JavaScript Course"
+git push -u origin main
+git status
+git log --oneline
+q
+```
