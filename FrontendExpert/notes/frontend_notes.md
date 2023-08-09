@@ -13505,7 +13505,7 @@ q
 ```
 
 
-# Lesson 26: TypeScript
+# Lesson 26: Debugging Strategies
 
 console.log('did we hit this?')
 ...
@@ -13704,10 +13704,206 @@ function moveRight() {
 
 How to debug with 1000s of lines of code?
 
-Head to Chrome > Inspect > Sources > Event Listener Breakpoints
+Head to Chrome > Inspect > Sources > Event Listener Breakpoints:
+- You will see different types of event listeners
+- You can add breakpoints without having to touch the .js file
+    - We are interested in Mouse > Click events
 
+Another way to add a breakpoint: 
+- Right click on the line of code > Add breakpoint...
+
+Good practice:
+- Add breakpoint at end of function
+- Check that all values appear as they should
 
 ### Network Tab
 
+Network Tab: Shows all of the network requests that were made.
+
+Head to Chrome > Inspect > Network.
+
+You will see the following:
+- Name of Requests
+    - status
+    - type
+    - initiator
+    - size
+    - time
+
+### Takeaways on Debugging
+
+Almost all debugging goes in the Console/Sources tab.
+- If you get an error by calling fetch, going into Network can help see the following:
+    - what values came back
+    - headers
+    - etc.
+
+### State of debuggingStrategies.js before pushing to Git
+
+```js
+// debuggingStrategies.js
+const button = document.querySelector('button');
+
+console.log(button);
+
+button.addEventListener('click', moveRight);
+
+function moveRight() {
+    // debugger;
+    const circle = document.getElementById('circle');
+    const { left } = getComputedStyle(circle);
+    console.log(left);
+
+    circle.style.left = parseInt(left) + 10 + 'px';
+}
+
+```
+
+### Git
+
+```sh
+cd algoexpert.io
+git status
+git add .
+git commit -m "Completed Lesson 26 of FrontendExpert's JavaScript Course"
+git push -u origin main
+git status
+git log --oneline
+q
+```
 
 
+# Lesson 27: Writing Clean JavaScript
+
+Time to get your hands dirty and learn how to write some clean JavaScript code - oxymoron perhaps intended.
+
+## Key Terms
+
+### Autoformatter
+
+A program that automatically formats code based on a set of rules
+- Makes it easy to maintain stylistic consistency
+- Prettier is the most common autoformatter
+    - there are alternatives out there too!
+
+### Style Guid
+
+A document describing the preferred coding style for a project or organization used to promote clean and consistent code.
+- Many styles guide are open source
+    - Example: Google JavaScript Style Guide
+
+## Setup
+
+Directory:
+
+```sh
+cd javascript_crash_course
+mkdir 27_writing_clean_javascript
+cd 27_writing_clean_javascript
+echo > writingCleanJavascript.js
+```
+
+```js
+// writingCleanJavascript.js
+console.log("Hello world");
+```
+
+## Notes from the video
+
+### What is clean Code?
+
+Clean code: 
+- Easy to understand
+- Easy to update
+- Easy to maintain
+
+Idiomatic code: Follows standard practices of the language
+
+### Use Modern Syntax
+
+Try to incorporate this modern syntax into your code!
+
+- Arrow functions
+    - Use for small inline functions that don't need a `.this` context
+
+- Destructuring
+    - Good because you use a lot of objects
+
+- Templates literals
+    - Anytime you need to concat a string with another value
+
+Advice: "Think in JavaScript" as opposed to writing in another function and then translating it into JS
+
+### Avoid Callback Nesting
+
+Having a callback function that takes in another callback function = Bad
+- Each level of nesting makes it hard to follow
+- They become more and more dependent on other functions
+
+Better practice: Using promises
+- async/await
+    - by doing this, we can prevent having too many callback functions
+    - makes code easier to read
+
+### Don't Overuse 'this'
+
+This does not mean we can never use it - but do not abuse it!
+
+When not to use:
+- Extra parameter
+    - Binding values to this
+
+Makes more sense to add parameters.
+
+### Use Functional Programming
+
+When coming from a more object oriented language, you should take note of this!
+
+JavaScript = Multi-paradigm language
+- Most of the time: Use JS as a functional language
+- Utilize function chaining
+    - Gives code a more declarative feel
+
+### Code Autoformatters
+
+Use Code Autoformatters!!
+
+What is it?
+- Automatically formats code on save
+- Creates consistency across developers
+
+Best autoformatter: Prettier
+
+How to use Prettier?
+
+Steps:
+
+1. Head to https://prettier.io/ > 'Try it online'
+
+2. Write some code
+- It will automatically fix it on the right hand side!
+
+3. Set optional params on the left side
+
+### Style Guides
+
+Style Guides: Not just for JS, is a set of guidelines
+- Goal is not to be "correct", but to get consistency!
+    - Pick 1 style guide and go with it
+
+### Takeaways on Writing Clean JavaScript
+
+Use Prettier!
+
+### Git
+
+```sh
+cd algoexpert.io
+git status
+git add .
+git commit -m "Completed Lesson 27 of FrontendExpert's JavaScript Course"
+git push -u origin main
+git status
+git log --oneline
+q
+```
