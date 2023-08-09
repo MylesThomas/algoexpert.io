@@ -13922,3 +13922,42 @@ git status
 git log --oneline
 q
 ```
+
+--
+
+# React Crash Course
+
+## 0: Setup
+
+```sh
+cd FrontendExpert
+
+mkdir react_crash_course
+cd react_crash_course
+
+mkdir 1_introduction
+mkdir 2_react_basics
+mkdir 3_jsx
+mkdir 4_props
+mkdir 5_event_driven_programming
+mkdir 6_state
+mkdir 7_component_lifecycle
+mkdir 8_refs
+mkdir 9_imperative_react
+mkdir 10_contexts
+mkdir 11_components_list
+mkdir 12_performance
+mkdir 13_writing_custom_hooks
+mkdir 14_portals
+mkdir 15_class_based_components
+mkdir 16_error_handling
+mkdir 17_debugging_react
+mkdir 18_best_practices
+mkdir 19_react_under_the_hood
+mkdir 20_companion_libraries
+
+```
+
+Next, open your VSCode editor to the folder of 'react_crash_course'.
+
+## 1: Introduction
