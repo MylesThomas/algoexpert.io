@@ -13907,3 +13907,18 @@ git status
 git log --oneline
 q
 ```
+
+## Completing the JavaScript Crash Course
+
+### Git
+
+```sh
+cd algoexpert.io
+git status
+git add .
+git commit -m "Completed FrontendExpert's JavaScript Course"
+git push -u origin main
+git status
+git log --oneline
+q
+```
