@@ -13960,4 +13960,717 @@ mkdir 20_companion_libraries
 
 Next, open your VSCode editor to the folder of 'react_crash_course'.
 
+Finish by updating Git:
+
+```sh
+cd algoexpert.io
+
+git status
+git add .
+git commit -m "Began FrontendExpert's React Course"
+git push -u origin main
+git status
+git log --oneline
+q
+```
+
 ## 1: Introduction
+
+### Key Terms
+
+### Notes from the video
+
+#### Setup
+
+```sh
+cd 1_introduction
+echo > 
+```
+
+#### 
+
+
+
+####
+
+
+
+#### Git
+
+```sh
+cd algoexpert.io
+
+git status
+git add .
+git commit -m "Completed Lesson 1 of FrontendExpert's React Course"
+git push -u origin main
+git status
+git log --oneline
+q
+```
+
+## 2: React Basics
+
+### Key Terms
+
+### Notes from the video
+
+#### Setup
+
+```sh
+cd 2_react_basics
+echo > 
+```
+
+#### 
+
+
+
+####
+
+
+
+#### Git
+
+```sh
+cd algoexpert.io
+
+git status
+git add .
+git commit -m "Completed Lesson 2 of FrontendExpert's React Course"
+git push -u origin main
+git status
+git log --oneline
+q
+```
+
+## 3: JSX
+
+### Key Terms
+
+### Notes from the video
+
+#### Setup
+
+```sh
+cd 3_jsx
+echo > 
+```
+
+#### 
+
+
+
+####
+
+
+
+#### Git
+
+```sh
+cd algoexpert.io
+
+git status
+git add .
+git commit -m "Completed Lesson 3 of FrontendExpert's React Course"
+git push -u origin main
+git status
+git log --oneline
+q
+```
+
+## 4: Props
+
+### Key Terms
+
+### Notes from the video
+
+#### Setup
+
+```sh
+cd 4_props
+echo > 
+```
+
+#### 
+
+
+
+####
+
+
+
+#### Git
+
+```sh
+cd algoexpert.io
+
+git status
+git add .
+git commit -m "Completed Lesson 4 of FrontendExpert's React Course"
+git push -u origin main
+git status
+git log --oneline
+q
+```
+
+## 5: Event-Driven Programming
+
+### Key Terms
+
+### Notes from the video
+
+#### Setup
+
+```sh
+cd 5_event_driven_programming
+echo > 
+```
+
+#### 
+
+
+
+####
+
+
+
+#### Git
+
+```sh
+cd algoexpert.io
+
+git status
+git add .
+git commit -m "Completed Lesson 5 of FrontendExpert's React Course"
+git push -u origin main
+git status
+git log --oneline
+q
+```
+
+## 6: State
+
+### Key Terms
+
+### Notes from the video
+
+#### Setup
+
+```sh
+cd 6_state
+echo > 
+```
+
+#### 
+
+
+
+####
+
+
+
+#### Git
+
+```sh
+cd algoexpert.io
+
+git status
+git add .
+git commit -m "Completed Lesson 6 of FrontendExpert's React Course"
+git push -u origin main
+git status
+git log --oneline
+q
+```
+
+## 7: Component Lifecycle
+
+### Key Terms
+
+### Notes from the video
+
+#### Setup
+
+```sh
+cd 7_component_lifecycle
+echo > 
+```
+
+#### 
+
+
+
+####
+
+
+
+#### Git
+
+```sh
+cd algoexpert.io
+
+git status
+git add .
+git commit -m "Completed Lesson 7 of FrontendExpert's React Course"
+git push -u origin main
+git status
+git log --oneline
+q
+```
+
+## 8: Refs
+
+### Key Terms
+
+### Notes from the video
+
+#### Setup
+
+```sh
+cd 8_refs
+echo > 
+```
+
+#### 
+
+
+
+####
+
+
+
+#### Git
+
+```sh
+cd algoexpert.io
+
+git status
+git add .
+git commit -m "Completed Lesson 8 of FrontendExpert's React Course"
+git push -u origin main
+git status
+git log --oneline
+q
+```
+
+## 9: Imperative React
+
+### Key Terms
+
+### Notes from the video
+
+#### Setup
+
+```sh
+cd 9_imperative_react
+echo > 
+```
+
+#### 
+
+
+
+####
+
+
+
+#### Git
+
+```sh
+cd algoexpert.io
+
+git status
+git add .
+git commit -m "Completed Lesson 9 of FrontendExpert's React Course"
+git push -u origin main
+git status
+git log --oneline
+q
+```
+
+## 10: Contexts
+
+### Key Terms
+
+### Notes from the video
+
+#### Setup
+
+```sh
+cd 10_contexts
+echo > 
+```
+
+#### 
+
+
+
+####
+
+
+
+#### Git
+
+```sh
+cd algoexpert.io
+
+git status
+git add .
+git commit -m "Completed Lesson 10 of FrontendExpert's React Course"
+git push -u origin main
+git status
+git log --oneline
+q
+```
+
+## 11: Component Lists
+
+### Key Terms
+
+### Notes from the video
+
+#### Setup
+
+```sh
+cd 11_components_list
+echo > 
+```
+
+#### 
+
+
+
+####
+
+
+
+#### Git
+
+```sh
+cd algoexpert.io
+
+git status
+git add .
+git commit -m "Completed Lesson 11 of FrontendExpert's React Course"
+git push -u origin main
+git status
+git log --oneline
+q
+```
+
+## 12: Performance
+
+### Key Terms
+
+### Notes from the video
+
+#### Setup
+
+```sh
+cd 12_performance
+echo > 
+```
+
+#### 
+
+
+
+####
+
+
+
+#### Git
+
+```sh
+cd algoexpert.io
+
+git status
+git add .
+git commit -m "Completed Lesson 12 of FrontendExpert's React Course"
+git push -u origin main
+git status
+git log --oneline
+q
+```
+
+## 13: Writing Custom Hooks
+
+### Key Terms
+
+### Notes from the video
+
+#### Setup
+
+```sh
+cd 13_writing_custom_hooks
+echo > 
+```
+
+#### 
+
+
+
+####
+
+
+
+#### Git
+
+```sh
+cd algoexpert.io
+
+git status
+git add .
+git commit -m "Completed Lesson 13 of FrontendExpert's React Course"
+git push -u origin main
+git status
+git log --oneline
+q
+```
+
+## 14: Portals
+
+### Key Terms
+
+### Notes from the video
+
+#### Setup
+
+```sh
+cd 14_portals
+echo > 
+```
+
+#### 
+
+
+
+####
+
+
+
+#### Git
+
+```sh
+cd algoexpert.io
+
+git status
+git add .
+git commit -m "Completed Lesson 14 of FrontendExpert's React Course"
+git push -u origin main
+git status
+git log --oneline
+q
+```
+
+## 15: Class-Based Components
+
+### Key Terms
+
+### Notes from the video
+
+#### Setup
+
+```sh
+cd 15_class_based_components
+echo > 
+```
+
+#### 
+
+
+
+####
+
+
+
+#### Git
+
+```sh
+cd algoexpert.io
+
+git status
+git add .
+git commit -m "Completed Lesson 15 of FrontendExpert's React Course"
+git push -u origin main
+git status
+git log --oneline
+q
+```
+
+## 16: Error Handling
+
+### Key Terms
+
+### Notes from the video
+
+#### Setup
+
+```sh
+cd 16_error_handling
+echo > 
+```
+
+#### 
+
+
+
+####
+
+
+
+#### Git
+
+```sh
+cd algoexpert.io
+
+git status
+git add .
+git commit -m "Completed Lesson 16 of FrontendExpert's React Course"
+git push -u origin main
+git status
+git log --oneline
+q
+```
+
+## 17: Debugging React
+
+### Key Terms
+
+### Notes from the video
+
+#### Setup
+
+```sh
+cd 17_debugging_react
+echo > 
+```
+
+#### 
+
+
+
+####
+
+
+
+#### Git
+
+```sh
+cd algoexpert.io
+
+git status
+git add .
+git commit -m "Completed Lesson 17 of FrontendExpert's React Course"
+git push -u origin main
+git status
+git log --oneline
+q
+```
+
+## 18: Best Practices
+
+### Key Terms
+
+### Notes from the video
+
+#### Setup
+
+```sh
+cd 18_best_practices
+echo > 
+```
+
+#### 
+
+
+
+####
+
+
+
+#### Git
+
+```sh
+cd algoexpert.io
+
+git status
+git add .
+git commit -m "Completed Lesson 18 of FrontendExpert's React Course"
+git push -u origin main
+git status
+git log --oneline
+q
+```
+
+## 19: React Under The Hood
+
+### Key Terms
+
+### Notes from the video
+
+#### Setup
+
+```sh
+cd 19_react_under_the_hood
+echo > 
+```
+
+#### 
+
+
+
+####
+
+
+
+#### Git
+
+```sh
+cd algoexpert.io
+
+git status
+git add .
+git commit -m "Completed Lesson 19 of FrontendExpert's React Course"
+git push -u origin main
+git status
+git log --oneline
+q
+```
+
+## 20: Companion Libraries
+
+### Key Terms
+
+### Notes from the video
+
+#### Setup
+
+```sh
+cd 20_companion_libraries
+echo > 
+```
+
+#### 
+
+
+
+####
+
+
+
+#### Git
+
+```sh
+cd algoexpert.io
+
+git status
+git add .
+git commit -m "Completed Lesson 20 of FrontendExpert's React Course"
+git push -u origin main
+git status
+git log --oneline
+q
+```
+
