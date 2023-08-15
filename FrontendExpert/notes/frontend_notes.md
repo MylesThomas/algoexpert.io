@@ -13980,20 +13980,18 @@ q
 
 ### Notes from the video
 
-#### Setup
+Other Crash Courses in FrontendExpert: Learning about common interview topics of Frontend Dev
+- Companies want to see you be good with Vanilla JS
+    - They can teach you everything else after...
+        - Smaller and medium sized companies may test you out on the actual frameworks, so React is a good one to learn
 
-```sh
-cd 1_introduction
-echo > 
-```
-
-#### 
-
-
-
-####
-
-
+This course: Learning about a JS Framework, React
+- More realistic scenarios
+- Start basics 
+- Work way up using industry best practices
+- React = Very valuable skill to have
+    - You will probably work on a React project at some point
+    - Good / translatable skills come from learning React
 
 #### Git
 
@@ -14013,6 +14011,50 @@ q
 
 ### Key Terms
 
+#### React
+
+A JavaScript library developed by Facebook for building user interfaces.
+- Uses a component-based architecture to create interfaces with an intuitive declarative approach
+
+Learn more: https://react.dev/
+
+#### Component
+
+A reusable independent piece of a user interface.
+- In modern React: Components are usually functional components
+    - ie. simply functions that return JSX
+
+Note: JSX = JavaScript XML, a syntax extension for linking XML and HTML in JS.
+
+#### JSX (Short for JavaScript XML)
+
+A JavaScript syntax extension for inlining XML and HTML in JavaScript.
+
+For example: This code could be compiled into standard JavaScript functions calls to create a heading element:
+
+```js
+const h1 = <h1>Hello World</h1>;
+```
+
+Learn more: https://react.dev/learn/writing-markup-with-jsx
+
+#### ReactDOM
+
+A package used with React to work as the bridge between React elements and the actual DOM in the browser.
+- The most frequently used ReactDOM function: `render`
+    - Adds a component to the DOM
+
+For example:
+
+```js
+ReacTDOM.render(
+    <h1>Hello World</h1>,
+    document.getElementById('root')
+);
+```
+
+Learn more: https://react.dev/reference/react-dom
+
 ### Notes from the video
 
 #### Setup
@@ -14022,13 +14064,306 @@ cd 2_react_basics
 echo > 
 ```
 
-#### 
+#### Key Characteristics
+
+React: JS Library for Building UI
+- Sounds vague, but will expand on that.
+
+Key Characteristics:
+- Declarative: Describe what UI should look like, not all of implementation details
+- Component-based: Reusable pieces of UIs, like custom HTML tags
+- Undirectional data flow: Data flows in 1 direction (parents, down to children)
+    - dynamic
+
+Let's look closer at Components.
+
+#### Component-Based
+
+Component: Not specific to React, seen in a lot of Frameworks.
+
+When looking at a UI, what are the different components?
+- Generally speaking: Anything reusable or self contained should be a component
+
+Example of FrontendExpert Questions page:
+
+![Example of Components from AlgoExpert.io Website](./figures/react/0.png)
+
+Components:
+
+1. Progress indicator
+- sub-component: title/text 
+- sub-component: progress bar
+- sub-component: 2 buttons below progress bar
+
+2. Interview questions
+- sub-component: tab car component (category vs. randomly)
+- sub-component: container for all interview questions (4 of the same components with different props/params)
+    - sub-component: list of interview questions
 
 
+#### JSX
 
-####
+React components use JSX (JavaScript XML), ie. an extension for JS XML
+- Not specific to React (Vue uses it)
+    - Compiles into React, though
 
+- Essentially: Using what looks like HTML in our JavaScript
 
+```js
+const hello = <p>Hello World</p>;
+```
+
+Note: See how there is a semicolon at the end, because this is still JavaScript.
+
+How does this code above compile into JavaScript/what does it turn into?
+- It goes from JavaScript code into React.createElement!
+
+The following creates a React Element, which can be later append to a DOM:
+
+```js
+const element = (
+    <p id="hello">
+    Hello <em>World</em>
+    </p>
+);
+```
+
+=>
+
+```js
+var element = React.createElement(
+    'p',
+    { id: "hello" }, // optional props, key value pairs
+    'Hello ', // extra parameters (children)
+    React.createElement('em', null, 'World') // another React.createElement !
+);
+```
+
+Notes:
+- We use a parentheses for a multi-line JavaScript expression
+- React.createElement is similar to document.createElement
+    - We almost NEVER use this function directly, given that JSX compiles into this
+        - Good to know, nonetheless!
+
+Parameters:
+
+React.createElement(type, [props], ...children)
+- type: the type of _ our JSX compiles into
+- optional props: object
+
+#### ReactDOM
+
+Final step: Take the React element we just created, and put it on the DOM. How do we do this?
+
+Package: ReactDOM
+- Package for inserting React elements into the DOM
+
+```js
+ReactDOM.render(element, DOMContainer);
+```
+
+#### Functional Components
+
+We said we want to use re-usable components.
+- So far: We have put JSX into variables
+- What we actually want: Functional Components!
+
+Functional Components: Functions that returns a React element ie. JSX
+- 
+
+Example:
+
+```js
+function SayHello() {
+    return <p>Hello World</p>;
+}
+```
+
+->
+
+```js
+// using the SayHello function from above^
+function App() {
+    return (
+        <div>
+            <SayHello /> // component is used as an element
+            <p>Welcome to React!</p>
+        </div>
+    );
+}
+```
+
+Notes:
+- Instead of camel case, we are using Pascal case
+    - Uppercase first letter: Custom components
+    - Lowercase first letter: Standard HTML element
+        - not all custom components will be functions though... there are classes (technically)
+
+#### Creating React Apps
+
+Many ways to create a React app, but let's start with the most common: `create-react-app`.
+
+```sh
+cd react_crash_course
+
+npx create-react-app test-app
+```
+
+Notes:
+- npx: comes with node.js
+- test-app: the name of the new app
+
+Now, run the app on localhost:
+
+```sh
+cd test-app
+
+npm start
+```
+
+In your browser (at http://localhost:3000/), you should now see the standard template that comes with a React app.
+
+Let's look at all of the files and directories that were created for us when we used `create-react-app`.
+
+- `node_modules`: all of the dependencies downloaded
+    - if you have worked with any other projects with node before, this is the same thing
+    - you almost never need to open this/do anything with this!
+
+- `public`: Contains vanilla files that are needed to send up to the browser
+    - favicon.ico: icon that browser shows
+        - make sure to change this!
+    - index.html: the main file of our website
+        - for the mostpart: standard HTML
+        - has some interesting/important lines of code (these are not super important):
+            - apple-touch-icon: the file used if an iPhone user saves your website to the home page
+            - manifest.json file: what the icons/names should be
+            - title tag: name of website
+                - Default: 'React App'
+            - body: 
+                - noscript is there for users who have disabled JS
+            - div: 
+                - this is where we append values to in the DOM
+    - logo192.png: used for template (we can delete this)
+    - logo512.png: used for template (we can delete this)
+    - robots.txt: tells robots how to treat your website
+        - Example: google search engine
+
+- `package-lock.json`: Standard file for node application
+
+- `package.json`: Standard file for node application
+
+- `README.md`: Has helpers for those starting out
+
+- `src`: Source. The main directory we work from!
+    - advice: organize this directory, or it will balloon on you
+        - advice: 1 components per JS file, then organizational structure to find the files
+
+    files in src:
+    - logo.svg: a logo we probably won't use (can delete)
+    - reportWebVitals.js: implementation of a function we probably won't use (can delete)
+    - setupTest.js: If you do choose to write tests in App.test.js, this will run before
+    - .gitignore: React automatically makes a git repo, so this will untrack certain files
+
+    - App.css: The styling guide for the app
+    - App.js: Will come back to this later
+    - App.test.js: Can be useful (it shows how to write tests)
+    - index.css: Styling guide
+    - Index.js: Entry point of our application!
+
+Note: What does index.js actually do:
+
+```js
+// imports
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import './index.css';
+import App from './App';
+import reportWebVitals from './reportWebVitals';
+
+// React.DOM.render is what puts React on the page
+// - here, we are appending to the root from index.html
+//      - we are appending App (will talk more about React.StrictMode later)
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  <React.StrictMode>
+    <App /> // can put other imports or HTML here
+  </React.StrictMode>
+);
+
+reportWebVitals(console.log); //  we do not need this, usually can delete it! (it gives performance metrics ... )
+```
+
+Note: create-react-app uses webpack, which essentially ignores the public directory
+
+Let's take a look at the App.js file that Index.js is using:
+
+```js
+// app.js
+import logo from './logo.svg'; // notice: photo is imported, then used as {logo} below!
+import './App.css';
+
+function App() {
+  return (
+    <div className="App">
+      <header className="App-header">
+        <img src={logo} className="App-logo" alt="logo" />
+        <p>
+          Edit <code>src/App.js</code> and save to reload.
+        </p>
+        <a
+          className="App-link"
+          href="https://reactjs.org"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Learn React
+        </a>
+      </header>
+    </div>
+  );
+}
+// notice how App has to be exported (so that index.js can import it later)
+export default App;
+```
+
+Notes:
+- Usage of className instead of class
+
+Let's change it to look like this:
+
+```js
+// app.js
+// import logo from './logo.svg';
+import './App.css';
+
+function App() {
+  return (
+    <div>
+      <SayHello />
+      <SayHello />
+    </div>
+  );
+}
+
+function SayHello() {
+  return <p>Hello World</p>;
+}
+
+export default App;
+
+```
+
+Notes:
+- We will go much further on components in this crash course
+- I commented out the top line of code that imports logo.svg since I am no longer importing it into App.js
+
+#### Takeaways
+
+Pros of create-react-app:
+- saves TONS of time
+
+Cons of create-react-app:
+- many un-needed files that we have to delete
 
 #### Git
 
