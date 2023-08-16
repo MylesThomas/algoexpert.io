@@ -14784,23 +14784,179 @@ q
 
 ## 4: Props
 
-### Key Terms
+Props in React = Things you pass from component to component (Simple, but useful!)
+
+### Key Term
+
+#### Props
+
+A JavaScript object passed as a parameter to functional components.
+- Contains all of the key-value pairs that were passed as attributes to the component.
+
+For example, look at this JSX:
+
+```js
+<MyComponent message="hello" number={42} />
+```
+
+The `MyComponent` function would take in props with two key-value pairs:
+
+```js
+function MyComponent(props) {
+    console.log(props.message); // "hello"
+    console.log(props.number); // 42
+    return <h1>Hello World!</h1>;
+}
+```
+
+Learn more: https://react.dev/learn/passing-props-to-a-component
 
 ### Notes from the video
 
 #### Setup
 
-```sh
-cd 4_props
-echo > 
+Current state of App.js:
+
+```js
+// import './App.css';
+
+export default function App() {
+  return (
+    <>
+      <h1>Hello Conner</h1>
+      <h1>Hello Clement</h1>
+    </>
+  );
+}
+ 
 ```
 
-#### 
+#### Props
 
+Props = Attributes for our components
+- Components: Custom HTML tags
+- Props: Parameters to those functions
 
+Motivation behind props?
+- When there is redundancy, we want to make helper functions to avoid repeating code.
 
-####
+Example, turning the example from above into better code by using props:
 
+```js
+export default function App() {
+  return (
+    <>
+      <Hello name="Conner" />
+      <Hello name="Clement" />
+      <Hello name="Myles" />
+
+    </>
+  );
+}
+
+function Hello(props) {
+  return <h1>Hello {props.name}</h1>
+}
+```
+
+Notes:
+- We take in 'name' as a parameter to the function + we pass in the parameter via props
+
+#### Destructuring Props
+
+One thing people find annoying about props is that because we pass in 1 props variable, there is no way to look at the function and see what the prop expects.
+
+Way to improve: Using Destructuring syntax!
+
+```js
+export default function App() {
+  return (
+    <>
+      <Hello name="Conner" />
+      <Hello name="Clement" />
+      <Hello name="Myles" />
+    </>
+  );
+}
+
+function Hello({name}) {
+  return <h1>Hello {name}</h1>
+}
+```
+
+You can now look at this function and easily know what the function needs.
+
+#### Default Props
+
+We can use the destructuring to also have default values.
+
+```js
+// import './App.css';
+
+export default function App() {
+  return (
+    <>
+      <Hello name="Conner" />
+      <Hello name="Clement" />
+      <Hello name="Myles" />
+      <Hello />
+      
+    </>
+  );
+}
+
+function Hello({name = 'User'}) {
+  return <h1>Hello {name}</h1>
+}
+
+// Hello.defaultProps = {
+//   name: 'User'
+// }
+```
+
+Notes:
+- Method #1: Adding as params to the function
+- Method #2: Using .defaultProps
+
+They work the exact same way!
+- Recommendation: Method #1
+    - it is much more common than using .defaultProps
+
+#### Children
+
+Next, let's add another component, which is a comment that takes in some props:
+
+```js
+export default function App() {
+  return (
+    <Comment username="Conner" time={(new Date()).toString()}>
+      <h1>Hello World</h1>
+      <p>This is a comment!</p>
+    </Comment>
+  );
+}
+
+function Comment({username, time, children}) {
+  return (
+    <section>
+      <p>{username} commented at {time}</p>
+      {children}
+    </section>
+  )
+}
+```
+
+Notes:
+- `children` is the actual contents of the comment
+    - It defaults to whatever is between opening/closing tags of `Comment`
+
+More Notes:
+- You do not need to use the Fragment braces because you are returning 1 Comment
+- Concept of having components inside of components: component composition!
+- Any of these custom components you make, only the actual DOM elements get added to the page 
+    - Browser has no clue what a comment is, it only sees section/paragraph/children
+    - Inspect > Elements, you will not see `Comment`, you just see the HTML elements
+        - There may be a lot of nesting, but it eventually gets to HTML!
 
 
 #### Git

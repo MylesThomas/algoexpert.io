@@ -1,9 +1,19 @@
-import './App.css';
+// import './App.css';
 
 export default function App() {
-  return <p style={{
-    color: "red",
-    textAlign: 'center',
-    fontSize: '48px' // 48 works too
-  }}>Hello World</p>
+  return (
+    <Comment username="Conner" time={(new Date()).toString()}>
+      <h1>Hello World</h1>
+      <p>This is a comment!</p>
+    </Comment>
+  );
+}
+
+function Comment({username, time, children}) {
+  return (
+    <section>
+      <p>{username} commented at {time}</p>
+      {children}
+    </section>
+  )
 }
