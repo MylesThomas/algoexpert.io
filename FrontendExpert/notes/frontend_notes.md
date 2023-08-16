@@ -14975,24 +14975,181 @@ q
 
 ## 5: Event-Driven Programming
 
-### Key Terms
+Old adage "better to be proactive than reactive" does NOT apply here!
+
+### Key Term
+
+#### SyntheticEvent
+
+The object type passed to React event handler functions.
+- Generally: Work the same as native events
+    - Has more consistency across browsers, though
+
+Learn more: https://react.dev/reference/react-dom/components/common#react-event-object
 
 ### Notes from the video
 
 #### Setup
 
-```sh
-cd 5_event_driven_programming
-echo > 
+```js
+// App.js
+export default function App() {
+  return (
+    <button>Click Me</button>
+  )
+}
+
 ```
 
-#### 
+```sh
+cd test-app
+
+npm start
+```
+
+Next, head to Inspect > Console.
+
+#### Event-Driven Programming
+
+Specifically: Event-Driven Programming in React
+- Remember: React code compiles down to JavaScript, so if you know how that works, you should understand most
+
+What we will learn: Differences between Vanilla JS and React's Event-Driven Programming
+
+Vanilla JS: addEventListener()
+- not the React way to do things
+
+React: Use JSX
+
+General rule: With React, use JSX whenever possible!
+- Avoid regular DOM manipulation
+    - Use attributes/props
+
+Try running this code and clicking the button to see an output in the console:
+
+```js
+export default function App() {
+  return (
+    <button onClick={() => {
+      console.log('clicked');
+    }}>Click Me</button>
+  )
+}
+
+```
+
+You can also create a named function instead:
+
+```js
+export default function App() {
+  const handleClick = () => {
+    console.log('clicked');
+  };
+
+  return (
+    <button onClick={handleClick}>Click Me</button>
+  )
+}
+
+```
+
+Notes:
+- Because we have handleClick inside the App component, that means we make a new handleClick every time the app renders
+    - This is not good!
+
+Moving it to the bottom is more typical:
+
+```js
+export default function App() {
+  return (
+    <button onClick={handleClick}>Click Me</button>
+  )
+}
+
+function handleClick() {
+  console.log('clicked');
+};
+```
+
+Note: Standalone function keyword is preferred over the arrow function syntax (when outside of function)
+- Avoids problems with 'hoisting'
+
+#### Synthetic Events
+
+Event Handlers in React: Works the same as standard JS!
+- Take event as parameter
+- Pass event to console
+
+```js
+export default function App() {
+  return (
+    <button onClick={handleClick}>Click Me</button>
+  )
+}
+
+function handleClick(event) {
+  console.log(event);
+};
+```
+
+What is this? A synthetic based event.
+
+Synthetic event: Object type passed to event handler functions
+- Works same as standard event most of the time
+    - Pros: Adds consistency across browsers
+
+Note: Idk why you would need it, but if you wanted to use native event, you culd use event.nativeEvent
 
 
+#### Adding Event Listeners
 
-####
+Next, what happens if we try to add a click event or any event to a custom component?
 
+Remember: Browser controls event listeners
+- Problem: Browser does NOT know about the custom components (since they end up just being standard DOM elements ie. HTML...)
 
+Let's create another component to help explain:
+
+What this custom component does:
+- Adds style to the buttons (replaces native elements)
+
+```js
+// App.js
+export default function App() {
+  return (
+    <MyButton onClick={handleClick}>Click Me</MyButton>
+  );
+}
+
+function handleClick(event) {
+  console.log(event);
+};
+
+function MyButton(props) {
+  // make sure to add onClick={props.onClick}, or else the console won't log the event!
+  // even better: use the spread syntax (...props) so that it inherits more than just onClick!
+  return (
+    <button
+      {...props}
+      style={{
+        color: 'red'
+      }}>
+      {props.children}
+    </button>
+  );
+}
+
+```
+
+Now, the custom button works like a regular button.
+
+Notes:
+- We don't need to have {props.children} if we already have {...props} at the top of the button.
+- If we want, we can make the button a self closing tag.
+
+#### Takeaways
+
+Event Driven Programming is very similar in Vanilla JS as it is in React!
 
 #### Git
 
