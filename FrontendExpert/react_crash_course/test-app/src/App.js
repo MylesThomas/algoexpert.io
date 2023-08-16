@@ -1,17 +1,9 @@
-// import logo from './logo.svg';
 import './App.css';
 
-function App() {
-  return (
-    <div>
-      <SayHello />
-      <SayHello />
-    </div>
-  );
+export default function App() {
+  return <p style={{
+    color: "red",
+    textAlign: 'center',
+    fontSize: '48px' // 48 works too
+  }}>Hello World</p>
 }
-
-function SayHello() {
-  return <p>Hello World</p>;
-}
-
-export default App;

@@ -14381,24 +14381,392 @@ q
 
 ## 3: JSX
 
+JSX = Short for JavaScript XML
+- What happens when you try and combine JavaScript and HTML into one.
+- Extremely important when working with React!
+
 ### Key Terms
+
+#### React.Fragment
+
+A React container component that renders its children without adding any additional DOM nodes.
+- Can be used for returning multiple adjacent elements without wrapping them in an unnecessary element
+
+Example:
+
+```js
+<React.Fragment>
+    <h1>Hello World</h1>
+    <p>React is Awesome!</p>
+</React.Fragment>
+```
+
+Fragments can also be created by using an empty tag, rather than the `Fragment` export from React. For example:
+
+```js
+<>
+    <h1>Hello World</h1>
+    <p>React is Awesome!</p>
+</>
+```
+
+Learn more: https://react.dev/reference/react/Fragment
+
+#### Conditional Rendering
+
+The process of changing the returned element of a component based on some condition.
+- Can be achieved in a variety of ways
+    - Most common: Utilizing ternary operators OR short circuit evaluation
+        - This works because the following all render absolutely nothing:
+            - null
+            - undefined
+            - true
+            - false
+
+For example:
+
+```js
+<React.Fragment>
+    { myBool ? <h1>Hello World</h1> : null }
+    { myOtherBool && <p>React is Awesome!</p> }
+</React.Fragment>
+```
+
+Learn more: https://react.dev/learn/conditional-rendering
 
 ### Notes from the video
 
 #### Setup
 
-```sh
-cd 3_jsx
-echo > 
+Head into `test-app/src` for this:
+
+```js
+// App.js
+import './App.css';
+import React from 'react';
+
+export default function App() {
+    return (
+        <h1>Hello World</h1>
+    );
+}
 ```
 
-#### 
+```css
+/* App.css */
+.center {
+    text-align: center;
+}
+```
 
+#### JSX
 
+Interesting import - You used to need this, but now you do not:
 
-####
+```js
+import React from 'react';
+```
 
+Why don't we need it anymore?
+- Any JSX used to compile into React elements
+- Modern React: You do not need it
+    - We will use it for something else, so keep it in!
 
+Next, let's look at the `export default`:
+
+```js
+export default function App() {
+    return (
+        <h1>Hello World</h1>
+    );
+}
+```
+
+Because this function returns some JSX ie. `<h1>Hello World</h1>`, this function becomes a component.
+
+#### Self-Closing Tags
+
+Next, let's look at some things that are different between JSX and standard HTML.
+
+When you use a self-closing tag, you must do the syntax with the forward slash at the end. Example:
+
+```js
+export default function App() {
+    return (
+        // error
+        <h1>Hello <br> World</h1>
+        // good
+        <h1>Hello <br /> World</h1>
+    );
+}
+```
+
+#### Fragments
+
+Let's talk about returning multiple JSX elements:
+
+```js
+// this gives an error
+export default function App() {
+    return (
+        <h1>Hello World</h1>
+        <p>Test<p>
+    );
+}
+```
+
+This would give an error, since we must always return a single JSX element.
+
+What about this way, if we wrap the returns in a `div`?
+
+```js
+import './App.css';
+import React from 'react';
+
+export default function App() {
+    return (
+        <div>
+            <h1>Hello World</h1>
+            <p>Test</p>
+        </div>
+    );
+}
+```
+
+This works! Try this out in your browser now:
+
+```sh
+cd test-app
+
+npm start
+```
+
+You should see 'Hello World' at the header, and 'Test' beneath it.
+
+What if we do not want to add a `div` to our code?
+- This adds div to the DOM
+    - Adding extra elements to the DOM will eventually slow down the page, make screen readers jobs hard, etc.
+
+How do we wrap all of the elements?
+
+React has built-in fragments just for this job!
+
+Method #1:
+
+```js
+import './App.css';
+import React from 'react';
+
+export default function App() {
+  return (
+      <React.Fragment>
+          <h1>Hello World</h1>
+          <p>Test</p>
+      </React.Fragment>
+  );
+}
+```
+
+Method #2:
+
+```js
+import './App.css';
+// import React from 'react';
+
+export default function App() {
+  return (
+      <>
+          <h1>Hello World</h1>
+          <p>Test</p>
+      </>
+  );
+}
+```
+
+Notes:
+- React.Fragment comes from import statement on Line 2
+- After saving the App.js file, it will look the same, but this is better
+    - We can use empty tags if we'd like
+        - 1st difference: Can delete import on line 2
+        - 2nd difference: No way to add a prop to the empty elements
+
+My takeaway: For the mostpart, I will use the React.Fragment!
+
+#### JavaScript Expressions
+
+How do we use JavaScript Expressions inside of our JSX?
+
+```js
+// App.js
+import './App.css';
+
+export default function App() {
+  const name = 'Myles';
+  return (
+      <>
+          <h1>Hello {name.toUpperCase()}</h1>
+          <p>Test</p>
+      </>
+  );
+}
+```
+
+Notes:
+- Curly braced syntax = JavaScript
+- This is safe from injection attacks, as the JSX gets passed as a string regardless
+    - even if a malicious actor tried to pass bad code...
+
+#### Conditional Rendering
+
+Start by writing some code that returns a different value depending on an error:
+
+```js
+// App.js
+import './App.css';
+
+export default function App() {
+  const error = true;
+  if (error) {
+    return <h1>Error!</h1>;
+  }
+  return <h1>Success!</h1>;
+}
+```
+
+This is one way - but we have more options!
+
+Ternary operator:
+
+```js
+import './App.css';
+
+export default function App() {
+  const error = false;
+  return error ? <h1>Error!</h1> : <h1>Success!</h1>;
+}
+```
+
+Both of these methods are good, but have totally different return statements.
+- You may not want this if it is a small part of the JSX
+
+What to do now? Return a fragment with 2 different ternaries:
+
+```js
+import './App.css';
+
+export default function App() {
+  const error = true;
+  return (
+    <>
+    {error ? <h1>Error!</h1> : null}
+    {!error ? <h1>Success!</h1> : undefined}
+    </>
+  );
+}
+
+```
+
+Notes:
+- Using null is more popular than undefined/other values (for the else portion of if-else)
+- Can use short circuit evaluation (&& and ||) if you'd like instead
+
+One more way to do conditional rendering:
+
+```js
+import './App.css';
+
+export default function App() {
+  const error = false;
+  return <h1>{error ? 'Error' : 'Success'}</h1>
+}
+```
+
+Notes:
+- When in the curly braces, make sure to use '' for strings since we are in JavaScript!
+
+#### Attributes / Props
+
+Let's remove the code from above and start looking at attributes, but better known as props!
+
+This will create an input box that cannot go longer than 3 characters:
+
+```js
+import './App.css';
+
+export default function App() {
+  return (
+    // using the Fragements again ...
+    <>
+      <label htmlFor="input">Input: </label>
+      <input id="input" type="text" maxLength="3" />
+    </>
+  );
+}
+
+```
+
+Notes:
+- maxLength is camelCase, this is because JS/JSX decided to use camelCase
+- for is a reserved word in JavaScript, so JSX uses htmlFor instead
+
+We can also use JavaScript expressions for these values!
+
+```js
+import './App.css';
+
+export default function App() {
+  const props = {
+    id: 'input',
+    type: 'text',
+    maxLength: '3',
+    
+  }
+  return (
+    <>
+      <label htmlFor="input">Input: </label>
+      <input {...props} placeholder="user" />
+    </>
+  );
+}
+
+```
+
+Note: This combines props with the standard syntax, hence the `placeholder="user"`.
+
+Next, change the code up so all we return is a paragraph:
+
+```js
+import './App.css';
+
+export default function App() {
+  return <p className="center">Hello World</p>
+}
+
+```
+
+Notes:
+- we have to use className instead of class=
+- This code will center the 'Hello World'
+
+Next, we can also use inline styles:
+
+```js
+import './App.css';
+
+export default function App() {
+  return <p style={{
+    color: "red",
+    textAlign: 'center',
+    fontSize: '48px' // 48 works too
+  }}>Hello World</p>
+}
+
+```
+
+Notes:
+- This makes the text large, red, and in the middle of the screen
+- Good practice: Adding units at end of fontSize 
+    - avoid using pixels
 
 #### Git
 
