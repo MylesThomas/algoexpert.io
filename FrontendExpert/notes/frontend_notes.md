@@ -15167,24 +15167,576 @@ q
 
 ## 6: State
 
+In React: State is how you store stuff (that's pretty much it - very useful!)
+
 ### Key Terms
+
+#### State
+
+Data specific to an instance of a component that persists between renders and causes re-renders when changed.
+- "State, a component's memory"
+
+Learn more: https://react.dev/learn/state-a-components-memory
+
+#### Hook
+
+A JavaScript function used to "hook" into React features such as state and the larger component lifecycle. The names of hooks always begin with *use*, and they cannot be called conditionally.
+
+#### useState
+
+A React hook for creating useful stateful components.
+- The `useState` function takes in an initial state value (or a function that returns that initial value), and it returns an array with 2 elements:
+    - current state value
+    - setter function
+
+For example:
+
+```js
+const [number, setNumber] = useState(42);
+```
+
+Learn more: https://react.dev/reference/react/useState
+
+#### useReducer
+
+An alternative React hook for creating stateful components
+- Oftentimes: Used for more complex state
+
+The `useReducer` function:
+- takes in a reducer function and the initial state
+- returns an array with 2 elements:
+    - current state value
+    - dispatch function
+
+The reducer function takes in the previous state and an action object as parameters, then it returns the new state.
+- Usually: the action object will have a `type` property, which will be used in a switch statement.
+
+For example:
+
+```js
+function reducer(state, action) {
+    swtich (action.type) {
+        case 'increment':
+            return {count: state.count + action.num};
+        case 'decrement':
+            return {count: state.count - action.num};
+        default:
+            throw new Error('Unknown action type');
+    }
+}
+```
+
+The dispatch function will then take in an object, which will be passed as the action to the reducer function.
+
+For example:
+
+```js
+const [state, dispatch] = useReducer(reducer, {
+    count: 0
+});
+
+return (
+    <button onClick={() => dispatch({
+        type: 'increment',
+        num: 1
+    })}>Increment</button>
+);
+```
+
+Learn more: https://react.dev/reference/react/useReducer
+
+#### Lifting State Up
+
+A common React pattern of moving shared state up to the lowest common ancestor component in the tree.
+- This allows for a single component to keep track of the state and pass the current value and setter function down through props.
+
+Learn more: https://react.dev/learn/sharing-state-between-components#lifting-state-up-by-example
+
+#### Controlled Component
+
+A pattern of using React state to control the current state of an input, rather than allowing the native elements to control their own state (known as *uncontrolled component*).
+
+For example: An input can be controlled via the `value` and `onChange` props:
+
+```js
+const [value, setValue] = useState('');
+return <input value={value} onChange={e => setValue(e.target.value)} />;
+```
+
+Note: In React, the `onChange` works the same as `onInput`
+
+Learn more: https://react.dev/learn/sharing-state-between-components#controlled-and-uncontrolled-components
 
 ### Notes from the video
 
 #### Setup
 
-```sh
-cd 6_state
-echo > 
+Update App.js to have some code that does not work.
+- This code will help us understand why we need state
+
+```js
+export default function App() {
+  let count = 0;
+  return (
+    <>
+      <button onClick={() => count++}>
+          Increment
+      </button>
+      <p>Count: {count}</p>
+    </>
+  );
+}
+
 ```
 
-#### 
+Start it up in Chrome:
 
+```sh
+cd test-app
 
+npm start
+```
 
-####
+The fact that this does not work right away, is going to show us WHY we need state! 
 
+#### useState
 
+Why doesn't anything happen when you click 'increment'?
+- Good: The variable count IS incrementing by 1
+- Bad: Nothing has told React to update the DOM
+    - React is not fully reactive
+    - We must tell it that something important happened that deserves a re-render
+
+How to do this: State!
+- Local to single instance of a component
+- Is a value, like a variable
+- Has a setter function
+    - If setter function is called to change the state value, that instance of the component will render again (to update the component)
+
+Let's see it in action!
+
+```js
+// not a default export, so use curly braces when importing!
+import { useState } from "react";
+
+export default function App() {
+  const [count, setCount ] = useState(0);
+  
+  // let count = 0;
+  return (
+    <>
+      <button onClick={() => setCount(count + 1)}>
+          Increment
+      </button>
+      <p>Count: {count}</p>
+    </>
+  );
+}
+
+```
+
+Notes:
+- useState is a function
+    - takes in default value (0)
+    - need to de-structure the return value (an array)
+        - count
+            - you never want to change a state variable ie. count++
+        - setter Function (setCount)
+            - you will use this to change the count ie. setCount(count + 1)
+
+- useState() is a hook, ie. it is special and hooks into react features
+    - anything that starts with 'use' is a hook
+    - we will look at hooks more later in the course
+        - idea: return value from useState has ability to cause the component to re-render
+
+Note: He used auto import, which I learned more about here (for which Extensions I should have in VSCode):
+- [Link to StackOverflow](https://stackoverflow.com/questions/38210604/visual-studio-code-automatic-imports/53015835#53015835)
+
+Next, learn 1 rule about hooks: Cannot be called conditionally!
+
+Example:
+
+```js
+if (true) {
+    const [count, setCount ] = useState(0);
+}
+```
+
+Why this is an issue:
+- React Hooks must be called in the same exact order in every component render
+    - Internally, React depends on the ordering of the Hook Functions
+
+#### useState Function Parameters
+
+useState: Does not have to take in a value, can take in a function!
+
+Example, which does the same as above:
+
+```js
+export default function App() {
+  const [count, setCount ] = useState(() => {
+    return 0;
+  });
+...
+}
+```
+
+Purpose of this:
+- If you have a complex computation (for how to determine initial state), it should be inside of a function
+    - When JS renders, if an input for a function is a complicated function, then we need to wait for the complicated function EVERY time
+
+This would be some mock code for that problem:
+
+```js
+const [count, setCount ] = useState(somethingComplicated());
+```
+
+Notes:
+- If you have anything complicated, wrap it in a function
+    - Value being passed to useState is now a function itself
+        - JS doesn't need to execute the function before using useState
+
+Now, it is pretty rare having to pass in a function to useState, so let's put the code back to having a default value of 0:
+
+```js
+export default function App() {
+  const [count, setCount ] = useState(0);
+...
+}
+```
+
+#### Adding Multiple State Variables
+
+Next, you must know that we can have multiple pieces of state, with 1 component
+- All you have to do is multiple calls to useState()
+
+For example:
+
+```js
+// not a default export, so use curly braces when importing!
+import { useState } from "react";
+
+export default function App() {
+  const [count, setCount ] = useState(0);
+  const [otherCount, setOtherCount ] = useState(50);
+  
+  return (
+    <>
+      <button onClick={() => setCount(count + 1)}>
+          Increment
+      </button>
+      <p>Count: {count}</p>
+      <button onClick={() => setOtherCount(otherCount + 10)}>
+          Increment
+      </button>
+      <p>otherCount: {otherCount}</p>
+    </>
+  );
+}
+
+```
+
+Notes:
+- These are completely separate pieces of state
+    - count: starts at 0, ++1
+    - otherCount: starts at 50, ++10
+
+Another fact about state is that it is specific to a single instance of a component.
+
+Let's create another component to illustrate this idea:
+
+```js
+import { useState } from "react";
+
+export default function App() {
+  return (
+    <>
+      <Counter startingCount={0} />
+      <Counter startingCount={100} />
+    </>
+  );
+}
+
+function Counter({startingCount = 0}) { // default value = 0
+  const [count, setCount ] = useState(startingCount);
+
+  return (
+    <>
+      <button onClick={() => setCount(count + 1)}>
+          Increment
+      </button>
+      <p>Count: {count}</p>
+    </>
+  );
+}
+
+```
+
+Notes:
+- Both of the counters are on their own, separately both increment by 1
+    - They are separate instances, w/ their own state
+        - 1 starts at 0
+        - 2 starts at 100
+
+#### Setter Functions
+
+1 thing about Setter Functions: They only update the state value once the component is able to re-render
+- Until the call stack is empty, there is no re-render
+
+This only increments by 1:
+
+```js
+<button onClick={() => {
+    setCount(count + 1);
+    setCount(count + 1);
+    setCount(count + 1);
+}}>
+    Increment
+</button>
+```
+
+Another key point: Whenever you have multiple state values, they will be batched together
+- 
+
+Let's look at an example with setCount AND setOtherCount:
+
+```js
+<button onClick={() => {
+    setCount(count + 1);
+    setCount(count + 1);
+    setCount(count + 1);
+    setOtherCount(otherCount + 1);
+    
+}}>
+    Increment
+</button>
+```
+
+All of the state values are updated, and then the re-render occurs.
+
+If we want our setCount to use the value that was added before, we can pass in a function to setCount:
+
+```js
+<button onClick={() => {
+    setCount(prevCount => prevCount + 1);
+    setCount(prevCount => prevCount + 1);
+    setCount(prevCount => prevCount + 1);
+}}>
+    Increment
+</button>
+```
+Notes:
+- While these setCount's are still run together, they are run in the order they are called (in a queue)
+- When you call setCount with a function, it will take in the previous value from setCount
+- Functions we are passing in are not relying on 'count' from the useState declaration
+
+Let's put the function back to increment by 1 before moving on.
+
+#### Object State
+
+If we have a value of useState as an Object (or an Array, since it is an object), there are some special properties we need to be aware of!
+
+Main thing: useState will not cause the component to re-render, unless you set the value of useState to another value
+- You cannot change the values inside of the object itself
+- You must set useState to a brand new object
+
+For example, let's update this number:
+
+```js
+setCount({num: count.num + 1})
+```
+
+If we want to add a new property, we must create a new object, and spread the old object
+- This is to 
+
+```js
+setCount({...count, otherCount: 0})
+```
+
+This creates a new object that has everything from count, in addition to new key-value pair of key=otherCount,value=0.
+
+Since arrays are objects, the same holds true with Arrays:
+
+```js
+const [count, setCount ] = useState([1,2,3]);
+
+setCount([...count, 4])
+```
+
+Let's reset back to startingCount = 0 before proceeding.
+
+#### Lifting State Up
+
+What if we wanted both counters to use the same state?
+- Data/React moves in 1 direction, from parents down to children
+    - The shared State needs to be high enough in the component tree that it can be sent down to the children we want it to.
+
+How to do this?
+- Move count, setCount into App()
+    - Make sure to pass in count, setCount as params to function Counter() ie. Counter(){count, setCount}
+- Updated App() so that when you call Counter in JSX, you are providing the required params
+
+Let's see it in the code:
+
+```js
+import { useState } from "react";
+
+export default function App() {
+  const [count, setCount ] = useState(0);
+
+  return (
+    <>
+      <Counter count={count} setCount={setCount} />
+      <Counter count={count} setCount={setCount} />
+    </>
+  );
+}
+
+function Counter({count, setCount}) {
+  return (
+    <>
+      <button onClick={() => setCount(count + 1)}>
+          Increment
+      </button>
+      <p>Count: {count}</p>
+    </>
+  );
+}
+
+```
+
+Now, if you click Increment, regardless of which one, both of the counts go up!
+
+#### Controlled Components
+
+What we want to show now: Controlled Components
+- In a way, the counter is a controlled component
+    - Uses setter as a prop
+    - Uses whatever parent says as a method for what it does (when you click the button)
+
+- Far more common usage of controlled components: Inputs!
+
+Let's say we have another state, `value`, and let's add an input tag for this.
+- We want our setter function called onChange
+
+```js
+import { useState } from "react";
+
+export default function App() {
+  const [count, setCount ] = useState(0);
+  const [value, setValue ] = useState('');
+  
+  return (
+    <>
+      <input
+        type="text"
+        value={value}
+        onChange={(event) => setValue(event.target.value)} />
+      <Counter count={count} setCount={setCount} />
+      <Counter count={count} setCount={setCount} />
+    </>
+  );
+}
+
+function Counter({count, setCount}) {
+  return (
+    <>
+      <button onClick={() => setCount(count + 1)}>
+          Increment
+      </button>
+      <p>Count: {count}</p>
+    </>
+  );
+}
+
+```
+
+Now, the input element is controlled by the state.
+- Whenever you type into the input box, it re-renders, the value changes, and we get the input of the new value.
+
+Let's remove this input tag and the 2nd useState line before moving forward.
+
+#### useReducer
+
+Finally, an alternative to useState.
+- Usually: useState
+- Sometimes when it is more complex: useReducer
+
+useReducer:
+- Does not just take in state
+    - Takes in a function (reducer)
+    - Takes in state (as an object)
+- Return value:
+    - Does not return value/setter functions
+    - Does return the current state object ie. state AND a dispatch function
+
+Reducer function:
+- input params:
+    - previous state
+    - action (an object)
+- returns: new state
+    - usually: the action object has `action.type`, which is used in a switch statement
+
+Here is an implementation of useReducer and a reducer function:
+
+```js
+import { useReducer, useState } from "react";
+
+function reducer(state, action) {
+  switch (action.type) {
+    case 'increment':
+      //return {count: state.count + 1} 
+      return {count: state.count + action.num}; // return an object with the new state
+    case 'decrement':
+      return {count: state.count - action.num};
+    default:
+      throw new Error('Unknown action type');
+          
+      
+  }
+}
+
+export default function App() {
+  const [state, dispatch ] = useReducer(reducer, {
+    count: 0
+  });
+  
+  return (
+    <>
+      <Counter
+        count={state.count}
+        onClick={() => dispatch({ // dispatch: calls the reducer (has to take in the reducer's action!)
+          type: 'increment',
+          num: 1 // increment by 1
+        })} /> 
+
+      <Counter
+        count={state.count}
+        onClick={() => dispatch({
+          type: 'decrement',
+          num: 100
+        })} /> 
+      
+    </>
+  );
+}
+
+function Counter({count, onClick}) { // change this to onClick
+  return (
+    <>
+      <button onClick={onClick}> {/* change this to onClick */}
+          Increment
+      </button>
+      <p>Count: {count}</p>
+    </>
+  );
+}
+
+```
+
+Takeaways
+- useReducer: Overkill
+- useState: Pretty much always will do the trick!
 
 #### Git
 

@@ -1,23 +1,51 @@
+import { useReducer, useState } from "react";
+
+function reducer(state, action) {
+  switch (action.type) {
+    case 'increment':
+      //return {count: state.count + 1} 
+      return {count: state.count + action.num}; // return an object with the new state
+    case 'decrement':
+      return {count: state.count - action.num};
+    default:
+      throw new Error('Unknown action type');
+          
+      
+  }
+}
+
 export default function App() {
+  const [state, dispatch ] = useReducer(reducer, {
+    count: 0
+  });
+  
   return (
-    <MyButton onClick={handleClick}>Click Me</MyButton>
+    <>
+      <Counter
+        count={state.count}
+        onClick={() => dispatch({ // dispatch: calls the reducer (has to take in the reducer's action!)
+          type: 'increment',
+          num: 1 // increment by 1
+        })} /> 
+
+      <Counter
+        count={state.count}
+        onClick={() => dispatch({
+          type: 'decrement',
+          num: 100
+        })} /> 
+      
+    </>
   );
 }
 
-function handleClick(event) {
-  console.log(event);
-};
-
-function MyButton(props) {
-  // make sure to add onClick={props.onClick}, or else the console won't log the event!
-  // even better: use the spread syntax (...props) so that it inherits more than just onClick!
+function Counter({count, onClick}) { // change this to onClick
   return (
-    <button
-      {...props}
-      style={{
-        color: 'red'
-      }}>
-      {props.children}
-    </button>
+    <>
+      <button onClick={onClick}> {/* change this to onClick */}
+          Increment
+      </button>
+      <p>Count: {count}</p>
+    </>
   );
 }
