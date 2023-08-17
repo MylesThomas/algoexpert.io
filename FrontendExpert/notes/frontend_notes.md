@@ -15754,24 +15754,329 @@ q
 
 ## 7: Component Lifecycle
 
+Let's take a peek into the fascinating life of a React component!
+
 ### Key Terms
+
+#### Component Lifecycle
+
+The different stages that an instance of a component goes through. There are 3 primary stages to the React lifecycle:
+
+1. Mounting: The component renders for the 1st time
+
+2. Updating: The component re-renders whenever state changes OR the props are updated by the parent component.
+- A component may updated many times without ever mounting again
+
+3. Unmounting: The componenet is removed from the DOM. (Final stage of the lifecyce)
+- Component cannot update again once it has been unmounted
+    - A new instance of the component can still be mounted, though
+
+#### useEffect
+
+A React hook for performing side effects around the component lifecycle. The `useEffect` hook takes in a callback function and an optional dependency array.
+
+Dependency array:
+- no dependency array is provided: callback function runs on EVERY render.
+- dependency array provided: callback function runs on *mount* OR when an item in that array has changed
+    - note: Objects must be new objects to be considered to have changed
+    - to avoid bugs related to effects using stale values from previous renders, the dependency array should contain all values that the callback uses, that could change between renders.
+
+The callback function can also return a cleanup function, which will run on *unmount* and before the main effect function runs on any re-renders.
+
+Example:
+
+```js
+useEffect(() => {
+    console.log('count changed');
+
+    return () => console.log('cleanup count changed effect');
+}, [count]);
+```
+
+Learn more: https://react.dev/reference/react/useEffect
+
+#### useLayoutEffect
+
+A React hook for performing side effects around the component lifecycle in the same way as `useEffect`. 
+
+The only difference between the two functions is that `useLayoutEffect` works synchronously
+- What this means: The effects always finish running before the browser paints
+- This hook should only be used for effects that will make visual changes to the DOM
+    - Otherwise: The synchronous nature will give worse performance than `useEffect`, without any benefits!
+
+Learn more: https://react.dev/reference/react/useLayoutEffect
 
 ### Notes from the video
 
 #### Setup
 
+Create Counter.js and write some code:
+
 ```sh
-cd 7_component_lifecycle
-echo > 
+cd test-app
+cd src
+echo > Counter.js
 ```
 
-#### 
+```js
+// Counter.js
+import { useState } from 'react';
+
+export default function Counter() {
+    const [count, setCount] = useState(0);
+    const [bool, setBool] = useState(false);
+
+    return (
+        <div className='counter'>
+            <button onClick={() => setBool(!bool)}>Re-Render</button>
+            <button onClick={() => setCount(count + 1)}>Increment</button>
+            <p>Count: {count}</p>
+        </div>
+    );
+}
+```
+
+Update App.js:
+
+```js
+// App.js
+
+```
+
+View in Google Chrome:
+
+```sh
+cd test-app
+
+npm start
+```
+
+What is going on in this App:
+- State for isShown that defaults to true
+- Button that toggles isShown from true/false
+    - true: button says 'Hide Counter'
+    - false: button says 'Show Counter'
+        - Counter is either hidden or shown based on the isShown state
+
+- Counter component from Counter.js
+    - button 1: re-render (toggles the boolean state)
+    - button 2: increment: works like a normal counter
+
+Notes:
+- The count resets when you hit 'show counter', because it is making a new counter.
+- Re-Render currently does nothing
+    - Changed values are not being displayed
+
+#### Component Lifecycle
+
+Idea of Component Lifecycle: The different stages a component can be in!
+
+1. Mount / initial render: Component is added to screen for the first time
+- Clicking 'Show Counter'
+
+2. Updates / re-render: Whenever the state or props value is changing, it needs to update (Change values + update DOM)
+- Clicking 'Increment'
+- Clicking 'Re-Render'
+
+3. Unmount / leave the screen: Component is being deleted 
+- Clicking 'Hide Counter'
 
 
+#### useEffect
 
-####
+Sometimes, we have to hook into a component lifecycle to do something. That is when useEffect comes in.
+
+useEffect: 
+
+```js
+import { useState, useEffect } from 'react';
+...
+    const [count, setCount] = useState(0);
+    const [bool, setBool] = useState(false);
+
+    useEffect(() => {
+        console.log('render');
+    });
+```
+
+Notes on useEffect:
+- useEffect runs after every render
+    - YES: mount
+    - YES: re-render
+    - NO: unmounted
+
+- Input: Usually use arrow functions
+    - Can use regular/any function too
+    - Just cannot use async functions
+
+#### Dependency Array
+
+Now, we only want to call this for certain renders. Let's add another useEffect() to help explain this:
+
+```js
+// Counter.js
+import { useState, useEffect } from 'react';
+
+export default function Counter() {
+    const [count, setCount] = useState(0);
+    const [bool, setBool] = useState(false);
+
+    useEffect(() => {
+        console.log('render');
+    });
+
+    useEffect(() => {
+        console.log('pressed re-render');
+    }, [bool]);
+
+    useEffect(() => {
+        console.log('mounted');
+    }, []);
+
+    return (
+        <div className='counter'>
+            <button onClick={() => setBool(!bool)}>Re-Render</button>
+            <button onClick={() => setCount(count + 1)}>Increment</button>
+            <p>Count: {count}</p>
+        </div>
+    );
+}
+
+```
+
+Notes:
+- You can (and usually will) have 2+ useEffect
+    - They run in order
+
+- 2nd argument of useEffect: Dependency array
+    - Anything in this array determines when the effect will run
+        - default: runs everytime
+        - with dependency array: only run if an element changes!
+            - empty array: only runs on mount
+
+#### Cleanup Functions
+
+Next, these effects can also return a 'cleanup' function.
+
+Cleanup Functions: 
+- Used to cleanup code from previous effect
+
+In action:
+
+```js
+import { useState, useEffect } from 'react';
+
+export default function Counter() {
+    const [count, setCount] = useState(0);
+    const [bool, setBool] = useState(false);
+
+    useEffect(() => {
+        console.log('count changed');
+
+        return () => console.log('cleanup count changed');
+    }, [count]);
+
+    useEffect(() => {
+        console.log('render');
+    });
+
+    return (
+        <div className='counter'>
+            <button onClick={() => setBool(!bool)}>Re-Render</button>
+            <button onClick={() => setCount(count + 1)}>Increment</button>
+            <p>Count: {count}</p>
+        </div>
+    );
+}
+```
+
+Notes:
+- Pressing 'Hide Counter' does the following:
+    - print 'cleanup count change' (count changes)
+
+- Pressing 'Increment' does the following:
+    - print 'cleanup count change' (count changes)
+    - print 'count changed' (count changes)
+    - print 'render' (that useEffect has no dependency array, so it runs everytime!)
 
 
+#### Avoiding Infinite Loops
+
+One last thing with useEffect: Infinite Loops (Common error)
+
+Let's look at this chunk of code:
+
+```js
+useEffect(() => {
+    setCount(count + 1);
+}, [count]);
+```
+
+What happens/Why this is bad:
+- Count is in the dependency array
+    - So: When count changes, useEffect needs to run
+        - Then: This cause useEffect to run again, and again, and again
+
+#### useLayoutEffect
+
+Next, let's look at an example:
+
+```js
+import { useState, useEffect } from 'react';
+
+export default function Counter() {
+    const [count, setCount] = useState(0);
+    const [bool, setBool] = useState(false);
+
+    useEffect(() => {
+        if (count === 3) {
+            setCount(4);
+        }
+    }, [count]);
+
+    useEffect(() => {
+        console.log('render');
+    });
+
+    const startTime = new Date();
+    while (new Date() - startTime < 100) {} // This does some stalling to help see what's going on on the screen
+
+    return (
+        <div className='counter'>
+            <button onClick={() => setBool(!bool)}>Re-Render</button>
+            <button onClick={() => setCount(count + 1)}>Increment</button>
+            <p>Count: {count}</p>
+        </div>
+    );
+}
+```
+
+useEffect: Runs asynchronously, after the render, and after being painted to the screen
+- This causes the 3 to appear on the screen for a moment, and then become 4 after
+    - This is not ideal, as we don't want 3 to show on the screen at all!
+        - Most of the time, this does not matter, but there is a remedy...
+
+useLayoutEffect: Runs synchronously AFTER the render, but BEFORE the painting to the screen
+- This will allow the 3 to not appear on screen at all
+
+Change this code to see it in action:
+
+```js
+import { useState, useEffect, useLayoutEffect } from 'react';
+    ...
+    useLayoutEffect(() => {
+        if (count === 3) {
+            setCount(4);
+        }
+    }, [count]);
+```
+
+What happens now:
+- We get 1, 2, 4
+    - When count is set to 3, we don't get it painted to the screen
+
+Word of advice: Avoid using useLayoutEffect!
+- Its synchronous nature can cause things to run slowly
 
 #### Git
 
