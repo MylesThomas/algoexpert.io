@@ -1,16 +1,18 @@
-import { useState } from "react";
-import Counter from './Counter';
-import './App.css';
+import { forwardRef } from "react";
 
 export default function App() {
-  const [isShown, setIsShown] = useState(true);
-
   return (
     <>
-      <button onClick={() => setIsShown(!isShown)}>
-        {isShown ? 'Hide Counter' : 'Show Counter'}
-      </button>
-      {isShown ? <Counter /> : null} 
+      <MyInput ref={handleRef}/>
+      {/* <button onClick={focusInput}>Focus</button> */}
     </>
   );
 }
+
+function handleRef(domNode) {
+  console.log(domNode);
+}
+
+const MyInput = forwardRef(function (props, ref) {
+  return <input ref={ref} {...props} style={{color: 'red'}} />
+});

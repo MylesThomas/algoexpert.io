@@ -16094,24 +16094,340 @@ q
 
 ## 8: Refs
 
+In React, refs are special things to store special stuff.
+- Easy
+- Very useful!
+
 ### Key Terms
+
+#### Ref
+
+A React value specific to an instance of a component that persists between renders, but updating the value does not cause a re-render (unlike state)
+- Oftentimes: Used to reference the DOM node associated with the component
+    - Can be achieved with the attribute `ref`
+
+Learn more: https://react.dev/learn/referencing-values-with-refs
+
+#### useRef
+
+A React hook for creating a ref.
+- Input: Initial value
+- Return: a ref
+
+The ref is simply an object with a `current` property set to the current value:
+
+```js
+const div = useRef(null);
+return <div ref={div}>This div has a ref</div>;
+```
+
+Learn more: https://react.dev/reference/react/useRef
+
+#### React.forwardRef
+
+A function used by a custom component to forward a ref attribute on to a child element.
+- higher-order component: Which means, it takes in a component and returns a new one
+    - input: component
+    - return: component
+
+- In this case: Takes a component that has a 2nd parameter for the ref
+
+Example:
+
+```js
+function Parent() {
+    const ref = useRef(null);
+    return <Child ref={ref}>This child has a ref</Child>;
+}
+
+const child = forwardRef(function (props, ref) {
+    return <div ref={ref}>{props.children}</div>;
+});
+```
+
+Learn more: https://react.dev/reference/react/forwardRef
 
 ### Notes from the video
 
 #### Setup
 
-```sh
-cd 8_refs
-echo > 
+Update App.js to look like this:
+
+```js
+// App.js
+import { useState } from "react";
+
+export default function App() {
+  const [seconds, setSeconds] = useState(0);
+
+  const startTimer = () => {
+    setInterval(() => {
+      setSeconds(currSeconds => currSeconds + 1);
+    }, 1000);
+  };
+
+  const stopTimer = () => {
+    //
+  };
+
+  return (
+    <>
+      <button onClick={startTimer}>Start</button>
+      <button onClick={stopTimer}>Stop</button>
+      <p>seconds: {seconds}</p>
+    </>
+  );
+}
+
 ```
 
-#### 
+What this is:
+- State initialized to 0
+    - seconds
+    - setter: setSeconds
 
+- startTimer function: starts an interval, updates the seconds variable
+    - we use `setSeconds(currSeconds => currSeconds + 1);` to avoid any stale values
 
+- stopTimer function: has not been implemented yet...
 
-####
+- return value: 2 buttons
+    - start button
+    - stop button
+        - also, a paragraph to tell how many seconds have passed
 
+Run in Chrome:
 
+```sh
+cd test-app
+
+npm start
+```
+
+Open up the Console so we can view logging via Chrome > Inspect > Console.
+
+#### useRef
+
+Let's start writing the functionality for stopTimer:
+
+```js
+export default function App() {
+  const [seconds, setSeconds] = useState(0);
+  const [timerID, setTimerID] = useState(null);
+
+  const startTimer = () => {
+    setTimerID(setInterval(() => {
+      setSeconds(currSeconds => currSeconds + 1);
+    }, 1000));
+  };
+
+  const stopTimer = () => {
+    clearInterval(timerID);
+  };
+```
+
+What we did here:
+- use clearInterval to Stop the interval
+- Set timer ID (using state)
+    - If we want a value to persist across renders, we must use state!
+    - When we tried doing this with let timerID = 0, when we click startTimer, we lose access to timerID because it becomes null
+
+Note: This is still sub-optimal, every time we start the interval, we call setTimerID (we don't need to re-render, so it is unnecessary)
+- Only 1 render so not a big issue, but in other cases this could cause an infinite loop
+
+How do we solve this so that updating timerID does not cause a re-render?
+
+Answer: Make the state variable an object (instead of null!)
+- Using an object with `current: null` will allow the App to function how we expect
+- Why does this work:
+    - We are no longer calling setTimerID (which causes a re-render...)
+    - We are simply accessing/changing a value in the object
+        - obj.current
+
+```js
+import { useState } from "react";
+
+export default function App() {
+  const [seconds, setSeconds] = useState(0);
+  const [timerID, setTimerID] = useState({
+    current: null,
+  });
+
+  const startTimer = () => {
+    timerID.current = setInterval(() => {
+      setSeconds(currSeconds => currSeconds + 1);
+    }, 1000);
+  };
+
+  const stopTimer = () => {
+    clearInterval(timerID.current);
+  };
+
+  return (
+    <>
+      <button onClick={startTimer}>Start</button>
+      <button onClick={stopTimer}>Stop</button>
+      <p>seconds: {seconds}</p>
+    </>
+  );
+}
+
+```
+    
+Notes
+- Not the cleanest code, we are kind of hacking
+    - not using setTimerID function (we get a warning "'setTimerID' is assigned a value but never used")
+    - not using the state variable
+
+Lucky for us: React has something built in to fix this! The ref.
+
+```js
+// App.js (line 5)
+
+// old
+const [timerID, setTimerID] = useState({
+    current: null,
+  });
+
+// new
+import { useState, useRef } from "react"; // import 
+...
+const timerID = useRef(null); // line 5
+```
+
+Notes:
+- This works that same as useState with an object.current
+    - It does not return a value with array and setter function, but just the timerID value!
+
+- While refs have specific functionality, they are basically just syntactic sugar around passing a value to state, when you don't need the setter function
+    - Value persists across renders
+    - Changing the value never causes a re-render!
+
+#### ref Attribute
+
+Common use case of Ref: 
+
+Start by putting the code in this state:
+
+```js
+import { useState, useRef } from "react";
+
+export default function App() {
+  const inputRef = useRef(null);
+  console.log("Before render: " + inputRef); // null
+
+  const focusInput = () => {
+    inputRef.current.focus();
+  };
+  
+  return (
+    <>
+      <input ref={inputRef}/>
+      <button onClick={focusInput}>Focus</button>
+    </>
+  );
+}
+
+```
+
+What we did:
+- Return value: Input, button
+- Goal: Input box w/ a button that has you 'focus' on the input text
+
+Notes:
+- We need the actual input from the DOM for `focusInput` in order to make it focus, so we used the React way of using JSX and useRef()
+    - Created inputRef
+    - In the JSX/return area, set the input's ref to be inputRef
+    - Edited focusInput() so that it makes inputRef.current to .focus()
+
+One key point: At the top of the function (before the DOM node is created), the inputRef is still null
+- Point: cannot use inputRef until the first render completes!
+
+#### forwardRef
+
+Key point: Ref attributes can only be added to DOM nodes
+- Cannot be added to custom components
+
+This will give an error of "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?" AND "Uncaught TypeError: Cannot read properties of null (reading 'focus')":
+
+```js
+...
+  return (
+    <>
+      <MyInput ref={inputRef}/>
+      <button onClick={focusInput}>Focus</button>
+    </>
+  );
+}
+
+function MyInput(props) {
+  return <input {...props} style={{color: 'red'}} />
+}
+```
+
+But, there is a work-around/way to do this...
+
+How to hack and add to custom components - forwardRef!
+
+```js
+const MyInput = forwardRef(function (props, ref) {
+  return <input ref={ref} {...props} style={{color: 'red'}} />
+});
+```
+
+You should now see your input with the custom color of red.
+
+What we did here:
+- Wrap entire functional component in a forwardRef
+    - Remove name 'MyInput' from function
+    - Save the forward ref as const 'MyInput'
+    - Add `ref` as 2nd parameter
+    - Use the ref (Tell the return value which DOM element is going to use the Ref)
+        - ie. `<input ref={ref} ... >`
+
+Note:
+
+Idea: We are using an input that is not controlled by any state (using refs instead via `inputRef.current.value`) is known as an uncontrolled component
+- Most of the time: Don't want to do this
+    - Using a controlled component with state is best, typically
+
+- For times we do want an uncontrolled component OR we want a Ref on a controlled component:
+    - Use state for the value
+    - Have values of un-controlled by using Ref
+
+#### Callback Refs
+
+To this point: We have created refs with `useRef`.
+
+But, what if we want to use the ref callback to store a reference to a DOM node in an instance property:
+
+```js
+export default function App() {
+  return (
+    <>
+      <MyInput ref={handleRef}/>
+      {/* <button onClick={focusInput}>Focus</button> */}
+    </>
+  );
+}
+
+function handleRef(domNode) {
+  console.log(domNode);
+}
+```
+
+What we did here:
+- handleRef(): Runs on mount and un-mount (not on all re-renders)
+    - takes in: DOM node
+    - gives back: 
+        - when it runs on mount: domNode
+        - when it runs on re-render: nothing at all
+        - when it runs on unmount: null
+
+Note: We don't use this very much!
+- useRef hook does the job for most, such as:
+    - focusing hooks
+    - keeping track of a persistent value that we want to change, without re-rendering
 
 #### Git
 
