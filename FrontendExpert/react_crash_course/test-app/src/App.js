@@ -1,18 +1,21 @@
-import { forwardRef } from "react";
+import { useRef } from 'react';
+import Counter from './Counter';
+import CustomInput from './CustomInput';
+import './App.css';
 
 export default function App() {
+  const counterRef = useRef();
+  const customInputRef = useRef();
   return (
     <>
-      <MyInput ref={handleRef}/>
-      {/* <button onClick={focusInput}>Focus</button> */}
+      <Counter ref={counterRef} />
+      <CustomInput ref={customInputRef} placeholder="Type something..." />
+      <button onClick={() => {
+        counterRef.current.reset();
+        customInputRef.current.reset();
+      }}>
+        Reset
+      </button>
     </>
   );
 }
-
-function handleRef(domNode) {
-  console.log(domNode);
-}
-
-const MyInput = forwardRef(function (props, ref) {
-  return <input ref={ref} {...props} style={{color: 'red'}} />
-});

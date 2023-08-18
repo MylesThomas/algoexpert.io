@@ -1,27 +1,20 @@
-import { useState, useEffect, useLayoutEffect } from 'react';
+import { useState, forwardRef, useImperativeHandle } from 'react';
 
-export default function Counter() {
+export default forwardRef(function Counter(props, ref) {
     const [count, setCount] = useState(0);
-    const [bool, setBool] = useState(false);
 
-    useLayoutEffect(() => {
-        if (count === 3) {
-            setCount(4);
-        }
-    }, [count]);
-
-    useEffect(() => {
-        console.log('render');
+    useImperativeHandle(ref, () => {
+        return {
+            reset: () => setCount(0)
+        };
     });
 
-    const startTime = new Date();
-    while (new Date() - startTime < 100) {} // This does some stalling to help see what's going on on the screen
-
     return (
-        <div className='counter'>
-            <button onClick={() => setBool(!bool)}>Re-Render</button>
-            <button onClick={() => setCount(count + 1)}>Increment</button>
+        <>
+            <button onClick={() => setCount(count + 1)}>
+                Increment
+            </button>
             <p>Count: {count}</p>
-        </div>
+        </>
     );
-}
+});

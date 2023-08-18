@@ -16445,24 +16445,269 @@ q
 
 ## 9: Imperative React
 
-### Key Terms
+This is where React starts to get a bit complicated. You've been warned...
+
+### Key Term
+
+#### useImperativeHandle
+
+A React hook for customizing the value provided to a parent component when using a ref.
+
+useImperativeHandle hook:
+- Takes in a ref as 1st parameter
+- Takes in a callback function
+- Optional: Dependency array
+
+The return value of the callback function will act as the `current` value of the ref.
+- If any item in the dependency array changes between renders, the callback function will be invoked again to recalculate the `current` value
+
+Since `useImperativeHandle` requires a ref on custom component, it should always be used with `React.forwardRef`.
+
+For example:
+
+```js
+forwardRef(function (props, ref)) {
+    const [count, setCount] = useState(0);
+
+    useImperativeHandle(ref, () => {
+        return {
+            resetCount: () => setCount(0)
+        };
+    });
+
+    return (
+        <button onClick={() => setCount(count + 1)}>
+            Increment
+        </button>
+    );
+}
+```
 
 ### Notes from the video
 
 #### Setup
 
-```sh
-cd 9_imperative_react
-echo > 
+Current state of App.js:
+
+```js
+// App.js
+import Counter from './Counter';
+import CustomInput from './CustomInput';
+import './App.css';
+
+export default function App() {
+  return (
+    <>
+      <Counter />
+      <CustomInput placeholder="Type something..." />
+      <button>
+        Reset
+      </button>
+    </>
+  );
+}
+
 ```
 
-#### 
+Counter.js:
+
+```js
+// Counter.js
+import { useState } from 'react';
+
+export default function Counter() {
+    const [count, setCount] = useState(0);
+
+    return (
+        <>
+            <button onClick={() => setCount(count + 1)}>
+                Increment
+            </button>
+            <p>Count: {count}</p>
+        </>
+    );
+};
+
+```
+
+Finally, CustomInput.js:
+
+```js
+// CustomInput.js
+import { useState } from 'react';
+
+export default function CustomInput(props) {
+    const [value, setValue] = useState('');
+
+    return (
+        <input
+            {...props}
+            value={value}
+            onChange={event => setValue(event.target.value)}
+            style={{color: 'red'}} />
+    );
+};
+
+```
+
+Goal here: Add clickEventHanldler to the reset button, that will reset 2 things:
+- count
+- text in custom input
+
+Run in Google Chrome:
+
+```sh
+npm start
+```
+
+Right click > Inspect > Console.
+
+#### Coding
+
+What we know: React is a declarative library
+- Sometimes: We want to use our components in an imperative way
+
+Note: declarative vs. imperative
+- declarative: specifying the result you want
+- imperative: writing explicit sequence of commands
 
 
+So, back to the example, let's think, how do we get the 'Reset' button to reset both of the components??
+- Method 1: We can lift the state up
+    - This would work, but separates the state from components they are related to
+        - Does not make sense to have them higher up
+            - In more complicated examples, this can cause app component to balloon out of control
 
-####
+- Method 2: Add a clickEventHandler to the buttons (We want an imperative way to control these components)
+    - What we want this function to do:
+        - RESET counter
+        - RESET custom input
+            - We cannot just do it like this currently, so we must do it another way
 
+- Method 3: Use a Ref to reference the counter and custom input
+    - 
 
+```js
+// import Ref
+import { useRef } from 'react';
+
+// add to App
+const counterRef = useRef();
+const customInputRef = useRef();
+
+// add to JSX
+...
+<Counter ref={counterRef} />
+<CustomInput ref={customInputRef} placeholder="Type something..." />
+
+```
+
+After this, we are sure to be able to come into this button and use onClick to reset both. No? Why is that?
+- When we use a Ref, the current value is set equal to a DOM node
+    - DOM nodes know nothing about React state
+        - React state is handled by React...
+
+What do we need to do, then?
+- Go into Counter AND CustomInput components
+    - control what values they pass to their parent as a ref
+
+Steps to doing this:
+1. Add a forwardRef
+- Since it is a custom component, we need to use forwardRef
+- Make sure to import forwardRef from 'react'
+- Make sure the component takes in `props` and `ref`
+- use another hook known as `useImperativeHandle()` from 'react'
+    - inputs:
+        - ref: 
+        - function: 
+    - outputs: object
+        - object (returned from function, it is the current value of the ref)
+            - key: .reset
+            - value: function that will setCount(0)
+    
+Notes:
+- Not going to pass ref to the button (or another element) - We don't want the ref to be equal to a DOM node, so
+- If we only wanted to calculate return value on mount, we can add an empty dependency array, or could add something like [count]
+    - Most of the time you don't add a dependency array
+
+2. 
+
+Let's head into these files and make the changes:
+
+```js
+// Counter.js
+import { useState, forwardRef, useImperativeHandle } from 'react';
+
+export default forwardRef(function Counter(props, ref) {
+    const [count, setCount] = useState(0);
+
+    useImperativeHandle(ref, () => {
+        return {
+            reset: () => setCount(0)
+        };
+    });
+
+    return (
+        <>
+            <button onClick={() => setCount(count + 1)}>
+                Increment
+            </button>
+            <p>Count: {count}</p>
+        </>
+    );
+});
+```
+
+```js
+// CustomInput.js
+import { useState, forwardRef, useImperativeHandle } from 'react';
+
+export default forwardRef(function CustomInput(props, ref) {
+    const [value, setValue] = useState('');
+
+    useImperativeHandle(ref, () => {
+        return {
+            reset: () => setValue('')
+        };
+    });
+
+    return (
+        <input
+            {...props}
+            value={value}
+            onChange={event => setValue(event.target.value)}
+            style={{color: 'red'}} />
+    );
+});
+
+```
+
+Finally, head back over to App.js and make the button's onClick call 2 things:
+- counterRef.current.reset();
+- customInputRef.current.reset();
+
+```js
+// App.js
+<button onClick={() => {
+    counterRef.current.reset(); // new
+    customInputRef.current.reset(); // new 
+}}>
+    Reset
+</button>
+
+```
+
+You can now head over to the browser, type into the customInput, increment the count, and when you press reset, everything goes back to the initial state!!
+
+Takeaways:
+- useImperativeHandle(): A hook that lets us use the componenet we have refs to, in an imperative way
+    - We are calling some function from the components
+    - Can also access any data that we pass up to the ref
+
+- Use this with caution! ("escape hatch")
+    - It is good to know about and can be helpful, but...
+    - If you use it too much, that is not good because you take away from React's declarative nature!
+        - Your code will get hard to read
 
 #### Git
 
