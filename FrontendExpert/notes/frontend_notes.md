@@ -17117,24 +17117,221 @@ q
 
 ## 11: Component Lists
 
-### Key Terms
+Welcome to lists in React! Where this:
+
+```js
+<li>1</li>
+<li>2</li>
+<li>3</li>
+```
+
+Turns into this:
+
+```js
+<>{[1,2,3].map(num => <li key={num}>{num}</li>)}</>
+```
+
+### Key Term
+
+#### Kep Prop
+
+A prop passed to each element in a list to help React keep track of those elements.
+- Should be unique identifiers
+
+By passing key props, if the list changes, React can easily know which elements need to be mounted/updated/un-mounted.
+
+For example, when rendering an array of messages from the server, message IDs could be used as a key prop:
+
+```js
+return (
+    {
+        messages.map(message => {
+            return <p key = {message.id}>{message.text}</p>;
+        });
+    }
+);
+```
+
+Learn more: https://react.dev/learn/rendering-lists#keeping-list-items-in-order-with-key
 
 ### Notes from the video
 
 #### Setup
 
-```sh
-cd 11_components_list
-echo > 
+```js
+// App.js
+import { useState } from 'react';
+
+export default function App() {
+  const [items, setItems] = useState([]);
+  const [newItem, setNewItem] = useState('');
+  
+  return (
+    <>
+      <ul>
+        {/* { TO DO} */}
+      </ul>
+
+      <input
+        type="text"
+        value={newItem}
+        onChange={(event) => setNewItem(event.target.value)}/>
+
+      <button onClick={() => {
+        setItems([...items, newItem]);
+        setNewItem('');
+      }}>
+        Add List Item
+      </button>
+    </>
+  );
+}
+
 ```
 
-#### 
+View in the Browser:
 
+```sh
+npm start
+```
 
+View the Console via Chrome Right click > Inspect > Console.
 
-####
+#### Rendering Lists
 
+How can we take an array of data, and turn it into a list of JSX elements that can be added to the DOM?
 
+What we have right now:
+- 2 items of state
+    - items: default of empty array
+    - newItem: default of empty string
+
+- return value
+    - unordered list
+    - input value (input a new list item ie. newItem)
+    - button (saves whatever you put in the input, into the items state array)
+
+Goal: Create a list item for each item in the array
+
+How to do this: 1 nice feature of React is that inside of a JSX return value, you can have an array of elements, that all get added to the screen 
+- You need to add a "key" prop to each item in the list
+    - This is makes sure that React knows which list item is which, so it can mount/un-mount/update the right components
+    - We should not be hard coding these values, but should be using the items from useState.
+
+#### Key Props
+
+How do we do this?
+- Create an array
+- Use the .map function
+    - convert the strings into list items
+    - make sure to add a unique key prop
+
+```js
+// App.js
+import { useState } from 'react';
+
+export default function App() {
+  const [items, setItems] = useState([]);
+  const [newItem, setNewItem] = useState('');
+  
+  return (
+    <>
+      <ul>
+        { items.map(item => {
+          return (
+            <li key={item}>{item}</li>
+          );
+        }) }
+      </ul>
+
+      <input
+        type="text"
+        value={newItem}
+        onChange={(event) => setNewItem(event.target.value)}/>
+
+      <button onClick={() => {
+        setItems([...items, newItem]);
+        setNewItem('');
+      }}>
+        Add List Item
+      </button>
+    </>
+  );
+}
+
+```
+
+Now, when you add a new list item, this works as you would expect:
+- 1 caveat: if you add a duplicate item, you will get a warning message
+    - "2 children have the same key"
+    - make sure you always have unique keys!
+        - most of the time you are iterating with data from the server, and they will be unique
+        - backup: use an index
+
+Example of using an index:
+
+```js
+...
+<ul>
+{ items.map((item, i) => {
+    return (
+    <li key={i}>{item}</li>
+    );
+}) }
+</ul>
+...
+```
+
+Note: Using index as a key should be LAST RESORT
+- It can run into issues with React losing track of which element is which
+    - Especially when elements are added in the middle of the list...
+
+#### Fragments
+
+One final point: Fragments
+
+Example: We are returning a fragement, with list item inside of the fragment
+
+```js
+<ul>
+{ items.map((item, i) => {
+    return (
+    <>
+        <li key={i}>{item}</li>
+        <li key="test">Test</li>
+    </>
+    );
+}) }
+</ul>
+```
+
+We now have the same issue as before! (The direct items inside of the list is now the fragment, not the list item, so we no longer have key items)
+
+We cannot add a key prop to the fragment, so instead of using short name syntax, we have to use the full fragment name. Steps:
+- import Fragment from react
+- Use the full fragment name in the return value JSX
+- add a `key` prop to the Fragment
+    - ie. key={item}
+    - you no longer need the keys for the children, as they are not in a list (the only items directly in the last are the Fragments!)
+
+```js
+<ul>
+{ items.map((item, i) => {
+    return (
+    <Fragment key={item}>
+        <li>{item}</li>
+        <li>Test</li>
+    </Fragment>
+    );
+}) }
+</ul>
+```
+
+#### Takeaways
+
+That is all you need to know to render a component list!
+- Make sure any element directly in that list gets a key prop
+- From there, add an array of elements into the JSX
 
 #### Git
 
