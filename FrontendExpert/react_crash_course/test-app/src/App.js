@@ -1,21 +1,23 @@
-import { useRef } from 'react';
-import Counter from './Counter';
-import CustomInput from './CustomInput';
-import './App.css';
+import Profile from './Profile';
+import { UserContext, UserContextProvider } from './UserContext';
+import { useContext } from 'react';
 
 export default function App() {
-  const counterRef = useRef();
-  const customInputRef = useRef();
+  return (
+    <main>
+      <UserContextProvider>
+        <AppInteral />
+      </UserContextProvider>
+    </main>
+  );
+}
+
+function AppInteral() {
+  const { toggleUser } = useContext(UserContext);
   return (
     <>
-      <Counter ref={counterRef} />
-      <CustomInput ref={customInputRef} placeholder="Type something..." />
-      <button onClick={() => {
-        counterRef.current.reset();
-        customInputRef.current.reset();
-      }}>
-        Reset
-      </button>
+      <Profile />
+      <button onClick={toggleUser}>Toggle User</button>
     </>
   );
 }

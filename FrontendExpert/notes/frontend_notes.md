@@ -16725,24 +16725,381 @@ q
 
 ## 10: Contexts
 
+Just as context is important in real life, so too is it important in a React codebase!
+
 ### Key Terms
+
+#### Context
+
+A way to pass values down a component tree without needing to pass props through all of the components (this is known as prop drilling)
+- Contexts are generally useful for global state, needed throughout an application/page
+    - It would be very inconvenient to have to pass props to every element on the page...
+
+Learn more: https://react.dev/learn/passing-data-deeply-with-context
+
+#### React.createContext
+
+A react function for creating a context object.
+- Takes in: Default value, which is used if there is not a matching context provider in a tree
+
+For example, this would create a context that could be used to keep track of a user's selected theme:
+
+```js
+const ThemeContext = createContext({
+    mode: 'dark'
+});
+```
+
+This context would then have a .provider component, which must be above any components in the tree that wish to use the context. The `value` prop will be passed as the value to all children using the context. For example:
+
+```js
+return (
+    <ThemeContext.Provider value={{mode: 'dark'}}>
+        {props.children}
+    </ThemeContext.Provider>
+);
+```
+
+Learn more: https://react.dev/reference/react/createContext
+
+#### useContext
+
+A React hook for using a context.
+- Takes in: A context object (created with `createContext()`)
+- Returns: The value from the first context provider of that context above it in the tree
+
+For example:
+
+```js
+const theme = useContext(ThemeContext);
+console.log(theme.mode); // 'dark'
+```
+
+Learn more: https://react.dev/reference/react/useContext
 
 ### Notes from the video
 
 #### Setup
 
+We have 5 JavaScript files this time around, so buckle up...
+
 ```sh
-cd 10_contexts
-echo > 
+cd test-app
+cd src
+
+echo > App.js
+echo > Profile.js
+echo > WelcomeBanner.js
+echo > Course.js
+echo > UserContext.js 
 ```
 
-#### 
+```js
+// App.js
+import { useState } from 'react';
+import Profile from './Profile';
 
+const conner = {
+  name: 'Conner',
+  course: 'FrontendExpert', 
+};
 
+const clement = {
+  name: 'Clement',
+  course: 'AlgoExpert', 
+};
 
-####
+export default function App() {
+  const [user, setUser] = useState(conner); // default state: user = conner
 
+  const toggleUser = () => {
+    if (user === conner) {
+      setUser(clement);
+    } else {
+      setUser(conner);
+    }
+  }
 
+  return (
+    <main>
+      <Profile user={user} />
+      <button onClick={toggleUser}>Toggle User</button>
+    </main>
+  );
+}
+
+```
+
+```js
+// Profile.js
+import WelcomeBanner from './WelcomeBanner';
+import Course from './Course';
+
+export default function Profile({user}) {
+    return (
+        <>
+            <WelcomeBanner user={user} />
+            <Course user={user} />
+            
+        </>
+    );
+}
+
+```
+
+```js
+// WelcomeBanner.js
+export default function WelcomeBanner({user}) {
+    return <h1>Hello {user.name}</h1>
+}
+```
+
+```js
+// Course.js
+export default function Course({user}) {
+    return <p>Your course is {user.course}</p>
+}
+```
+
+```js
+// UserContext.js
+
+// empty for now, since the example works without it right now!
+
+```
+
+Run the App in Chrome:
+
+```sh
+npm start
+```
+
+What you should see:
+- Hello 'name'
+- Your course is 'course'
+
+#### Prop Drilling
+
+Context = Another form of state in React
+
+Looking at App.js, we can see why it could be useful:
+- State for a user
+    - toggleUser: will be used to toggle between Conner/Clement
+
+- Return value: Main tag
+    - profile: takes in user as a prop
+    - button: toggles the user
+
+What this current state is known as:
+- Lifting state up
+    - State was lifted to App.js component (that is the lowest level component that has all of the components needing state, as its children)
+- Prop drilling
+    - Sending that state (or some prop) deeply down a React tree
+
+This is fine, but in a more complex situation with more components, passing around props like that is not great!
+
+This is where Context comes in.
+
+#### Context
+
+Context: Allows you to create some state that is accessible by all children (of a component)
+
+Let's edit UserContext.js and create our first context:
+
+```js
+// UserContext.js
+import { createContext } from "react"
+
+export const UserContext = createContext({
+    name: null, // default values
+    course: null,
+}); 
+
+```
+
+We have created a userContext with default values of null.
+
+Head back over to App.js and implement the UserContext:
+- Remember: Context works by sending some state down to all of the children
+
+What to do:
+- Import the context we just created
+- Edit the return value to use UserContext as a JSX element
+    - specifically: UserContext.Provider
+        - creates state, sends the state down to all the children
+            - only the pieces that actually need access to the actual user
+                - ie. Profile, since it needs the `user={user}`
+
+Note: Make sure to add `value={user}` in the UserContext.Provider
+- This makes it so that anything inside of the UserContext has access to the user object
+    - We no longer even need to pass it as a prop to Profile now!
+
+```js
+// App.js
+import { UserContext } from './UserContext';
+...
+  return (
+    <main>
+      <UserContext.Provider value={user}>
+        <Profile />
+      </UserContext.Provider>
+      <button onClick={toggleUser}>Toggle User</button>
+    </main>
+  );
+
+```
+
+#### useContext
+
+Now, it does not work yet, because we have to go into the individual components and have them use the Context instead of using the prop.
+
+Let's do that now:
+- delete the prop from function inputs
+- make a call to useContext hook function
+
+```js
+// Profile.js
+import WelcomeBanner from './WelcomeBanner';
+import Course from './Course';
+import { useContext } from 'react';
+import { UserContext } from './UserContext';
+
+export default function Profile() {
+    const user = useContext(UserContext);
+    return (
+        <>
+            <WelcomeBanner user={user} />
+            <Course user={user} /> 
+        </>
+    );
+}
+
+```
+
+To explain this again:
+- Profile gets the user from the UserContext
+    - useContext looks for the 1st instance of a context provider of this type in the tree above it, ie. 
+        - once we get the value from that state, we can use it just as if it was a prop
+
+Once you save your files, go back to your App in Chrome.
+
+Everything should be working again!
+
+Now, we are still using props in the WelcomeBanner.js and Course.js files, so let's fix that:
+
+```js
+// Profile.js
+
+import WelcomeBanner from './WelcomeBanner';
+import Course from './Course';
+
+export default function Profile() {
+    return (
+        <>
+            <WelcomeBanner />
+            <Course /> 
+        </>
+    );
+}
+
+```
+
+```js
+// WelcomeBanner.js
+import { useContext } from 'react';
+import { UserContext } from './UserContext';
+
+export default function WelcomeBanner() {
+    const user = useContext(UserContext);
+    return <h1>Hello {user.name}</h1>
+}
+```
+
+```js
+// Course.js
+import { useContext } from 'react';
+import { UserContext } from './UserContext';
+
+export default function Course() {
+    const user = useContext(UserContext);
+    return <p>Your course is {user.course}</p>
+}
+```
+
+Once again, everything is working as before!
+
+What we did for each (WelcomeBanner.js / Course.js):
+- Add imports
+- Remove prop from function input
+- Add user = useContext(UserContext) to the function
+
+Important Note: Profile.js, an intermediary component, does not even know that the Context exists
+- Because it doesn't need to know, they don't need to be passing props down
+    - Good: bc no prop drilling + more simple components overall
+
+This is why Contexts are so powerful!!!
+
+#### Custom Provider Components
+
+Next goal: move some of this logic that is connected to the Context, into context itself!
+
+What we are going to do:
+- Move the objects into the Context
+    - conner
+    - clement
+- Move the function(s) into the Context
+    - toggleUser()
+
+Let's move these into the UserContext!
+
+Step 1: Create a UserContextProvider in UserContext.js
+- Contains all extra logic (keep it all in one place)
+- Input: {children}
+- Output: UserContext.Provider with {children}
+
+Step 2: Move the objects/function from App.js into UserContext.js
+- Objects: clement/conner
+- Function: toggleUser
+
+Step 3: Add toggleUser() to the `value={}` of the UserContext.Provider in UserContext.js
+- We need a way to call toggleUser() when the button is clicked on
+
+Step 4: Go into App.js and replace UserContext.Provider with UserContextProvider
+- This is our custom component, so make sure to import it from ./UserContext
+- Another note: remove the value={user}, that is taken care of in UserContext.js
+
+Step 5: Create a helper function in App.js
+- What this helps with: It is a component to hold the children (just so we can use the ContextProvider)
+- We need a way to allow the button in App.js to access toggleUser()
+    - We de-construct and grag toggleUser() from useContext(UserContext)
+
+Note: We cannot call useContext inside of App.js
+- The ContextProvider is inside of App.js children, and it would need to be a parent!
+
+Step 6: In App.js, edit the return value for the JSX
+- use AppInteral instead of Profile
+- You can also remove the button (it is in AppInteral already!)
+
+Step 7: Go to the components that are using the context (WelcomeBanner.js/Course.js) and get the user from that object that is being returned
+- De-construct user via `const { user } = useContext(UserContext);`
+
+Step 8: In UserContext.js, make a couple last changes
+- import useState
+- update the default values to be the same shape
+    - toggleUser: null
+    - user: object
+        - key: name
+        - key: course
+
+Note: This doesn't matter much, but it is good practice to update the created UserContext's default values
+
+#### Takeaways
+
+Context: Creates some state that can be accessible by all children of the context provider
+- works just like state
+    - when the value changes, the components will re-render (giving same effect as state) without using prop drilling to send values throughout children
+
+This makes for much easier to read code!
 
 #### Git
 
