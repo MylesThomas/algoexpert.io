@@ -18339,24 +18339,498 @@ q
 
 ## 15: Class-Based Components
 
-### Key Terms
+You'll never use these, but we still want you to watch a video about them.
+
+### Key Term
+
+#### Class-Based Component
+
+A JavaScript class that extends the `React.Component` class and acts as a React component.
+- All class-based components must implement a `render` method, which usually returns JSX similar to a functional component
+- Instead of taking props as a parameter, all class-based components store their props in the `this.props` instance variable
+    - Moreover, state is stored in `this.state` and updated using the `this.setState` method.
+
+Class-based components cannot use hooks - instead, they can implement a variety of lifecycle methods that work similar to hooks. Here are some of the more commons ones:
+
+- `componentDidMount`: Runs immediately after the component mounts.
+    - Usually used for setting up subscriptions.
+
+- `componentDidUpdate`: Runs immediately after the componenet updates due to a state or props change. 
+    - Common use case: Network requests that depends on props or state
+
+- `componentWillUnmount`: Runs right before a component unmounts
+    - Usually used for cleaning up any subscriptions
+
+- `shouldComponentUpdate`: Similar to `React.memo`, determines if the componenet should re-render based on new props and new state values
+
+Learn more: https://react.dev/reference/react/Component
 
 ### Notes from the video
 
 #### Setup
 
-```sh
-cd 15_class_based_components
-echo > 
+Update the code for App.js:
+
+```js
+// App.js
+import { useState } from 'react';
+
+export default function App() {
+  return (
+    <>
+      <Counter startingCount={10} />
+      <Counter />
+    </>
+  );
+}
+
+function Counter({ startingCount = 0 }) {
+  const [count, setCount] = useState(startingCount);
+
+  return (
+    <>
+      <button onClick={() => setCount(count + 1)}>
+        Increment
+      </button>
+      <p>Count: {count}</p>
+    </>
+  );
+}
+
 ```
 
-#### 
+Run the code in the Browser:
+
+```sh
+npm start
+```
+
+View the Console via Chrome > Right click > Inspect > Console.
+
+#### Converting Functional to Class-Based
+
+So far, we have seen "Functional Components"
+- Functional Components: Functions that return JSX
+
+Components can also be classed!
+- Before Hooks, you had to use Classes
+    - (if you wanted to work with State, or any lifecycle attribute)
+
+Class-Based Components: Not seen very often in modern React
+- Still very important to understand / useful
+
+Starting out, let's take our code that is working, and turn it from Functional to Class-Based:
+
+```js
+// App.js
+import { Component } from 'react';
+
+export default function App() {
+  return (
+    <>
+      <Counter startingCount={10} />
+      <Counter />
+    </>
+  );
+}
+
+class Counter extends Component {
+  constructor(props) {
+      super(props);
+      this.state = {
+          count: props.startingCount ?? 0
+      };
+  }
+
+  render() {
+    return (
+      <>
+        <button onClick={() => {
+          this.setState({
+            count: this.state.count + 1
+          });
+        }}>
+          Increment
+        </button>
+        <p>Count: {this.state.count}</p>
+      </>
+
+    );
+  }
+}
+
+```
+
+What we did here:
+
+1. Turn Counter from `function` into `class`
+- classes don't take any parameters, so remove that
+- instead of taking parameters, extend React's `Component` class
+
+2. Remove useState()
+- Cannot use state, or any Hooks!
+
+3. Change the return statement into a render() method
+- It will call this function when we want to render 
+    - Remember: Each class requires 1 method
+
+4. Create an instance variable for our state (to define `setCount` and `count` - Once we remove the line with useState, these became undefined)
+- count: this.props.startingCount ?? 0
+    - "if startingCount is null/undefined, default to 0"
+- setCount: 
+
+Note: Can also do this with a constructor()
+
+```js
+class Counter extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            count: props.startingCount ?? 0
+        };
+    }
+
+    ...
+
+}
+```
+
+5. Have this.setState() method be called when we want to change 
+- This is used for the onClick() for the button
+    - Input: Entire state object
+
+6. Have `count` come from `this.state.count`
+- This needs to be changed in the return JSX for method render()
 
 
+Everything should work now!
 
-####
+One small note:
+- If you use a standard function in the onClick={} (instead of an arrow function), it will not work
+    - Why? Because we used a function that created a new `this` context
+        - Arrow functions do not create a new context, and still uses the context of the class
 
+Advice for going forward:
+- Arrow functions: Use them!
 
+- If for some reason you HAVE to use a regular function: use .bind(this)
+    - What it does: Binds the .this value of the class, to .this inside of the function
+
+Example in action: 
+
+```js
+  render() {
+    return (
+      <>
+        <button onClick={function() {
+          this.setState({
+            count: this.state.count + 1
+          });
+        }.bind(this)}>
+          Increment
+        </button>
+        <p>Count: {this.state.count}</p>
+      </>
+
+    );
+  }
+```
+
+For readability, let's go back to the arrow function before proceeding.
+
+#### Lifecycle Methods
+
+Next, let's look at Lifecycle Methods.
+- Functional Component: useEffect() can Hook you into the React lifecycle
+- Class-Based Components: Instead of that Hook, there are a variety of different methods to hook into different parts of the lifecycle:
+    - componentDidMount
+    - componentDidUpdate
+    - componentWillUnmount
+    - shouldComponentUpdate
+
+##### Method #1: componentDidMount
+- Works similar to a useEffect() that only runs on mount
+
+```js
+componentDidMount() {
+    console.log('mounted');
+  }
+```
+
+After running this, you will see 'mounted' logged out twice (1 for each instance of the counter)
+- If you increment the counts, nothing happens!
+    - it only runs on initial mounts, not every update...
+
+##### Method #2: componentDidUpdate
+- Invoked immediately after updating occurs, but is not called on the initial render.
+    - Takes in 2 parameters:
+        - prevProps
+        - prevState
+
+```js
+componentDidUpdate(prevProps, prevState) {
+    console.log(prevProps, prevState);
+  }
+```
+
+What happens for this example:
+- Pressing increment for 1st counter:
+    - {startingCount: 10} > {count: 10}
+    - {startingCount: 10} > {count: 11}
+    - {startingCount: 10} > {count: 12}
+    - etc.
+
+- Pressing increment for 2nd counter:
+    - {} > {count: 0}
+    - {} > {count: 1}
+    - {} > {count: 2}
+    - etc.
+
+##### Method #3: componentWillUnmount
+- Runs when a component is about to unmount
+    - 
+
+```js
+componentWillUnmount() {
+    console.log('unmounting');
+  }
+```
+
+You must add some state so that the component actually gets un-mounted:
+
+```js
+// App.js
+export default function App() {
+  const [shouldRender, setShouldRender] = useState(true);
+  return (
+    <>
+      {/* <Counter startingCount={10} /> */}
+      { shouldRender && <Counter /> }
+      <button onClick={() => setShouldRender(!shouldRender)}>
+        Toggle Counter
+      </button>
+    </>
+  );
+}
+```
+
+This code makes it so that the 2nd counter renders conditionally.
+- Increment: Works as you'd expect
+- Toggle Counter: unmounting
+- Toggle Counter (again): mounted/unmounting/mounted
+
+##### Method #4: shouldComponentUpdate
+- Works very similar to React.memo() ie. whenever props/state changes, this method gets the new props/state as parameters
+    - 2 params:
+        - nextProps
+        - nextState
+    
+    - IF function returns true: Re-render
+    - IF NOT and returns false: do nothing (do not re-render)
+
+```js
+shouldComponentUpdate(nextProps, nextState) {
+    console.log('should component update?');
+    console.log(nextProps, nextState);
+    return nextState.count < 3; // update will NOT happen IF nextState.count >= 3
+  }
+```
+
+What happens now:
+- Increment works as expected
+    - Once count gets to 2, nothing will happen to the screen
+        - `shouldComponentUpdate()` checks, and it returns false, so that's why it doesn't increment!
+
+The state is still updated! but the component never gets re-rendered...
+
+#### Refs
+
+Next, let's look at Refs.
+
+Creating a Ref:
+- Functional component: useRef()
+- Class-based component: createRef()
+
+Full code with this.buttonRef:
+
+```js
+// App.js
+import { Component, useState, createRef } from 'react';
+
+export default function App() {
+  const [shouldRender, setShouldRender] = useState(true);
+  return (
+    <>
+      {/* <Counter startingCount={10} /> */}
+      { shouldRender && <Counter /> }
+      <button onClick={() => setShouldRender(!shouldRender)}>
+        Toggle Counter
+      </button>
+    </>
+  );
+}
+
+class Counter extends Component {
+  constructor(props) {
+      super(props);
+      this.state = {
+          count: props.startingCount ?? 0
+      };
+      this.buttonRef = createRef();
+  }
+
+  componentDidMount() {
+    console.log('mounted');
+    console.log(this.buttonRef);
+  }
+
+  render() {
+    // console.log(this.buttonRef); 
+    // (this would return null - the first time render is called, the component is not mounted on the screen - nothing to set the ref to!)
+    return (
+      <>
+        <button ref={this.buttonRef} onClick={() => {
+          this.setState({
+            count: this.state.count + 1
+          });
+        }}>
+          Increment
+        </button>
+        <p>Count: {this.state.count}</p>
+      </>
+    );
+  }
+}
+
+```
+
+#### Contexts
+
+Next, let's define a Context at the top of our file:
+
+```js
+// App.js
+const Theme = createContext({
+  mode: 'dark'
+});
+```
+
+What is this: A context to keep track of whether we are on dark/light mode!
+
+Next, in the App component, add a context provider:
+
+```js
+// App.js
+export default function App() {
+  const [shouldRender, setShouldRender] = useState(true);
+  return (
+    <Theme.Provider value={{mode: 'dark'}}>
+      {/* <Counter startingCount={10} /> */}
+      { shouldRender && <Counter /> }
+      <button onClick={() => setShouldRender(!shouldRender)}>
+        Toggle Counter
+      </button>
+    </Theme.Provider>
+  );
+}
+```
+
+Make sure to add to both the opening and closing tag.
+
+Now, if we want to use a Context with a Class component, we cannot use the useContext() hook!
+
+We have 2 options instead:
+
+1. Add a static variable `contextType`
+- If anywhere inside this `Component` you were to log out `this.context`, it would be 
+    - In this case: {mode: 'dark'}
+
+```js
+import { Component, useState, createRef, createContext } from 'react';
+
+const Theme = createContext({
+  mode: 'dark'
+});
+
+export default function App() {
+  const [shouldRender, setShouldRender] = useState(true);
+  return (
+    <Theme.Provider value={{mode: 'dark'}}>
+      { shouldRender && <Counter /> }
+      <button onClick={() => setShouldRender(!shouldRender)}>
+        Toggle Counter
+      </button>
+    </Theme.Provider>
+  );
+}
+
+class Counter extends Component {
+  static contextType = Theme;
+  constructor(props) {
+      super(props);
+      this.state = {
+          count: props.startingCount ?? 0
+      };
+      this.buttonRef = createRef();
+  }
+
+  componentDidMount() {
+    console.log(this.context);
+  }
+
+  render() {
+    return (
+      <>
+        <button ref={this.buttonRef} onClick={() => {
+          this.setState({
+            count: this.state.count + 1
+          });
+        }}>
+          Increment
+        </button>
+        <p>Count: {this.state.count}</p>
+        <p>Theme: {this.context.mode}</p> // new
+      </>
+    );
+  }
+}
+
+```
+
+This is fine, but we can only consume 1 Context at a time...
+- What if we want multiple Contexts?
+
+2. Add `Theme.Consumer` to the Return JSX in the render() function
+- Takes a function in as the children
+
+```js
+  render() {
+    // console.log(this.buttonRef); 
+    // (this would return null - the first time render is called, the component is not mounted on the screen - nothing to set the ref to!)
+    return (
+      <>
+        ...
+        {/* <p>Theme: {this.context.mode}</p> */}
+        <Theme.Consumer>
+          {
+            context => <p>Theme: {context.mode}</p>
+          }
+        </Theme.Consumer>
+      </>
+    );
+  }
+```
+
+#### Takeaways
+
+Most of the time: Functional Components
+- More Modern
+
+Some of the time: Class
+-  Older
+    - You can do anything in Classes, still
+    - Syntax is different
+    - More Verbose
 
 #### Git
 
