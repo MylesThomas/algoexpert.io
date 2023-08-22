@@ -17349,24 +17349,569 @@ q
 
 ## 12: Performance
 
+To write performant React code, follow 2 simple steps:
+
+Step 1: Never write the code below:
+
+```js
+useEffect(() => {
+    setUselessNumber(uselessNumber + 1);
+}, [uselessNumber]);
+```
+
+Step 2: Watch this video!
+
 ### Key Terms
+
+#### useMemo
+
+A React hook for memoizing a value.
+- Takes in:
+    - A function that returns a value to be memoized
+    - dependency array
+- Returns:
+    - The memoized value
+        - Only calls the passed in function to recalculate the value IF an item in the dependency array changes
+
+Example:
+
+```js
+const value = useMemo(() => slowFunction(x, y), [x, y]);
+```
+
+Learn more: https://react.dev/reference/react/useMemo
+
+#### useCallback
+
+A React hook for memoizing a function. This function works the exact same as `useMemo`, except rather than memoizing the return value of a function, it memoizes the entire function.
+- Can be useful for a variety of reasons
+    - Example: If a callback function is passed into a dependency array that requires it to not change on every render
+
+For example:
+
+```js
+const callback = useCallback(() => console.log(x, y), [x, y]);
+```
+
+Learn more: https://react.dev/reference/react/useCallback
+
+#### React.memo
+
+A React *higher-order component*
+- takes in: a component
+- returns: a memoized version of that componnet
+
+If the props have not changed, wrapping a component in `React.memo` will cause it to avoid re-rendering
+- Optional: This function can take in a 2nd callback function as a parameter
+    - Determines when the component should re-render, with more fine control
+
+For example, this component will only need to re-render when the number prop changes:
+
+```js
+function areEqual(oldProps, newProps) {
+    return oldProps.number === newProps.render;
+}
+
+const MemoizedComponent = React.memo(myComponent, areEqual);
+```
+
+Learn more: https://react.dev/reference/react/memo
+
+#### React.lazy
+
+A React function for dynamically importing components, creating a potential performance boost when certain components are included in a module but not necessary for the initial render.
+- Takes in: Callback function (that is run when the component is used)
+- Returns: A call to the `import` function
+
+Example:
+
+```js
+const LazyComponent = react.lazy(() => import ('./MyComponent'));
+```
+
+Learn more: https://react.dev/reference/react/lazy
+
+#### React.Suspense
+
+A react component for specifying a fallback interface while a child component is preparing to render (such as waiting for a lazy import)
+- Takes in: `fallback` prop of a React element
+- `children` prop: A suspending component
+
+For example:
+
+```js
+<React.Suspense fallback={<LoadingIndicator />}>
+    <LazyComponent>
+</React.Suspense>
+```
+
+Learn more: https://react.dev/reference/react/Suspense
 
 ### Notes from the video
 
 #### Setup
 
-```sh
-cd 12_performance
-echo > 
+Setup App.js and MyButton.js:
+
+```js
+// App.js
+import './App.css';
+import { useState } from 'react';
+import MyButton from './MyButton';
+
+export default function App() {
+  const [num, setNum] = useState(10);
+  const [logValue, setLogValue] = useState('');
+
+  return (
+    <>
+      <h1>Fib {num} is {fib(num)}</h1>
+      <input
+        type="number"
+        value={num}
+        onChange={(event) => setNum(parseInt(event.target.value))}
+      />
+
+      <input
+        type="text"
+        value={logValue}
+        onChange={(event) => setLogValue(event.target.value)}
+      />
+
+      <MyButton onClick={() => {
+        console.log(logValue)
+      }}>Log Value</MyButton>
+    </>
+  );
+}
+
+function fib(n) {
+  if (n === 2) return 1;
+  if (n === 1) return 0;
+  return fib(n - 1) + fib(n - 2);
+}
+
 ```
+
+```sh
+cd src 
+
+echo > MyButton.js
+```
+
+```js
+// MyButton.js
+export default function MyButton(props) {
+    return <button {...props} style={{color: 'red'}} />;
+}
+```
+
+View in Chrome:
+
+```sh
+cd test-app
+
+npm start
+```
+
+View the Console via Right Click > Inspect > Console.
+
+#### Intro
+
+What we are going to look at in this video: Performance
+- 2 main categories:
+    - How to make renders more efficient / take less time
+    - How to minimize the number of renders
+
+Taking a look at our example, here is what we have:
+- 2 pieces of state
+    - number: 10
+    - logValue: ''
+- input: num
+- input: text
+
+- MyButton: A button that makes the text red
+- fib function: 
+    - Used as a placeholder for a slow function (we did not opitimze the time complexity of this function!) 
+
+#### useMemo
+
+Ways to make this code more performant:
+
+First, we want to minimize how long 1 render takes. What is currently happening in each render?
+
+- Create a huge return value
+    - Calculate fib of the numeric input
+        - Even if we type text into the 2nd input, which does not affect the 1st input/fib(num), we are still re-rendering
+
+Memoization: an optimization technique that stores the results of expensive function calls to pure functions and returning the cached result when the same inputs occur again.
+
+Idea: We do not need always calculate this function againt
+- Parameters:
+    - Parameters met: Calculate
+    - Parameters NOT met: Don't do anything, use previous value
+
+How to do this in React: Hook named `useMemo()`
+- Input: Function
+    - () => fib(num)
+- Output: a return value of useMemo()
+    - fibValue = fib(num)
+        - This is only called IF something in a dependency array has changed
+            - Here: Pass in dependency array of [num], so if we changed num, then we will call fib(num)
+
+In the JSX that gets returned, make sure to change fib(num) for fibValue!
+
+```js
+// App.js
+import './App.css';
+import { useState, useMemo } from 'react';
+import MyButton from './MyButton';
+
+export default function App() {
+  const [num, setNum] = useState(10);
+  const [logValue, setLogValue] = useState('');
+
+  const fibValue = useMemo(() => {
+    console.log('calculating fib value');
+    return fib(num); // this is returned IF num changes
+  }, [num]);
+
+  return (
+    <>
+      <h1>Fib {num} is {fibValue}</h1>
+      <input
+        type="number"
+        value={num}
+        onChange={(event) => setNum(parseInt(event.target.value))}
+      />
+
+      <input
+        type="text"
+        value={logValue}
+        onChange={(event) => setLogValue(event.target.value)}
+      />
+
+      <MyButton onClick={() => {
+        console.log(logValue)
+      }}>Log Value</MyButton>
+    </>
+  );
+}
+
+function fib(n) {
+  if (n === 2) return 1;
+  if (n === 1) return 0;
+  return fib(n - 1) + fib(n - 2);
+}
+
+```
+
+Now, this is what we are seeing:
+- change the input number: fib is calculated again
+- change the input text: nothing happens!
+
+Note: Even if a number is repeated ie. 10, we are doing the calculation again
+- useMemo() IS checking if the dependency array is changing
+- useMemo() is NOT saving the calls we have done to a cache or anything like that
+
+Note: we could make it changed each time by making the dependency array `[num, logValue]`
+- each letter typed has the value calculated again
+
+Remove logValue from the dependency array and save before moving on.
+
+To sum up this idea: If you have something calculated that does not change every render, use the useMemo() Hook
+- It will save the component, from needing to calculate a value that hasn't changed, over again
+
+#### React.memo
+
+First, we looked at minimizing how long 1 render takes.
+
+Next, we would like to minimize the number of renders we need to make!
+
+Head over to MyButton.js and add this log statement so we can begin to understand just how often we are re-rendering the screen:
+
+```js
+// MyButton.js
+export default function MyButton(props) {
+    console.log('Rendering MyButton');
+
+    // const startTime = new Date();
+    // while (new Date() - startTime < 1000) {} (This will make the page take 1 second every render)
+
+    return <button {...props} style={{color: 'red'}} />;
+}
+```
+
+As it currently stands, we single time we add a new letter in the text input box, we are re-rendering the screen.
+- Anytime the state changes, we are re-rendering MyButton
+
+This is not optimal by any stretch of the imagination!
+
+What if MyButton was slow to render? This would be a large issue. (Uncomment the code above and you'll see just how annoying it is...)
+
+So, how do we fix this? We can memoize the entire component!
+- What this will do: If the props have not changed, just use the old version of the component
+    - Instead of updating it and rendering it again...
+
+```js
+// MyButton.js
+import { memo } from 'react';
+
+export default memo(function (props) {
+    console.log('Rendering MyButton');
+
+    const startTime = new Date();
+    while (new Date() - startTime < 1000) {} // (This will make the page take 1 second every render)
+
+    return <button {...props} style={{color: 'red'}} />;
+});
+
+```
+
+What did we do here:
+- Import memo from React
+- Wrap the entire function/component that gets expored with memo()
+    - similar to forwardRef function
+
+Note: concept of functions that take in a component, and returns a new component, is known as a higher order component
+- Typically we leave these functions as anonymous, so that's why we removed `MyButton` before (props)
+    - This doesn't really matter tho...
+
+What this is now saying: "In the case that the props have not changed, just use the previous version of this component"
+
+Also worth noting: You can customize this behavior with a 2nd function
+
+Example: areEqual
+
+```js
+import { memo } from 'react';
+
+export default memo(function (props) {
+    console.log('Rendering MyButton');
+
+    const startTime = new Date();
+    while (new Date() - startTime < 1000) {} // (This will make the page take 1 second every render)
+
+    return <button {...props} style={{color: 'red'}} />;
+}, areEqual);
+
+function areEqual(prevProps, newProps) {
+    return true;
+}
+```
+
+What this does:
+- Takes in previous/current props, tells you if they are equal
+    - IF returns true: The component never needs to re-render (you are saying prevProps == newProps)
+    - IF returns false: Re-rendering occurs
+
+small aside: when you say it doesn't need to re-render, it does not guarantee it won't
+- simple a performance increase (react CAN make it)
+- do not rely on NEVER re-rendering
+    - it should still work!
+
+Delete the areEqual function as well as parameter #2 of the return value before moving along.
+- Now, it will act as expected ie. just check if we have all of the same keys/value
+    - If you change either inputs: Slow render
+        - Rendering `MyButton` still takes 1 second
+    - If you press the Log Value button: No re-render!
+        - No need to re-render `MyButton`
 
 #### 
 
+Note: This does not fully work how we want yet. Why?
+- In App.js, we are passing in a function as a prop
+    - Each render of App.js component, we create a brand new function
+        - Even tho it does the same thing, it is not equal, so MyButton will render everytime
+
+How do we make sure that the function does not change, unless logValue changes?
+
+We will memoize the function with useMemo() !
+
+```js
+import './App.css';
+import { useState, useMemo } from 'react';
+import MyButton from './MyButton';
+
+export default function App() {
+  const [num, setNum] = useState(10);
+  const [logValue, setLogValue] = useState('');
+
+  const fibValue = useMemo(() => {
+    console.log('calculating fib value');
+    return fib(num); // this is returned IF num changes
+  }, [num]); // , logValue
+
+  const onClickLog = useMemo(() => {
+    console.log('clicking button ... ');
+    return () => {
+      console.log(logValue);
+    };
+  }, [logValue]); // only re-render if `logValue` changes
+
+  
+
+  return (
+    <>
+      <h1>Fib {num} is {fibValue}</h1>
+      <input
+        type="number"
+        value={num}
+        onChange={(event) => setNum(parseInt(event.target.value))}
+      />
+
+      <input
+        type="text"
+        value={logValue}
+        onChange={(event) => setLogValue(event.target.value)}
+      />
+
+      <MyButton onClick={onClickLog}>Log Value</MyButton>
+    </>
+  );
+}
+
+function fib(n) {
+  if (n === 2) return 1;
+  if (n === 1) return 0;
+  return fib(n - 1) + fib(n - 2);
+}
+
+```
+
+What we did here:
+- Created onClickLog()
+    - Make it the onClick= for the MyButton in the return value of the JSX
+        - This made it so that changing the logValue is the only way to get the MyButton to do the slow 1 second re-render
+
+So, what is our current status now when we change items on the screen:
+- Input number: Changes without re-rendering the slow MyButton
+- Input text: Changes Renders the slow MyButton
+- Log Value Button: Changes without re-rendering the slow MyButton
+
+#### useCallback
+
+useCallback: Makes it so that you do not need to nest functions when memoizing
+- useMemo: Memoizes a value
+- useCallback: Memoizes an entire function
+
+```js
+// App.js
+import './App.css';
+import { useState, useMemo, useCallback } from 'react';
+import MyButton from './MyButton';
+
+export default function App() {
+  const [num, setNum] = useState(10);
+  const [logValue, setLogValue] = useState('');
+
+  const fibValue = useMemo(() => {
+    console.log('calculating fib value');
+    return fib(num); // this is returned IF num changes
+  }, [num]); // , logValue
+
+  const onClickLog = useCallback(() => {
+    console.log('clicking button ... ');
+    console.log(logValue);
+  }, [logValue]); // only re-render if `logValue` changes
+```
 
 
-####
+#### React.lazy
 
+We still have the issue of the page taking 1 second to load due to `MyButton`, so how do we fix that?
 
+For one, we don't even need `MyButton` on the initial render - we don't need it until something has been typed into the Logged Value input.
+
+How to handle this: Change the import statement
+
+Old:
+
+```js
+import MyButton from './MyButton';
+```
+
+New:
+
+```js
+const MyButton = lazy(() => import('./MyButton'));
+```
+
+Why is this better?
+- We won't make the long/slow import of MyButton, until MyButton is actually used!
+
+Lazy: Dynamically import
+- Input: A component/function
+- Output: A component that can be conditionally rendered
+
+Make sure to conditionally render `MyButton` in the JSX return value from App.js:
+
+```js
+// App.js
+{
+    // if logValue exists; render; if not, don't render
+    // initial render: NO MyButton
+    logValue.length ?
+        <MyButton onClick={onClickLog}>Log Value</MyButton> : 
+        null
+}
+```
+
+Now, when we do this, the page works fast. BUT, if we try to put text input into the logValue, we get an error!
+
+Why do we get this error message that "A React component suspended while rendering, but no fallback UI was specified"?
+
+"We got to this point where we lazily rendered MyButton (we tried to render once logValue.length was > 0), but then this is going to take some time, so we need to tell React what it needs to show in the UI while we wait for MyButton!
+
+How to do this: Suspense!
+
+#### Suspense
+
+Suspense: Takes in a fallback that can be rendered while we Suspense/Wait on something to load
+- 
+
+Change our code from before to have suspense with the conditional rendering:
+
+```js
+// App.js
+import { useState, useMemo, useCallback, lazy, Suspense } from 'react';
+...
+  return (
+    <>
+    ...
+      {
+        logValue.length ?
+          (
+            <Suspense fallback={<div>Loading...</div>}>
+              <MyButton onClick={onClickLog}>Log Value</MyButton>
+            </Suspense>
+          ) : 
+          null
+      }
+    </>
+  );
+}
+
+```
+
+What this does:
+- While `MyButton` is suspended/loading, we instead will render a 'fallback'
+    - Fallback: A prop that will be component
+
+Now, 
+- Changing number: Slow
+- Changing text: Shows right away, 1 second wait for the `MyButton` to show up
+    - logValue is a memoized component, does not slow down the page while we change fib
+
+#### Takeaways
+
+We have accomplished 2 powerful goals:
+- Minimize number of renders
+- Minimize speed of renders
+
+Takeaways:
+- It can be detrimental to memoize components that don't need them 
+- Use these functions/methods sparingly!
 
 #### Git
 
