@@ -18826,7 +18826,7 @@ This is fine, but we can only consume 1 Context at a time...
 Most of the time: Functional Components
 - More Modern
 
-Some of the time: Class
+Some of the time: Class-based Components
 -  Older
     - You can do anything in Classes, still
     - Syntax is different
@@ -18848,24 +18848,248 @@ q
 
 ## 16: Error Handling
 
-### Key Terms
+Yes - even the Almighty React is not immune to errors.
+
+Let's explore how to handle these unwanted fiends.
+
+### Key Term
+
+#### Error Boundary
+
+A React component that catches errors in child components, preventing the entire application from crashing from a single error.
+- Must be class-based components, in order to take advantage of 2 lifecycle methods:
+
+    - `static getDerivedStateFromError(error)`: Called during the render phase and updates the current state of the component.
+
+    - `componentDidCatch(error, errorInfo)`: Called during the commit phase for the purpose of side-effects related to the caught error
+
+For example, this would be a compleete error boundary component:
+
+```js
+class ErrorBoundary extends Component {
+    state = { hasError: false };
+
+    static getDerivedStateFromError(error) {
+        return { hasError: true };
+    }
+
+    componentDidCatch(error, errorInfo) {
+        logErrorToServer(error, errorInfo);
+    }
+
+    render() {
+        if (this.state.hasError) {
+            return this.props.fallback;
+        }
+
+        // else...
+        return this.props.children;
+    }
+}
+```
+
+Learn more: https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary
 
 ### Notes from the video
 
 #### Setup
 
-```sh
-cd 16_error_handling
-echo > 
+Update the code for App.js:
+
+```js
+// App.js
+export default function App() {
+  return (
+    <>
+      <h1>Hello World</h1>
+      <Buggy />
+    </>
+  );
+}
+
+function Buggy() {
+  throw new Error('error');
+  return <h1>Buggy</h1>;
+}
+
 ```
 
-#### 
+Run the code in the Browser:
+
+```sh
+npm start
+```
+
+View the Console via Chrome > Right click > Inspect > Console.
+
+Note: This is not going to load up right now, because due to the thrown error, that is where we go (Instead of seeing Hello World/Buggy which are both `h1`)
+
+#### Full Tutorial
+
+If an error is thrown anywhere in the React tree, the output is nothing!
+- Commenting out the error will get what we expect, otherwise, we will get a blank screen
+
+The issue: If we get 1 single error, React won't show anything
+- In complex applications, 1 bug is pretty much inevitable
+
+How do we handle this?
+
+#### Error Boundary
+
+Error Boundary: A special component that will determine what will happen if one of its children throws an error
+- Uses Class-Based Components
+- Extends from React's `Component`
+
+- 2 inputs
+    - children
+    - fallback
+
+- Has a render() method
+    - Binary, as one of the following 2 is always true when we render:
+        
+        1. There is an error
+        - return this.props.fallback
+        - return <h1>Oh no, this is an error<h1>
+
+        2. There is NOT an error
+        - return this.props.children;
+        
+    - We will hold whether or not there is an error, in State
+
+```js
+// App.js
+import { Component } from 'react';
+
+export default function App() {
+  return (
+    <>
+      <h1>Hello World</h1>
+      <Buggy />
+    </>
+  );
+}
+
+function Buggy() {
+  throw new Error('error');
+  return <h1>Buggy</h1>;
+}
+
+class ErrorBoundary extends Component {
+  state = { hasError: false };
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback;
+    }
+    // else...
+    return this.props.children;
+  }
+}
+
+```
+
+What we did here:
+- Create our 1st ErrorBoundary Component
+- Created state
+    - hasError (false by default)
 
 
+But, we need to actually know if there was an error!
 
-####
+In the past: Try-catch blocks
+- Issue: This is Imperative
+- What we need: Declarative (for React)
+
+React has a lifecycle method we can use: `getDerivedStateFromError`
+- Gets used if there is an error in the children
+- Inputs: some error
+- Outputs: new state
+
+```js
+static getDerivedStateFromError(error) {
+    return { hasError: true }; // could return the error in this, if we want
+}
+```
+
+Recap on what we have done so far in this Class:
+- We have State (hasError)
+    - IF there is an error in ANY of the children: Change state to hasError = true
+    - Else: hasError = true
+
+- We have a render() method, that depends on state
+    - If hasError = true: return the fallback (comes from props)
+    - If hasError = false: return the children 
 
 
+#### Implement the ErrorBoundary Class
+
+To use, in JSX, you will wrap any buggy component with `<ErrorBoundary>` tags
+- Can be used on any component that we think MIGHT throw an error
+
+```js
+export default function App() {
+  return (
+    <>
+      <h1>Hello World</h1>
+      <ErrorBoundary fallback={<h1>There was an error...</h1>}>
+        <Buggy />
+      </ErrorBoundary>
+    </>
+  );
+}
+```
+
+Now, if Buggy throws an error: We will render the fallback! (Which was passed in via ErrorBoundary tag)
+
+Reminder: This `ErrorBoundary` only catches in components below it
+- If you were to add an error to line 4 right where App() starts, you wouldn't catch it.
+- The same would hold true by throwing it inside of ErrorBoundary/render() on line 27
+
+#### componentDidCatch
+
+Now, there is 1 more lifecycle method that we can use with these `ErrorBoundary` tags.
+
+Remember: We have the `static getDerivedStateFromError(error)`
+- This says what we do in the case of an error
+- We don't want any side effects with this method, all we want to do is return the new state.
+    - When there are side effects, we have another method to use
+
+componentDidCatch(): 
+- Runs during commit phase (later on down the line)
+    - Difference: `getDerivedStateFromError` runs during the render phrase
+
+- Inputs: 
+    - error: error thrown
+    - errorInfo: info about error thrown
+- Outputs: 
+    - 
+
+Example:
+
+```js
+componentDidCatch(error, errorInfo) {
+    logErrorToServer(error, errorInfo);
+}
+```
+
+Note: This has not actually been implemented, just know it is mock code.
+
+Idea for componentDidCatch: This is for side effects
+- Code does not impact the render
+    - Is for things that do not impact what is on the page
+        - Example: Saving error messages
+
+#### Takeaways
+
+Key points:
+
+1. Need to use a Class
+- not a Hook method in React
+
+2. Use `getDerivedStateFromError` to change the state (based on error/existence of error)
+
+3. In render method, conditionally render if an error exists(based on the State)
+- Can hard-code OR use props
+- If no error, just return the children
 
 #### Git
 

@@ -1,56 +1,33 @@
-import { Component, useState, createRef, createContext } from 'react';
-
-const Theme = createContext({
-  mode: 'dark'
-});
+import { Component } from 'react';
 
 export default function App() {
-  const [shouldRender, setShouldRender] = useState(true);
   return (
-    <Theme.Provider value={{mode: 'dark'}}>
-      {/* <Counter startingCount={10} /> */}
-      { shouldRender && <Counter /> }
-      <button onClick={() => setShouldRender(!shouldRender)}>
-        Toggle Counter
-      </button>
-    </Theme.Provider>
+    <>
+      <h1>Hello World</h1>
+      <ErrorBoundary fallback={<h1>There was an error...</h1>}>
+        <Buggy />
+      </ErrorBoundary>
+    </>
   );
 }
 
-class Counter extends Component {
-  static contextType = Theme;
-  constructor(props) {
-      super(props);
-      this.state = {
-          count: props.startingCount ?? 0
-      };
-      this.buttonRef = createRef();
-  }
+function Buggy() {
+  // throw new Error('error');
+  return <h1>Buggy</h1>;
+}
 
-  componentDidMount() {
-    console.log(this.context);
+class ErrorBoundary extends Component {
+  state = { hasError: false };
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true }; // could return the error in this, if we want
   }
 
   render() {
-    // console.log(this.buttonRef); 
-    // (this would return null - the first time render is called, the component is not mounted on the screen - nothing to set the ref to!)
-    return (
-      <>
-        <button ref={this.buttonRef} onClick={() => {
-          this.setState({
-            count: this.state.count + 1
-          });
-        }}>
-          Increment
-        </button>
-        <p>Count: {this.state.count}</p>
-        {/* <p>Theme: {this.context.mode}</p> */}
-        <Theme.Consumer>
-          {
-            context => <p>Theme: {context.mode}</p>
-          }
-        </Theme.Consumer>
-      </>
-    );
+    if (this.state.hasError) {
+      return this.props.fallback;
+    }
+    // else...
+    return this.props.children;
   }
 }
