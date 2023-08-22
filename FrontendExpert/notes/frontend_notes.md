@@ -17929,24 +17929,173 @@ q
 
 ## 13: Writing Custom Hooks
 
-### Key Terms
+```js
+const useIUnderstandCustomHooks = () => {
+    const [IUnderstand, setIUnderstand] = useState(false);
+
+    useEffect(() => {
+        setIUnderstand(true);
+    }, [customHooksVideoIsWatched]);
+
+    return IUnderstand;
+}
+```
+
+### Key Term
+
+#### Custom Hook
+
+A helper function that uses hooks.
+- When hook code becomes redundant or too long to easily read, it can be helpful to move that code into a helper function
+- To denote that this helper function uses a hook itself, the name should be prefixed with `use` just like the built-in React hook functions
+
+Learn more: https://react.dev/learn/reusing-logic-with-custom-hooks
 
 ### Notes from the video
 
 #### Setup
 
-```sh
-cd 13_writing_custom_hooks
-echo > 
+Edit the code in App.js:
+
+```js
+import { useState, useRef, useEffect,  } from 'react';
+
+export default function App() {
+  const [count, setCount] = useState(0);
+  const [text, setText] = useState('');
+  
+  const prevCount = useRef();
+  useEffect(() => {
+    prevCount.current = count;
+  }, [count]);
+
+  const prevText = useRef();
+  useEffect(() => {
+    prevText.current = text;
+  }, [text]);
+
+  return (
+    <>
+      <button onClick={() => setCount(count + 1)}>Increment</button>
+      <p>Count: {count}</p>
+      <p>Previous render count: {prevCount.current}</p>
+
+      <input
+        value={text}
+        onChange={(event) => setText(event.target.value)} />
+      <p>Previous render text: {prevText.current}</p>
+    </>
+  );
+}
+
 ```
 
-#### 
+Run it in Google Chrome:
+
+```sh
+npm start
+```
+
+Head to the Console via Chrome > Right click > Inspect > Console.
+
+#### Full Tutorial
+
+What is going on in this example:
+- Increment button
+- Count
+    - Previous render count (each time there is a render, this updates to last render's value)
+- Input Text box
+    - Previous render text (each time there is a render, this updates to last render's value)
+
+Note: Make sure NOT to confuse previous STATE with previous RENDER. (Previous render text/count can be the same as the previous render!)
 
 
+How is this all working on the code:
+- 2 states
+    - count/setCount
+    - text/setText
 
-####
+- 2 useRef(): Remember, these values don't cause re-render when changes!
+    - prevCount()
+    - prevText()
 
+- Return JSX
+    - Button: Increments count
+    - Count: Displays count
+    - Previous Render Count: Displays count
+    - Text: Input for text
+    - Previous Render Text: Displays text
+    
+So, this code all works, and nothing is wrong with it. But there is some redundancy...
 
+- 2 different useEffect(), which both do essentially the same thing w/ different Refs
+
+- 2 differnet useRef()
+    - the 4 lines of code for prevCount are basically the EXACT same as for prevText
+
+With traditional programming, we would see that an create a custom helper function.
+
+This is exactly what a custom helper function that uses Hooks is!
+
+Here is our Custom Helper Function:
+
+```js
+function usePrevious(value) {
+  const prevRef = useRef();
+  useEffect(() => {
+    prevRef.current = value;
+  }, [value]);
+
+  return prevRef.current;
+}
+```
+
+About this custom helper function:
+- When you have a helper function that uses hooks, have it start with "use ..."
+    - Since our function calls other Hook functions, we want to make sure React applies the same linting
+
+- Next, 
+    - Take values that are specific ie. prevText, and change to be more general ie. prevRef
+
+- Make sure to make the return value prevRef.current!
+
+We can now use this function, instead of the redundant code, ie:
+
+```js
+const prevCount = usePrevious(count);
+const prevText = usePrevious(text);
+```
+
+Finally, the last thing we need to do is change is to remove the .current from the prevCount/prevText in the JSX return statement
+- This is because usePrevious() already goes straight to prevRef.current for us!
+
+```js
+return (
+    <>
+      <button onClick={() => setCount(count + 1)}>Increment</button>
+      <p>Count: {count}</p>
+      <p>Previous render count: {prevCount}</p>
+
+      <input
+        value={text}
+        onChange={(event) => setText(event.target.value)} />
+      <p>Previous render text: {prevText}</p>
+    </>
+  );
+```
+
+We can now increment the count and change the text, as you'd expect!
+
+#### Takeaways
+
+Custom Hooks: Writing helper functions for our hooks
+- There are an infinite amount you can write
+- Make sure to start helper with 'use' prefix, if you are using React hooks (it becomes a hook itself...)
+- Just like a standard helper function in standard JS, there are a few different times to write a custom hook:
+    1. Redundancy (want code in 1 place)
+    2. Lots of code (very long useEffect(), make it more readable, so component is easier to read)
+
+You will see a variety of custom hooks as we proceed!
 
 #### Git
 
