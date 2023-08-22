@@ -18113,24 +18113,215 @@ q
 
 ## 14: Portals
 
-### Key Terms
+In React, portals are weird things that do weird stuff. That's pretty much it!
+
+They're super useful tho...
+
+### Key Term
+
+#### Portal
+
+A built-in method for rendering React elements into a DOM node outside of the parent React tree.
+
+A portal is created by using the `ReactDOM.createPortal` function
+- Takes in:
+    - React element (gets appended the the 2nd arg, the DOM node)
+    - DOM node
+
+- Returns:
+
+Note: The element will be appended to that DOM node, but it will still act the same as any other element in the original React tree (it can still take props, read from context providers, have events bubble up, etc.) 
+
+Learn more: https://react.dev/reference/react-dom/createPortal
 
 ### Notes from the video
 
 #### Setup
 
-```sh
-cd 14_portals
-echo > 
+Update the code for App.js:
+
+```js
+// App.js
+import { useState } from 'react';
+import './App.css';
+
+export default function App() {
+  const [isHidden, setIsHidden] = useState(true);
+  return (
+    <>
+      <div className="container">
+        <button onClick={() => setIsHidden(!isHidden)}>
+          {isHidden ? 'Show Modal' : 'Hide Modal'}
+        </button>
+        {isHidden || <Modal />}
+      </div>
+
+      <p className="other">
+        Other Content
+      </p>
+    </>
+  );
+}
+
+function Modal() {
+  return <p className='modal'>Modal</p>
+}
+
 ```
 
-#### 
+Next, update the code for App.css:
+
+```css
+/* App.css */
+.container {
+  position: relative;
+  z-index: 0;
+  background-color: lightgreen;
+  height: 100px;
+  padding: 10px;
+}
+
+.other {
+  position: relative;
+  z-index: 1;
+  background-color: orange;
+  height: 100px;
+  padding: 10px;
+}
+
+.modal {
+  position: fixed;
+  z-index: 2;
+  background-color: lightblue;
+  width: 90px;
+  height: 75vh;
+  padding: 10px;
+  top: 5vw;
+  left: 50%;
+  transform: translate(-50%);
+}
+```
+
+Create index.html:
+
+```sh
+cd src
+
+echo > index.html
+```
+
+```html
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Portals</title>
+</head>
+<body>
+    <div id="root"></div>
+</body>
+</html>
+
+```
+
+Run the code in the Browser:
+
+```sh
+npm start
+```
+
+View the Console via Chrome > Right click > Inspect > Console.
+
+#### Full Video
+
+What is currently in our example:
+- state (boolean)
+- Container div
+    - Button (if clicked, changes state)
+        - if state is false renders a `Modal`
+- Paragraph (other content)
+- Modal (a paragraph with className="modal")
+
+Right now, this is probably not working how you'd expect it to...
+- Modal is being created
+    - You may think this means React is working, but it is below the other content
+        - Sign that something may be wrong with our CSS!
+
+What is going on in the CSS:
+- .modal has a z-index of 2, which is higher than .container (0) and .other (1)
+    - Why isn't it on top? / Why is it not working?
+        - Stacking contexts. Essentially, because Modal is inside of Container div, the z-index of 2 only applies inside of that div
+            - Outside of the div, the .container's z-index of 0 is used
+
+How to solve this?
+- Method #1: Move `Modal` outside of the container div
+    - Let's not do this and pretend we need it inside...
+
+- Method #2: Change the CSS
+    - Getting rid of `position: relative` in .container and .other would do the job!
+        - For sake of demonstration, pretend we need those CSS declarations like this too...
+
+- Method #3: Use a Portal
+    - Simple concept: Allows you to take a React element, leave it where it is, but when it is rendered on the DOM, change where it is rendered!
 
 
+How we will do this:
 
-####
+Head over to index.html and add another div:
 
+```html
+<div id="root"></div>
+<!-- new -->
+<div id="modal-root"></div>
+```
 
+What we did here:
+- Instead of putting `Modal` inside of the id="root" with the other elements, we used another div with id="modal-root"
+
+Next, head back to App.js and create a Portal to move the Modal into that new div location we are creating:
+
+```js
+import { createPortal } from 'react-dom';
+
+...
+
+function Modal() {
+  return createPortal(
+    <p className='modal'>Modal</p>,
+    document.getElementById('modal-root')
+  );
+}
+```
+
+What we did here:
+- Imported createPortal from 'react-dom' (react-dom: bridge between react tree and DOM tree)
+- Whenever we use Modal, change where it goes in the DOM
+    - "Instead of adding the return value of Modal to where it is in the React Tree, append it to this other location!"
+
+After saving, our Modal is now on top of the other elements!
+
+Final point: When we use a portal, that element is still in its standard place in the React tree
+- Access to props/context providers/events in the React tree
+
+Example: Add an onClick event listener to the container div:
+
+```js
+// App.js
+return (
+    <>
+      <div className="container" onClick={() => {
+        console.log('Clicked container');
+      }}>
+...
+
+```
+
+After doing this, you will see 'Clicked container' in the console each time you click on the Modal. (You are essentially clicking on the container because of event bubbling)
+
+Final note: Using a Portal does not change anything EXCEPT its actual location when it gets rendered on the DOM
+- You won't use it very often, but good to know!
+    - Most commonly used for: Modules/Tooltips
 
 #### Git
 
