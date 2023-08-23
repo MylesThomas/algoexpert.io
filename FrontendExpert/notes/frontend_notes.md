@@ -19779,22 +19779,327 @@ q
 
 ## 20: Companion Libraries
 
+If you are already familiar with Redux, this video covers more than just Redux!
+
+If you are not already familiar with Redux, just watch the video!
+
 ### Key Terms
+
+#### Redux
+
+A JavaScript state-management library, often used with React.
+- Uses reducer functions to create a global store (any component can read from it)
+
+Learn more: https://redux.js.org/
+
+#### Recoil
+
+A JavaScript state-management library built for React.
+- Uses Atoms, which are global pieces of state (any component can subscribe to)
+
+Learn more: https://recoiljs.org/
+
+#### Server-Side Rendering
+
+A method of rendering an application where the server generates the final HTML page, rather than giving the client an empty HTML file and the scripts needed to generate the page.
+- Can create significant performance improvements
+- Also helps with search-engine optimization
+
+#### Static-Site Generation
+
+Similar to server-side rendering.
+
+A method of rendering an application where the server generates the final HTML pages, rather than giving the clietn an empty HTML file and the scripts needed to generate the page.
+
+Key distinction between static-site generation and server-side rendering:
+- static-site generation: creates all possible HTML files at build time
+- server-side rendering: creates a new HTML file for each server request
+
+#### Next.js
+
+A JavaScript framework built around React.
+- Primary use case: Server-side rendering
+- Other uses cases:
+    - Variety of tools to simplify development
+    - Variety of tools to improve performance
+
+Learn more: https://nextjs.org/
+
+#### Gatsby
+
+A JavaScript framework with the primary use case of static-site generation.
+- In addition to static-site generation, Gatsby also includes a wide variety of other features that simplify development and improve performance
+    - Just like Next.js...
+
+Learn more: https://www.gatsbyjs.com/
+
+#### React Router
+
+A React library for declaratively controlling page routing from the client-side.
+
+Learn more: https://reactrouter.com/en/main
 
 ### Notes from the video
 
-#### Setup
+We will not be going super in-depth on these libraries and tools, but the purpose is so you can be conversational/know when to use one option over the other.
 
-```sh
-cd 20_companion_libraries
-echo > 
-```
+We will start with state management libraries.
+- Main purpose: Global state
+    - React is good at having state at component level
+    - When State needs to be used across application (ie. logged in user), it is hard to do this with just React.
 
-#### 
+#### Redux
+
+Redux: Central/Global state that uses Reducer functions
+- Most popular state management library to React
+    - Doesn't need to be used with React, but is its most common use case
+        - Uses `React Redux` to integrate with React (this is what you use)
+
+- Similar to `Reducer` hook
+    - Difference: Instead of instance level, this is global level state
+
+![Redux](./figures/react/4.png)
+
+How data flows when we use Redux with React:
+- Store: Global state that we want access to
+    - Contains information, such as:
+        - logged in user
+
+- UI: Standard React Components
+    - Depends on state
+        - State comes from the Redux Store
+            - Whenever State changes, the UI will know to update
+
+But, something may happen on the UI (Example: The user logs out) and this would need to change the state in the Redux Store.
+
+- dispatchFunction: Changes the state in the Redux Store.
+    - Comes from the Store
+    - Takes in an Action (similar to useReducer) with the following:
+        - type
+        - payload
+
+        Example:
+
+        ```js
+        {
+            type: "logout",
+            payload: extraInfo
+        }
+        ```
+
+When you dispatch an action, it goes to the Reducer. (Reducer is a function that takes in 2 parameters: state, action) 
+
+- Reducer: 
+    - Inputs:
+        - state (from the Store)
+        - action (that one that was dispatched)
+
+    - Returns:
+        - new state
+
+    Example:
+    
+    ```js
+    reducer (state, action) {
+        // logic to make current user ID null (since we logged out!)
+        return newState;
+    }
+    ```
+
+Finally, the newState is sent from the Reducer, back to the Redux Store.
+
+This updates the global state, and the loop continues!
+
+Takeaways:
+- Redux is very simple
+    - More complexity with advanced features, but easy to add to your application
+- Oftentimes: Using Redux is not necessary
+    - Smaller projects especially should only be using State
+        - Unless Context/State for some reason are not doing the job for you...
+
+#### Recoil
+
+Alternative Library to Redux: Recoil!
+
+Recoil: Centralized subscription based state
+- Primary component:
+    - Atom: A piece of state that any component can subscribe to
+        - Piece of global state that any component can choose to use
+- Secondary componenet:
+    - Selector: A function for transforming state
+        - Works just like Atoms
+        - Example: If we have 2 pieces of state, and there is a 3rd piece of state that can be derived, we do the following:
+            -  Create a `Selector`
+                - Functions that says "How can I convert the 2 pieces of state into a new piece of State? And the function will only run when the 2 pieces of state changes"
+                - Essentially: Memoizing a function, that we can use to determine new state, based on other pieces of state
+
+This is tough to understand without an example:
+
+![Recoil](./figures/react/5.png)
+
+Let's say we have 2 pieces of state:
+1. State A (Atom)
+2. State B (Atom)
+
+We also have some components that rely on the combined state of A/B:
+3. State A+B (Selector)
+- Derived from State A and State B
+    - Whenever State A OR State B changes, State A+B will also change
+
+Let's add a Component tree:
+- Root Component
+    - Child Left
+        - Child 1
+        - Child 2
+        - Child 3
+    - Child Right
+        - *no children*
+    
+Any of these components can subscribe to any of our 3 pieces of State.
+
+Example:
+- 2 Components are subscribing to State B 
+    - Child Left > Child 3
+    - Child Right
+- 1 Component is subscribing to State A 
+    - Child Left > Child 1
+    - Child Right
+- 2 Components are subscribing to Selector State A+B
+    - Root
+    - Child Right
+
+Example: If State B is updated, then both components that share B OR shared A+B, then they would need to re-render
+
+Most Powerful piece: Components don't need to be near each other in the React tree
+- You can have any number of Atoms
+
+Takeaways:
+- Can be useful
+- For smaller projects, no reason to use it
+    - Good to understand at a higher level, still!
+
+Note: There are more state management libraries, but Redux and Recoil are the 2 most popular.
+
+#### Data Fetching
+
+Data Fetching: Here are a few libraries that are commonly used. 
+- React Query: Hooks for fetching data
+    - Deep feature set, such as the following:
+        - caching
+        - pagination
+        - data synchronzation
+        - etc.
+            - Makes it good for a project with a lot of API requests!
+
+Note: The next 2 are for if you want to integrate GraphQL with React.
+- GraphQL > Fetch requests
+
+- Relay: GraphQL client focused on scalability
+    - Made by Facebook and React
+
+- Apollo: GraphQL client
+    - Similar to Ruby
+    - Many think it is easier to get up and running (compared to Relay)
+
+Takeaways: Your choice for these is personal preference!
+
+#### Server Side Rendering (SSR)
+
+SSR's idea comes from an issue that comes in React alot:
+- You create these React applications that start with an empty HTML file
+- All of the JS needs to run to create the UI
+    - Sometimes, in that process, a trip is made to server to download more data for the user
+        - Can be inefficient/slow
 
 
+Server Side Rendering (SSR)
+- Render initial page on Server, and send complete HTML to client (How it works: When a user makes a request to a certain page in a React application, the server runs that JavaScript code to generate the HTML)
+    - Win: If JavaScript code needs to make more trips to the server, you don't because you are already there and can look it up!
+    - Results from this:
+        - Better initial loading times
+        - Improves SEO/Search Engine Optimziation (pages are complete when bots visit)
 
-####
+Next.js: "A framework for providing React-based web applications with server-side rendering and static website generation."
+- Alternative to create-react-app
+    - Has built in SSR support
+    - Includes a variety of other tools for making applications perform better and be production ready.
+
+#### Static Site Generation
+
+Another alternative to Server Side Rendering: SSG (Static Site Generation)
+
+Static Site Generation: Create static HTML pages at build time for each HTML file possibly needed
+- Very similar process, but happens at build time
+    - Great for static websites
+        - blog
+    - Remember: This only works for static pages
+        - An application with infinite # of pages based on data, won't work well
+
+- Major benefits over Server side rendering:
+    - Less work on server for each request
+        - Minimizes time/computation
+
+Gatsby: React-based open source framework with performance, scalability and security built-in.
+- Most popular framework for SSG
+- Similar to next.js
+    - Static site generation is primary use-case
+- Supports hybrid models
+    - Server Side Rendering + Static site generation
+
+Note: Next.js and Gatsby are both able to do both!
+
+#### Page Routing
+
+Page Routing: Control what components to render based on the URL path
+- Many frameworks include this functionality (next.js, gatsby, etc.)
+    - If we aren't using these frameworks, we may need a library to do this on the client side in React.
+
+React Router: Library to easily handle routing, declaratively on client-side
+- Most popular option
+- Adds a few React components to let us render different components based on the route
+    - Declarative way
+    - React way
+
+- Supports extra features:
+    - Page history
+    - Reading from it
+
+#### Component Libraries
+
+Component Libraries: Pre-built components to use right away
+- Very similar to libraries in CSS crashcourse
+
+- Tons of Component Libraries, such as:
+
+    - Material UI: Based on Material Design System (from CSS)
+    - React Bootstrap: Wrapper around Bootstrap, implementing with React
+    - Ant Design: Based on Ant Design system
+
+Note: Not too important to know these
+
+#### Other Tools
+
+These are not libraries of frameworks, but are Build Tools that we use to make the development process eaiser!
+
+Other Tools
+
+- Bundlers: Takes lots of files and imports, "Bundles" imports into less files/imports
+    - Examples: Webpack, Rollup, Browserity
+        - Most support code-splitting with dynamic imports
+            - Keeps bundle sizes smaller, as the application scales
+
+- `create-react-app`: The most popular tool for creating, running & building apps 
+    - Uses Webpack under the hood
+
+- Vite: Framework agnostic alternative to `create-react-app`
+    - People are starting to prefer Vite > `create-react-app`
+        - Faster
+        - Simpler/more barebones
+        
+    - Vite is not specific to React... can build application using Angular and others
+    - Ues Rollup under the hood
+
+#### Takeaways
 
 
 
