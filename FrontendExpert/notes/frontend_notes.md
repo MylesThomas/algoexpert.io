@@ -19401,24 +19401,132 @@ q
 
 ## 18: Best Practices
 
-### Key Terms
+Just because you're using React doesn't mean that your code is safe from becoming a steaming pile of spaghetti.
+
+Follow these best practices to avoid turning your code into a delicious Italian dish!
+
+### Key Term
+
+#### DRY Component
+
+Short for "don't repeat your code", a principle involving refactoring any repeated code into helper functions.
+- In React: We follow DRY principles in the following ways:
+    - moving shared interfaces into helper components
+    - moving common hook logic into custom hooks
 
 ### Notes from the video
 
-#### Setup
+#### Intro
 
-```sh
-cd 18_best_practices
-echo > 
+How to write clean code that is the following:
+- Easy to maintain
+- Easy to update
+- Easy for other people to read
+
+#### Directory Structure
+
+Rules
+- 1 exported component per file
+    - filenames match their component names (makes it easy to find)
+        - smaller helper functions: OK
+
+- Consistent organization
+    - His advice: Separate `src` into sub-directories:
+
+        - `components`: all of the components
+            - `base`: design system components (can be included in Bootstrap)
+            - `pages`: main components of application
+                - `home`
+                - `product`
+                - etc.
+            
+        - `hooks`: useful throughout the application
+
+
+Biggest thing: Be consistent!!
+
+#### DRY Components
+
+DRY = "Don't repeat your code"
+- Refactor repeated UI into helper components
+- Refactor repeated hook logic into custom hooks
+
+Good practice:
+- Create custom hooks, even if you don't need to repeat the code (Makes code easier to read)
+- "If I can think of a good name for a hook, it probably makes sense to re-factor the code with that custom hook"
+    - Hooks tend to be difficult to read, to this is good
+
+#### Consistent CSS
+
+There are a number of ways to include a stylesheet in a React component:
+1. import syntax
+
+```js
+// Top of module
+import "component.css";
 ```
 
-#### 
+Note: If you don't use webpack, this may not work
 
+2. Inline style attributes
+- Do NOT recommend!! (Makes code harder to read w/ all of the CSS information, it also has worse performance at times)
 
+3. Global / Page-level Stylesheets
+- Idea: Global styles/variables, then each page has its own stylesheet
 
-####
+4. CSS-in-JS libraries
+- They all try to tackle problems of CSS not fitting in React ecosystem. Examples:
+    - Styled Components
+    - CSS Modules
+    - Styled JSX
+- Not necessary to use if you don't want to...
 
+Main thing: Be consistent!!! (Pick 1, stick to it)
 
+#### Keep HTML Semantic
+
+Semantic HTML: Still important when writing React code, since React is still feeding HTML to the browser
+- Use the correct grouping tags
+    - don't just use div's everywhere, when you should be using `main`, `body`, etc.
+
+- Focus on accessibility
+    - alt attributes
+    - aria
+    - do anything you normally would do to keep HTML accessible!
+
+- Avoid extra divs with fragments
+    - It can be easy to get in the habit of spamming these
+    - Use fragments
+        - Especially if the div is only there for a single return value.
+
+#### Miscellaneous Tips
+
+Miscellaneous Tips
+
+- Follow a style guide for consistency
+    - Many companies have their own
+    - For a smaller project, use an open source guide
+
+- Stick to either ONLY functional or ONLY class-based components
+    - Recommendation: Functional!
+
+- Minimize prop-drilling
+    - We don't want a bunch of props over-complicating our code
+    - Use contexts or state management libraries
+        - ie. Redux
+
+- Avoid imperative code
+    - Example: useImperativeHandle
+        - Use this as a last resort
+    - Imperative code makes things harder, especially because React is naturally Declarative
+
+- Write self documenting code
+    - You should be able to look at the name of the component, then look at its return value, to know what it is doing
+    - If you find you have a confusing component, break it up!
+
+#### Takeaways
+
+Be consistent, it leads to clean code!
 
 #### Git
 
