@@ -1,33 +1,36 @@
-import { Component } from 'react';
+import { useState, Profiler } from 'react';
+
+let renderCount = 0;
 
 export default function App() {
+  renderCount++;
+  console.log('rendering');
+  
+  return (
+    <Profiler id='App' onRender={() => console.log('commit')}>
+      <Counter initialValue={5} />
+      <Counter />
+      <p>Render count: {renderCount}</p>
+    </Profiler>
+  );
+}
+
+function Counter({initialValue}) {
+  const [count, setCount] = useMyState(initialValue);
+
+  const startTime = Date.now();
+  while (new Date() - startTime < 500) {}
+
   return (
     <>
-      <h1>Hello World</h1>
-      <ErrorBoundary fallback={<h1>There was an error...</h1>}>
-        <Buggy />
-      </ErrorBoundary>
+      <button onClick={() => setCount(count + 1)}>
+        Increment
+      </button>
+      <p>Count: {count}</p>
     </>
   );
 }
 
-function Buggy() {
-  // throw new Error('error');
-  return <h1>Buggy</h1>;
-}
-
-class ErrorBoundary extends Component {
-  state = { hasError: false };
-
-  static getDerivedStateFromError(error) {
-    return { hasError: true }; // could return the error in this, if we want
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return this.props.fallback;
-    }
-    // else...
-    return this.props.children;
-  }
+function useMyState(initialValue = 0) {
+  return useState(initialValue);
 }

@@ -19107,24 +19107,283 @@ q
 
 ## 17: Debugging React
 
+```js
+console.log('in the useEffect');
+console.log('did this component render?');
+console.log('why does this keep re-rendering?');
+console.log('maybe VanillaJS is not so bad after all...');
+
+```
+
 ### Key Terms
+
+#### React.StrictMode
+
+A React component for putting a component in strict mode.
+- 2 primary benefits for assisting in debugging:
+    1. It provides warnings when using depracated functions OR lifecycle methods.
+    2. It double-invokes some functions (ie. functional components)
+    - This helps find potential bugs related to side-effects in functions that should not have side-effects
+
+Learn more: https://react.dev/reference/react/StrictMode
+
+#### React.Profiler
+
+A React component for tracking how often a component renders
+- Requires 2 props:
+    - `id`: A unique identifier
+    - `onRender`: A callback function to run after the component renders (during the commit phase)\
+
+For performance reasons, the Profiler is ignored in production mode.
+
+Learn more: https://react.dev/reference/react/Profiler
+
+#### React DevTools
+
+An official React browser extension for debugging React.
 
 ### Notes from the video
 
 #### Setup
 
-```sh
-cd 17_debugging_react
-echo > 
+Update the code for App.js and Index.js:
+
+```js
+// App.js
+
 ```
 
-#### 
+```js
+// Index.js
+import React from 'react';
+import ReactDOM from 'react-dom';
+import App from './App';
+
+ReactDOM.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>,
+  document.getElementById('root')
+);
+
+```
+
+Run the code in the Browser:
+
+```sh
+npm start
+```
+
+View the Console via Chrome > Right click > Inspect > Console.
+
+#### Intro
+
+Point of video: How to debug React code
+- Will be the same as standard HTML and JS
+- Will also look at React-specific tools!
+
+Summary of the code we have now:
+- 2 Counters
+    - 1 w/ initial value of 5
+    - 1 w/ initial value null
+
+- Counter function
+    - State, which uses input of initialValue (default 0)
+    - Button that Increments the count
+
+Remember: index.js is the entry point to this App
+
+First thing to discuss: In index.js (The main JavaScript file)
+- React.StrictMode
+
+Now, what exactly is Strict Mode?
+
+#### Strict Mode
+
+Strict Mode: Helps you find issues in your code
+- Gives you warnings in the console if you use depracated functions
+- "Double Invocation"
+    - In strict mode, your functions for componenets are invoked twice
+        - Purpose: Avoid side effects
+            - We don't want side effects in the main function
+            - By doing things twice, you can see when you did things by accident
+                - Does not happen in production
+
+Note: React is allowed to re-render the DOM whenever it wants
+- It doesn't do this usually, but if anything has side effects, it is best practice to put it inside of a ``
+
+Let's see this double invocation in action:
+
+```js
+// App.js
+import { useState } from 'react';
+
+let renderCount = 0;
+
+export default function App() {
+  renderCount++;
+  console.log('rendering');
+  
+  return (
+    <>
+      <Counter initialValue={5} />
+      <Counter />
+      <p>Render count: {renderCount}</p>
+    </>
+  );
+}
+```
+
+What happens:
+- rendering: logged only once
+- render count: 2
+
+Essentially what is happening: When double invocation is happening, the console.log()'s will only run once
+- In new React (<= 17), you won't see the console logs get double invoked!
+
+Note: As you may expect now - if you go back to Index.js and remove the React.StrictMode, you will only see a render count of 1. (No double invocation)
+
+Takeaway: Always have strict mode and double invocation on, when developing!
+
+#### Profiler
+
+Profiler: Keeps track of when a component is rendering
+- You can wrap any component in one
+- Inputs: 
+    - id: 
+    - function: onRender = {}
+        - funny, this doesn't actually run on render... (on commit, so AFTER render, and AFTER React is done running the main function)
+
+Let's try it out!
+
+Do the following and let's see what happens to our program:
+- import Profiler form React
+- change the Fragments into being `Profiler`
+    - add id
+    - add onRender function
+
+```js
+// App.js
+export default function App() {
+  renderCount++;
+  console.log('rendering');
+  
+  return (
+    <Profiler id='App' onRender={() => console.log('commit')}>
+      <Counter initialValue={5} />
+      <Counter />
+      <p>Render count: {renderCount}</p>
+    </Profiler>
+  );
+}
+```
+
+What is going on here:
+- 'rendering' is printed
+- 'commit' is printed (after the render, during the commit)
+
+Admittedly: `Profiler` is not used very often! (If you are dealing with a hard to find bug, this can help for knowing that a component is only rendering when it should be!)
+
+Note: Just like before, you can only use `Profiler` in development mode. (It will be ignored without StrictMode)
+
+#### React DevTools
+
+First, head into Components via Chrome > Right Click > Inspect > Components (It may be all the way to the right)
+
+This is now essentially the same as the elements tab, but instead of HTML elements, it shows React elements.
+
+Components
+- App
+    - Profiler
+        - Counter
+        - Counter
+
+There are 4 actions you can do when you click on a Component:
+- Suspend the component
+- Inspect the DOM Element
+- Log this component's data to the console
+- View source code for this data
+
+One more thing with the Components Tab - Custom Hooks!
+
+Start by going into App.js and replacing `useState()` with a Custom Hook:
+
+```js
+// App.js
+function Counter({initialValue}) {
+  const [count, setCount] = useMyState(initialValue);
+
+  return (
+    <>
+      <button onClick={() => setCount(count + 1)}>
+        Increment
+      </button>
+      <p>Count: {count}</p>
+    </>
+  );
+}
+
+function useMyState(initialValue = 0) {
+    useDebugValue('hello world');
+    return useState(initialValue);
+}
+
+```
+
+What does useMyState do:
+- Handles the default value
+
+Head back to Components > Counter, you will now see the Custom Hook of `MyState` with a value of 5!
+- It remove the 'use' prefix, then gives the rest of the CustomHook's name
+
+Note: Another thing you can do to add data to the MyState is the `useDebugValue()` from React.
 
 
+One last thing - the Profiler tab. (This is different than the Profiler component, they are unrelated)
 
-####
+What can we do with the Profiler tab?
+- Record while we do something on the page
+    - Examples:
+        - refresh
+        - click buttons
+    - We do this to see what components are re-rendering.
 
+Try it out! Refresh the page, head to the Profiler tab, and do the following:
+- Hit the record button for 'Starting Profiling'
+- Increment the count
+- Hit the 'Stop Profiling'
 
+You should now see that none of the components on the page rendered, except for the Counter.
+
+Note: You can hit the refresh button to have the profiling start over, and you can see which components are causing the initial render to take _ amount of time.
+
+(Ours is running instantly, so not the best example right now - let's change that)
+
+Add this code to make the Counter slow:
+
+```js
+// App.js
+function Counter({initialValue}) {
+  const [count, setCount] = useMyState(initialValue);
+
+  const startTime = Date.now();
+  while (new Date() - startTime < 500) {}
+  ...
+}
+```
+
+Save this, click the reload button in Profiler to start Profiling, and you will now see that each of our Counters took 1000ms to run.
+- The entire app takes 2000ms to run
+    - Double invoked is causing this ie. 500ms while loop * 2counters * 2 invocations
+        - We only get a single thread, so they cannot run at the same time
+
+Ending note: Profiler is a good way to see why a certain page is running slow!
+
+#### Takeaways
+
+Debugging React:
+- Will mostly be the same as with Vanilla JavaScript / HTML
+- These are a few extra tools to help make our lives easier
 
 #### Git
 
