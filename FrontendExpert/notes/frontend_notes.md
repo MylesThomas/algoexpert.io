@@ -19544,24 +19544,224 @@ q
 
 ## 19: React Under The Hood
 
+Okay, React is awesome, beautiful + magical.
+
+But how does it work, exactly...?
+
 ### Key Terms
+
+#### React Element
+
+The internal object representation of a node in the React tree.
+- React Elements can represent 1 of the following 2:
+    - DOM nodes
+    - React components
+
+Learn more: https://legacy.reactjs.org/blog/2015/12/18/react-components-elements-and-instances.html#elements-describe-the-tree
+
+#### Virtual DOM
+
+A "virtual" representation of the DOM kept by React internally.
+- This data structure is not tied to the actual DOM, so it is much quicker to update (than the actual DOM)
+
+Learn more: https://legacy.reactjs.org/docs/faq-internals.html
+
+#### Reconcilation
+
+The algorithm used by React to determine the "diff" between 2 trees of React elements.
+- After each state update, React runs the reconciliation algorithm to determine what has changed
+    - Changelog is sent to the rendering function (in the case of the browser, this is the React DOM)
+        - The rendering function can update the page using the information
+
+Learn more: https://legacy.reactjs.org/docs/reconciliation.html
 
 ### Notes from the video
 
-#### Setup
+#### Intro
 
-```sh
-cd 19_react_under_the_hood
-echo > 
+When we write some component and add it to the DOM, what is actually happening?
+
+#### React.createElement
+
+We know this is true:
+- We write JSX
+- JSX feeds into React.createElement()
+- React.createElement() outputs a React element object
+    - This is not a DOM node
+
+To reiterate: JSX -> React.createElement() -> React element object
+
+![React.createElement](./figures/react/1.png)
+
+Most of the properties on this object look familiar:
+- key: null (we did not set a key for <h1>)
+- props: in this case only is taking the children, ie. "Hello World"
+- ref: null (we don't have a ref)
+- type: "h1"
+- $$typeof: 
+    - is not super important
+    - idea: protect against injection attack
+        - lets React know it did not come from JSON
+
+#### ReactDOM.render
+
+Once our JSX turns into a React element object, what do we do from there?
+
+You call ReactDOM.render!
+
+Function: ReactDOM.render: Traverses the React element object, turning them into DOM nodes
+- Note: It is a tree, because of the props: {children: "Hello World"}
+
+- Inputs:
+    - React element object
+    - Location to append DOM nodes
+        - DOM nodes are appended to the 2nd argument's location
+
+- Output: DOM nodes
+
+![ReactDOM.render](./figures/react/2.png)
+
+#### Virtual DOM
+
+Now, that was the initial render. How does React keep up with Updates?
+
+Virtual DOM.
+
+Virtual DOM: The data structure created by nesting React Elements
+- Important point: Much faster to update than the real DOM
+    - Nothing needs to change on screen!
+        - Standard DOM: Page has to update
+        - Virtual DOM: You are just updating a JS Object
+
+Note: Virtual DOM is a misnomer (React team is going away from this term)
+
+#### Reconcilation
+
+Now, if there is state update, React will need to update the real DOM as well. This is known as Reconcilation!
+
+Reconcilation: An algorithm that React uses internally to figure out what has changed
+- Takes old DOM object
+- Takes new DOM object
+- Figures out the difference! ("diff")
+
+Goal: Figure out the differences, with the least/mininmum number of operations to change old into new!
+- This all happens in the Virtual DOM
+- Changelog is then sent to a rendering function
+- Rendering function makes changes to the DOM
+
+Note: This is where the Virtual DOM misnomer comes in, since it doesn't actually have to be the DOM
+- Example: React.Native, which lets you write mobile apps with React, doesn't even have a DOM!
+    - Uses reconcilation still
+    - Uses different rendering function that takes changelog and creates a new output that mobile devices require
+
+##### The algorithm
+
+How Reconcilation calculates the "diff" of the virtual DOM after updates:
+
+1. Check type: If root nodes are of different types: delete tree and rebuild
+- least efficient type of change
+
+2. Since type did not change, check attributes: If attributes changed, update existing nodes
+- tell render-er it can update the existing nodes, just change their attributes
+- example: if a class changed, the DOM node would be updated to have the new class (not replaced with a new DOM node)
+
+3. Recurse on all children!
+- repeat steps 1 and 2 for every child of the root node
+    - go until leaf nodes/bottom of the tree
+
+High level, that is it! There are other optimizations, though.
+
+A term you may hear: Fiber
+
+Fiber: A modern re-write of the reconciliation algorithm
+- Focused on incremental rendering
+- Knowing the changes is not important (very academic), but good to know at a higher level that incremental rendering is
+    - "Chunk out" the rendering process
+    - Break it up into multiple different steps
+        - Prioritize more important things
+            - Example: Slow animations
+
+#### Keys
+
+Final thing to look at: How the reconciliation algorithm handles keys!
+
+![Keys](./figures/react/3.png)
+
+When React recurses on children, it assumes the elements are in the same order.
+- Keys: Lets us tell React which elements are which, so we don't need to rely on the elements being in the same order
+
+Let's look at an example:
+
+```html
+<ol>
+    <li key="first">First</li>
+    <li key="second">Second</li>
+</ol>
 ```
 
-#### 
+=> 
+
+```html
+<ol>
+    <li key="zeroth">Zeroth</li>
+    <li key="first">First</li>
+    <li key="second">Second</li>
+</ol>
+```
+
+What is going on here:
+- Starting out -> First ordered list: 2 list items
+- Final state -> Second ordered list: 3 list items
+    - 3rd list item was added at the beginning (or prepended)
+
+Situations:
+- If we appended list item to end of list: Keys would NOT matter
+    - React knows the 1st and 2nd items have not changed (still list item, still same content)
+    - 3rd item would get added flawlessly 
+ 
+- But, we prepended the list item to FRONT of list: Keys now DO matter
+    - WITHOUT KEYS:
+        1. React will compare 1st list item to 1st list item
+            - First != Zeroth
+                - Result: Update existing node
+
+        2. React will compare 2nd list item to 2nd list item
+            - Second != First
+                - Result: Update existing node
+
+        3. React will add the 3rd value (it did not exist before)
+            - Second
+                - Result: Create a new element
+
+        - This is inefficient!
+
+    - WITH KEYS:
+        1. React will look at the key="zeroth" list item
+            - React has not seen this key before, so
+                - Result: Create a new element
+
+        2. React will look at the key="first" list item
+            - React HAS seen this key before
+                - Result: No updated necessary
+
+        3. React will look at the key="first" list item
+            - React HAS seen this key before
+                - Result: No updated necessary
+
+        - This is much moreefficient!
+            - React knows the 1st and 2nd items have not changed (still list item, still same content)
+            - 3rd item would get added flawlessly
 
 
+That is it for Keys, and why they are so important!
+- Whenever you use dynamic data to create an array of children, ensure to give them all a key
 
-####
+ 
+#### Takeaways
 
-
+This only scratches the surface, but should give a good idea of the following:
+- Writing components
+- Rendering them to the screen
 
 #### Git
 
