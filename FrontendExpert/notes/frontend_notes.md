@@ -20095,13 +20095,13 @@ Other Tools
     - People are starting to prefer Vite > `create-react-app`
         - Faster
         - Simpler/more barebones
-        
+
     - Vite is not specific to React... can build application using Angular and others
     - Ues Rollup under the hood
 
 #### Takeaways
 
-
+We did not cover every React library, but we did get a good idea of what is out there!
 
 #### Git
 
@@ -20117,3 +20117,8 @@ git log --oneline
 q
 ```
 
+Course is complete!
+
+# Web Dev Fundamentals
+
+I have already completed AlgoExpert's SystemsExpert Course, and upon watching the videos in this Web Dev Fundamentals Crash Course, the amount of overlap leads me to believe I should spend my time focusing on another subject.
