@@ -351,7 +351,7 @@ Web 3: Future of the internet
 Web 2: Mostly what we use today
 - Data
 
-###### Practice Questions
+##### Practice Questions
 
 1. Which of the following characteristics most accurately describe the Web 1.0 ecosystem. Select all that apply.
 - Read-only websites and static web pages
@@ -1134,13 +1134,343 @@ This video, we will learn why it is actually called the "Blockchain".
 
 ##### Blockchain Overview
 
+Blockchain: Sequence of blocks that are linked in chronological order
+- Stored in different transaction data
+- Stores log of every event/transaction that has happened on the blockchain
 
+How to create a block:
+- Miners look at the transaction pool, collect a bunch of transactions, and then attempt to create a block
+    - Transaction pool: These are transactions that have been submitted, but not verified yet
+    - Miners: A bunch of computers
+
+- If a block is successfully created, this block gets submitted to the blockchain and added to the chain
+    - Assuming this is not a fraudulent block.
+
+This is a quick recap of what goes on with the blocks
 
 ##### Blockchain Data
 
+What is actually on these blocks / what makes up a block:
+- Magic number: Constant value for all of the blocks that are part of a blockchain network
+    - This is to differentiate from other blockchain networks
+    - Example: All blocks in Bitcoin Blockchain Network have the same magic number
+        - Test networks, that people can play with for free, have a different magic number
 
+- Block Size: Max amount of data / size limit of the block
+    - It will not always be this size, but this is the max amount for a single block
+    - Example: Bitcoin block size is 1 megabyte
+        - (not that much... this is why it can be slow to store transactions)
+    - Huge debate: What would happen if we increase the block size?
+        - Pros: More transactions per block
+        - Cons: 
+
+- Block Header: Contains metadata about the block
+
+- Transaction Count: # of transactions stored on the block
+
+- Transaction Data: All transaction data (from the last video)
+    - The bulk of the block
+
+- Version: Version number of the block
+
+- Previous Block Hash:
+    - Very important: This links the blocks together! (Think of a LinkedList)
+        - Example:
+            - Block 1
+            - Block 2
+                - stores a reference to the previous block
+                - it stores the hash of block 1
+                    - Block 1 -> Hashing function -> Hash of Block 1 -> Stored on Block 2 as prevHash
+                        - We can re-hash the prevHash (to ensure that the hash of the previous block is same as the prevHash on the current block)
+                            - Tease for later: If you change any data in the previous block, this will change what needs to be stored in the current block.
+                
+- Hash Merkle Root: 
+    - Complex topic we don't need to get into (Think of a binary tree storing hashes)
+
+- Timestamp: When the block was created/added to blockchain
+
+- Bits/Difficulty: Difficulty rating of the block
+    - As the Bits increases, it becomes more difficult to mine that block
+        - We will talk about this more during Proof of Work/Stake
+
+- Nonce: Special number that proves work has been done sufficiently, and this block is valid
+    - Determined by miner
+
+- Block Reward: How much Bitcoin is given to the miner who successfully mines the block
+    - This is what encourages miners to participate in the Bitcoin network
+    - Can change (will decrease as a network gets older)
+        - Back in 2009, the reward for the 1st bitcoin block was 50 (!!!) BTC
+        - In 2012, this was halved to 25
+        - In 2016, this was halved to 12.5
+        - In 2020, this was halved to 6.25
+            - This will continue to occur 
+
+That is it for what is on a block!
 
 ##### Genesis Block
+
+Next, let's talk about the 1st block on the blockchain - this is an initialization block with special properties.
+
+In the last section, we talked about what properties a regular block has.
+
+In this section, we will talk about the 1st block on the Bitcoin network, which is known as the "Genesis Block".
+
+This block contains all of the data from before, plus the following fields/properties:
+- Difficulty & Difficulty Interval
+    - Difficulty (currently): Number of bits 
+    - Difficulty Interval: How it is increasing/decreasing
+        - Example: Increase every x blocks (this is beyond the scope of this video)
+
+- Mining Reward & Reward Changes
+    - Mining Reward (currently): Number of BTC your reward is
+    - Reward Changes: How it is increasing/decreasing over time
+        - Regular/Bitcoin: Decreases over time
+        - Some coins: Increases over time
+            - This is like a bank printing more money, it puts more in circulation and therefore de-values the currency
+        - Note: This reward is new coin
+            - Every time someone is rewarded with BTC, that is a new version of the coin (new instance)
+                - You are increasing the supply/circulation
+            - In some blockchain networks, the reward comes 0 coins, and all the miner receives is the gas/transaction fees from assigning transactions into a block
+
+- Circulating Supply: Amount of coins that are circulating
+    - With Bitcoin, there is a Max Supply (21 million)
+        - What this means:
+        - There will never be more than that in circulation
+            - When this video was made: 19.1M BTC in circulation
+            - Every 10 minutes, 6.25 BTC are added to circulation
+            - Projection: We will hit 21 Million in _
+
+        - Note: Quick conversation about the Genesis Block
+            - When the genesis block was created by Satoshi, he was the one mining the block and subsequent blocks
+            - When he received his first 50 BTC reward, only 50 had been minted/created/in circulation, but still a Max Supply of 21 million
+            - Now, BTC comes into circulation at a much slower rate
+                - This makes it a much more valuable asset
+
+##### Practice Questions
+
+1. What is the name of the first block in the Bitcoin network?
+- Genesis Block
+
+2. Blocks on the Bitcoin blockchain have an unlimited size that is based upon the number of transactions that happened before that block was mined.
+- False
+    - The size of a block is fixed at ~1 megabyte, this cannot change without changing the Bitcoin protocol.
+    - Block size of 1 MB ~ 2000 transactions
+
+3. In reference to the Bitcoin blockchain, what is a nonce?
+- A special number determined by Bitcoin miners
+
+4. Which of the following pieces of information must be included in a new block? Select all that apply.
+- Nonce
+- Block Header
+- Transaction Data
+- Previous Block Hash
+
+### 7 - Blockchain Security
+
+What are some security risks with blockchain and how do we avoid them?
+
+#### Key Terms
+
+n/a
+
+#### Notes from the video
+
+In this video, we will look at blockchain security concerns.
+
+##### Double Spending
+
+Starting out, let's look at a few potential problems when you have a blockchain network and you are trying to keep track of transactions:
+
+First, when talking about any sort of digital ledger, we need to be concerned about Double Spending.
+
+Double Spending: Occurs when someone is able to spend the some coin/amount of money multiple times
+- Example: Handing somebody a dollar bill: Nothing to worry about, the money is in other hands.
+- Example: Bank Ledger/Digital ledger: Have to be very careful, since spending the same $1 would be problematic
+
+- How to avoid Double Spending?
+    - Keep a history of every transaction that has happened on the blockchain
+    - Proving sufficient balance before being allowed to send money
+    - What happens if somebody tries to use the same set of transactions as the inputs to multiple new transactions?
+        - We can go into the blockchain history and see that those inputs have already been used. That transaction will be nullified.
+
+##### Transaction Order
+
+The next problem/concern with the Blockchain has to do with order.
+
+Remember, the blockchains are chronologically ordered. To expand on that:
+- Blocks on the Blockchain: True, these are in order
+- Transactions that make up Blocks: False, these are not in order
+    - Miners do NOT select transactions based on the order they were submitted
+        - The blocks are made up of ~2000 transactions, and inside of the blocks, the transactions are NOT always chronologically ordered.
+    - Miners DO select transactions based on how high their fees are/other incentives.
+
+So, now we know that transactions are not necessarily in chronological order. Let's talk about why this can be problematic:
+- Theoretically, you can submit multiple of the exact same transactions
+- You could also submit to the transaction pool multiple transactions that have the same inputs.
+    - There can be problems adding these to the blockchain
+
+Example:
+- You submit 3 transactions to the transaction pool
+- The first one gets picked up by a miner and ends up in the 1st block
+- During the creation of block #2, another miner picks up one of your other 2 remaining transactions
+- Because this transaction has already been done / these inputs have already been used, this should not be valid.
+    - The blockchain will see that the inputs are not valid, and the transaction would be rejected!
+
+Note: You don't know which transaction(s) the miners will pick up first. The order they are added to a new block comes down to randomness + gas/fees paid
+
+##### Sufficient Balances
+
+The next problem/concern: Having sufficient Balance to send funds
+- This is why you need valid transactions to prove you have sufficient funds!
+
+Example: You are creating a transaction where you send 6 BTC
+- Inputs:
+    - tx1: 2 BTC
+    - tx2: 2 BTC
+    - tx3: 3 BTC
+
+- Outputs:
+    - gas/fees: x
+    - change: x
+
+This is how a transaction would work on the Blockchain.
+
+What would this look like if we didn't use transactions as inputs?
+- Go back to the origin block (of the entire Blockchain)
+- Traverse through each transaction node, keeping track of how much money is in your account
+    - If you don't provide any proof, the miners need to know if you actually have 6 BTC
+
+It is a little bit more complicated than that, but that's basically what it comes down to for validating that a certain user has a certain amount of money at any given time.
+
+##### Exploited Code
+
+The next risk/concern: Exploited Code
+
+As programmers, we are aware that everyone makes mistakes when writing code, even the developers who write the source code for the blockchain network.
+
+Examples of things that can go wrong/exploitation:
+- Damage to the blockchain network
+- Fraudulent transactions
+
+Thankfully: These large networks have 1000's of people working on them, security audits, etc.
+- For smaller coins, there are a lot of examples of blockchain networks/coins being exploited for their poorly written code.
+
+##### 51% Attack
+
+Most popular type of Blockchain security Breach: The 51% Attack
+
+The 51% Attack occurs when 1 specific entity is able to control over 50% of a blockchain network.
+- More specifically: They would be controlling the nodes and miners/validators
+    - This will make more sense after the Proof of Work/Proof of Stake modules
+
+If you are able to control over 50% of the entire network, you can do essentially what you want on that network. Why is that? Concensus algorithms.
+- Concensus algorithms
+    - Designed to achieve reliability in a network involving multiple users or nodes
+    - All of the networks have them in place to allow people to determine if a transaction/a block is valid
+
+Example: You controlled 3 of 5 nodes in a blockchain network
+- If there was ever an argument/disagreement about a fraudulent transaction, you would have total control over what flies
+
+This 51% Attack has happened to many smaller networks in the past! (It takes a lot of computing power, but it can happen, so therefore we should consider it)
+
+##### Practice Questions
+
+1. What best describes a 51% attack on the Bitcoin blockchain?
+- When an entity controls more than 50% of the Bitcoin mining hash rate on the network
+    - Note: The number of nodes on the network != hash rate of the network
+        - Hash rate: How quickly a block's nonce can be guessed (so, how quickly blocks can be created/mine)
+            - If you have a more powerful computer with a higher hash rate, your node is more powerful
+
+### 8 - Proof Of Work
+
+The original consensus mechanism that powers the Bitcoin network.
+
+#### Key Terms
+
+##### Proof of Work
+
+Proof of Work is part of a consensus mechanism used by a blockchain network. 
+- Blockchain miners compete to find a valid proof of work for blocks they assemble, based on recent transactions
+    - Involves finding a special value (the nonce) that when added to a block makes the hash of that block start with a certain number of zeros.
+
+##### Mining Difficulty
+
+The mining difficulty is represented by a field known as bits.
+- Number of bits: States the number of 0's that the hash of each block must start with to be accepted as valid
+    - Miners must find a valid nonce that when added to a block make it's hash start with the number of bits zeros.
+
+##### Miner
+
+A miner is a special node on the blockchain network that is responsible for validating incoming transactions and assembling them into blocks.
+- Miners compete/race to be the first to submit a valid block to the network.
+- Upon submitting a valid block, miners are compensated by receiving the following:
+    - The reward (if any)
+    - Transaction/gas fees
+
+#### Notes from the video
+
+##### What is Proof of Work
+
+In this video, we will look at Proof of Work.
+- To put it simply, a Proof of Work is submitted alongside a block, by blockchain miners, to prove that a certain amount of computational power/work has been done
+    - Lays the foundation for the security of blockchain networks like Bitcoin
+    - The blockchain network gets more and more secure, as more work gets done
+        - In order to go and try to change the network/do something malicious, they would have to provide the same amount of work (and even more!)
+
+##### The Role of Miners
+
+Overview of the blockchain network as a whole + the role that miners play: 
+
+
+
+##### Nonce and Difficulty/Bits
+
+
+
+##### How Miners Work Together
+
+
+
+##### Fork Chains and Resolving Conflicts
+
+
+
+##### Longest Chain
+
+
+
+##### Confirmations
+
+
+
+##### Difficulty and Hashing Time
+
+
+
+##### Pool Mining
+
+
+
+##### Mining Strategy/Empty Blocks
+
+
+
+##### Environmental Impact
+
+
+
+##### Attacks on Proof Of Work
+
+
+
+##### Practice Questions
+
+1. 
+- 
+
+
+
+
 
 
 
