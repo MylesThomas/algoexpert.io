@@ -1419,19 +1419,149 @@ In this video, we will look at Proof of Work.
 
 ##### The Role of Miners
 
-Overview of the blockchain network as a whole + the role that miners play: 
+Overview of the blockchain network as a whole + the role that miners play (This will help us understand what a miner is doing when it submits a proof of work):
+- Blockchain Network: We have an existing blockchain network
+    - 
 
+- Clients: We have clients on the Blockchain Network
+    - who send transactions into the transaction pool
+        - then, they wait for a miner to pick it up and add to the blockchain network
+        
+- Transaction Pool:
+    - in reality: held individually by each miner on their computer
 
+- Miners: Reads from transaction pool, gathers transactions, and assembles them into blocks
+    - in reality: all miners have their own version of the transaction pool
+        - they create 'tentative' version of blocks on their local machine
+            - not all of them are seeing the same transaction pool
+    - creating blocks is fast:
+        - look at transaction
+        - validate security based on previous block (no double spending)
+        - assemble a block with the valid transactions
+        - submit a proof of work alongisde the block, in order to add to blockchain
+
+What is the Proof of Work?
+- Essentially: Guessing a very specific number
+    - Everybody is racing to get this number
+
+Example: Miner #1 finds proof of work for the block
+- Steps:
+    - Miner transmit block to the network
+    - Wait for it to get added, which entails the following:
+        - Other miners on the network validate that the transactions on the block are secure
+        - The block itself has a valid proof of work
+    - Once it is added to the blockchain, all of the miners erase the blocks they are working on, and start mining a new block!
+        - The blocks they were working on are now invalid, since those blocks need to contain the previous block's hash
+
+The process repeats!
+
+To reiterate, the basic flow:
+- Miners assemble blocks from the transaction pool into a block
+- Miners race to guess the proof of work
+- Once a miner gets the the proof of work and submits it to the network and is validated, everyone starts at square 1
+
+Note: The reason miners do this is because if they successfully submit a block to the network, they get a reward (Example: 6.25 BTC + transaction fees!)
 
 ##### Nonce and Difficulty/Bits
 
+Now that we understand basics of the miners and flow of the network, let's look at what is involved in 'finding the proof of work'.
 
+On our blocks, we have a bunch of information, such as:
+- Version
+- Previous block hash
+- Data
+- Transactions
+
+What a miner is doing:
+- Setting in the network and listening for transactions
+    - Transaction pool runs in the RAM of the miner (some form of fast access memory)
+    - Every time a new transaction is broadcasted to the network, it goes into this miner's pool
+        - This miner is constantly trying to build blocks containing these transactions, find the proof of work, and submit to the network
+
+What happens AFTER a miner builds a block and adds different transactions onto it:
+- Check for a valid block / Validate that all transactions are indeed valid:
+    - Check signatures
+    - Check for double spending
+        - Need access to the previous block in the blockchain (if a previous transaction exists, it becomes invalid)
+
+- Find the proof of work:
+    - proof of work: a number so that when this entire block is hashed, this hash starts with a certain amount of zeros
+        - Nonce: 
+        - Bits: the difficulty of the block
+
+Example:
+- Bits = 20
+    - "the hash of this block must start with 20 zeros for the proof of work to be submitted"
+        - When you hash this block, you get a random value - nearly impossible it will start with 20 zeros
+        - You need to add a special number to this block that makes it such that the hash of this block does start with 20 zeros
+            - This is where Nonce comes in ...
+
+- Nonce = 
+    - When someone is mining, they are guessing a bunch of nonces that you can add to the block so that the hash starts with 20 zeros
+        - 
+
+Note: Everytime you add another zero (increase the bits) it gets more difficult to determine a nonce, so that the hash of the block starts with that many zeros.
+
+What is actually happening when you mine:
+- Guessing millions of numbers per second
+    - Adding that number to the block
+    - Hashing the entire block
+    - Hoping it starts with Bits = 20 zeros so you can submit the block!
+
+Once you have a valid proof of work and submit that block to the blockchain, you will receive your reward and the block is added to the blockchain network.
 
 ##### How Miners Work Together
 
+Let's make this example simple with only 3 miners.
 
+What each miner has:
+- Blockchain = Decentralized / Distributed ledger
+    - Each miner has their own version of the blockchain
+- Transaction pool
+    - tx pools
+
+Steps:
+- Person broadcasts a transaction out to the network and it ends up in each miner's pool
+    - The miners are listening for transactions, and when this transaction comes into the network, they all receive it in their transaction pools
+
+- Now that they have transactions in their pool, the miners start to TRY building blocks with the transactions
+    - They are looking for the nonce for these blocks
+        - building block: simple
+        - validating that transactions are valid: not so simple
+            - How to do it: Having an up-to-date version/history of the blockchain
+
+- Miner 1 has found the nonce and has successfully finds the nonce that makes the hash start with a specific number of zeros (depending on the bits). What he does next:
+    - Broadcasts this block out to the network
+        - Because these others miners are listening to the network, this new block goes to each of the other miners
+
+- When the other miners receive the block, one of two things can happen:
+    - block is valid: they delete the block they have been working on AND delete the one they have been working on
+        - their blockchain is now up-to-date and they can continue mining ie. work on a new block with new transactions
+    - block is NOT valid: they will reject adding this to their local copy of the blockchain
+        - their blockchain stays the same, and they continue trying to find the nonce/proof of work
+
+
+- Assuming the block was valid, the cycle continues and miners keep competing for new blocks and finding the proof of work.
+
+More computing power and ability to guess numbers, the more you will win!
 
 ##### Fork Chains and Resolving Conflicts
+
+Let's look at some edge cases, ie. multiple miners sending blocks in at the same time.
+
+In the bitcoin network with millions of users, the probability that 2 miners submit a valid block at the same time is pretty likely
+- Happens ~1x per week
+
+What happens when this is the case?
+
+Let's show with an example of 3 miners once again:
+- 3 miners
+- 1 blockchain in the middle (imagine that all 3 miners agree on the same valid version)
+
+Steps:
+- Miners 1 and 2 find a valid block and a nonce and proof of work, and at the exact same moment in time, they submit the blocks.
+    - What happens now? A fork chain is created.
+        - We have 2 versions of 
 
 
 
