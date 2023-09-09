@@ -1557,50 +1557,143 @@ What happens when this is the case?
 Let's show with an example of 3 miners once again:
 - 3 miners
 - 1 blockchain in the middle (imagine that all 3 miners agree on the same valid version)
+- Miners 1 and 2 find a valid block and a nonce and proof of work, and at the exact same moment in time, they submit the blocks.
 
 Steps:
-- Miners 1 and 2 find a valid block and a nonce and proof of work, and at the exact same moment in time, they submit the blocks.
-    - What happens now? A fork chain is created.
-        - We have 2 versions of 
+- A fork chain is created
+    - We have 2 versions of the blockchain
+        - both were submitted at same time and are valid, so you have to add them both (some miners on the network will accept block 1, others block 2)
+            - depends on latency/when blocks were received by each miner
 
-
+    - To resolve the issue and get back to a flat blockchain, we wait for the next block to be submitted and follow it (nodes are told to accept the longest chain)
+        - if next valid block goes to block 1: all miners use the chain from block 1
+        - if next valid block goes to block 2: all miners use the chain from block 2
+            - longest chain on the network: the one that is up-to-date, which is measured by this:
+                - more on this next...
 
 ##### Longest Chain
 
+Longest Chain: Not as simple as the number of blocks!
 
+Longest Chain: Chain with highest cumulative difficulty that is valid
+- Chain must be valid: no double spends, etc.
+- Chain must have highest cumulative difficulty: This refers to the amount of proof of work
+    - Sum up all of the bits on all of the blocks, on that chain
+
+Notes:
+- Oftentimes: The longest chain has the highest cumulative difficulty (basic correlation)
+- We take the highest proof of work because it makes the blockchain more secure
+    - It would require more work to modify/change the blockchain
+
+"Highest cumulative difficulty, valid chain"
+
+Final note: If a fork chain happened twice in a row (unlikely), the process would just repeat itself
+- 2 chains
+- 4 chains
+- 8 chains
+- etc.
 
 ##### Confirmations
 
+When sending transactions, there are Confirmations.
 
+Confirmations: The number of blocks that have been added in the blockchain since this transaction
+- Example: If your transaction is block 2, and now the blockchain is at block 5, that transaction has 3 confirmations
+    - The more confirmations, the more confident you can be that the transaction is actually on the blockchain (and won't be reverted back)
+        - it could have been added to a fork chain, which has a chance to be removed...
 
 ##### Difficulty and Hashing Time
 
+Remember: Number of bits = The difficult for a block
+- Block difficulty is adjusted every 2 weeks on the bitcoin blockchain network
+    - This is adjusted based on the volume on the bitcoin network
+        - Why is this? They want 1 new block to be created every 10 minutes (on average)
 
+Bits gets adjusted using the hashing power of the entire network, and working its way back so that 1 bit takes 10 minutes.
 
 ##### Pool Mining
 
+Now that we have gone over the fundamentals of mining, let's talk about mining strategy!
+- Mining strategy: How a miner will most-efficiently find a valid block and submit it to the netowrk
 
+With a network like bitcoin, there are millions of miners. What does this mean for 1 miner with 1 computer (a low output miner):
+- Probability to mine 1 block is extremely slow
+
+How to compensate for this problem? You join a pool!
+
+Pool Mining: Pooling the resources of multiple miners
+- increases the chance of mining a block
+- distributing rewards based on amount of work that was done
+- can be massive
+    - can contain up to 10-30% of the hashing power of the entire network
+        - hashing power: units for how quickly you can hash / guess nonces (megahash, gigahash, etc.) 
+
+Pool mining is up for a large debate, so here are some advantages and disadvantages:
+- advantages:
+    - good for miners: increase chances of mining a block
+- disadvantages:
+    - miners have to share the reward with others in the pool
+    - bad for the network: reduces the decentralization of the network
+        - a very pool going down / being hacked, is a huge security risk
+            - a pool over 51% would be very bad...
 
 ##### Mining Strategy/Empty Blocks
 
+Lower level on the mining client level:
 
+There are a bunch of different software (ie. clients) that can be used to mine bitcoin
+- you just need to download a bitcoin miner client (no need to write code)
+- this program/client runs on your computer
+
+What these clients do if they are optimized:
+- create empty blocks
+    - does this because it knows the previous block hash, but not which transactions to hash
+        - even if the block has no transactions, it is a block that can be submitted (blockchain does not care if the block has 1 transaction or 100 transactions or even 0 transactions - it just needs it to add further proof of work)
+
+- after 1-2 seconds of cross-referencing between transaction pool and blockchain, the client begins to try and add transactions to its block
+    - remember: it wants to submit a block as faster as possible
+    - whether the block has 0 transactions or 100, it takes the same amount of time to get the nonce/proof of work, so the miner will continue to try and add blocks (even if empty) to the blockchain in the 1-2 seconds of cross-referencing
+
+Final note: Empty blocks are added all of the time!
 
 ##### Environmental Impact
 
+Environmental Impact of Proof of Work:
+- There is a ton of repetitive work being done
+    - more computing power = faster you can guess numbers = more electricity/power used!
 
+Example: There are 1,000,000 bitcoin miners
+- 1 miner's work gets the proof of work
+- 999,999 miner's work is for naught, and they must start over
+    - that is a lot of wasted power + computation resources!
+
+This is a big reasons why newer network (ie. ETH) are transitioning to proof of stake > proof of work.
 
 ##### Attacks on Proof Of Work
 
+How someone would try and hack a proof of work network:
 
+As seen before, we can have fork chains:
+- Chain that will live on/continue is the one that the next block is added to
+    - People would try to hack by continuing on an invalid chain for as long as possible
+        - They would need to control 51% of the network
+            - they need to outwork/outprove the others in the network, so that the invalid/fraudulent chain continues on (you are racing against the rest of the network before they can invalidate your chain)
 
 ##### Practice Questions
 
-1. 
-- 
+1. What is the correct process for a transaction to be validated and added to the Bitcoin blockchain?
+- Transaction Created and Signed -> Transaction Sent To Transaction Pool -> Miner Bundles Transaction Into A Block -> Miner Finds The Nonce -> Miner Submits Block
 
+2. The difficulty of the Bitcoin blockchain increases at a fixed increment (i.e., it increases in difficulty every 3 days).
+- False
 
+3. The number of confirmations a transaction has is the number of new blocks that have been created on-top of or since the block that holds the transaction.
+- True
 
+4. Every time a Bitcoin miner successfully mines a block they receive a reward. What does this reward consist of?
+- Transaction Fees
+- Block Reward - Newly Minted Bitcoin
 
-
-
-
+5. Pool mining involves a group of individual miners pooling/sharing their hashing power to increase the chance of mining a block. Which of the following statements is true about pool mining? Select all that apply.
+- Pool mining decreases decentralization
+- Rewards are split based on the hashing power contributed by each miner
