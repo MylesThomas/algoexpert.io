@@ -1697,3 +1697,147 @@ As seen before, we can have fork chains:
 5. Pool mining involves a group of individual miners pooling/sharing their hashing power to increase the chance of mining a block. Which of the following statements is true about pool mining? Select all that apply.
 - Pool mining decreases decentralization
 - Rewards are split based on the hashing power contributed by each miner
+
+
+### 9 - Proof Of Stake
+
+An alternative consensus mechanism that was most recently implemented on the Ethereum network.
+
+#### Key Terms
+
+##### Proof of Stake
+
+Proof of Stake is part of a consensus mechanism used by a blockchain network.
+- Blockchain networks validators are selected to verify the next set of transactions
+    - Validators must provide a stake/collateral that can be slashed if they act with malicious intent
+
+##### Validator
+
+A validator is the term used to denote a node in a proof of stake blockchain network that vlaidates transactions and creates new blocks.
+- Typically: Validators must provide a stake/collateral to ensure they act ethically
+
+#### Notes from the video
+
+##### Proof of Stake Overview
+
+Proof of Stake: Alternative consensus mechanism
+- Address concerns/environmental impact of proof of work
+    - proof of work is good, but wasteful of energy
+- Decentralized the network further
+    - Allows more people access to become validators
+- Saves energy
+    - up to 99% less energy used than proof of work!
+
+Proof of Work vs. Proof of Stake:
+- Proof of Work:
+    - Miners are mining
+        - Mining is:
+            - Miners are the computer on the network trying to guess nonce/provide proof of work
+            - They mine new cryptocurrency out of that block to get the reward
+
+- Proof of Stake:
+    - Miners are 'Validators'
+    - Instead of Mining, we are 'Minting'
+        - Minting is:
+            - Rather than computing power/minings farms, you can use a simple computer
+            - Access to validate nodes happens with a 'Stake' that your provide
+
+Example:
+- We have 5 Validators
+    - These Validators put up stake
+        - Their stake/collateral is in ETH
+            - This ETH allows them to validate blocks
+            - If they act maliciously/validate invalid transactions, they will lose their ETH (it gets 'slashed')
+    - Each of these 5 Validators are on average local CPU's
+
+- These validators are randomly selected, based on portion of stake being put up
+    - performing well: receive rewards from block they mint/forge
+        
+    - performing poorly/incorrectly and malicously acting: they will lose their stake
+        - motivation to validate correctly: you will lose financially!
+
+Tradeoff for the 2:
+- Proof of Work: Tons of wasted energy
+- Proof of Stake: Malicious actors cannot act maliciously (boo-hoo)
+
+##### How Validators Work
+
+More Detailed Example using ETH:
+- We have 6 validators on our network
+    - Each of these 6 validators puts up some ETH as their stake
+        - Minimum stake in proof of stake algo for ETH: 32 ETH (~$40,000)
+            - this is a large amount/large financial barrier to entry to become a validator
+
+- When a new block needs to be created, 1 of the 6 validators is chosen at random
+    - Selected based on proportion of stake that they have (on the entire network)
+        - Currently:
+            - Each of the 6 validators has 32 ETH
+                - The network has 6 * 32 = 192 ETH being staked
+                - Each validator has a 6/192 ie. 1/6th chance of being selected at random
+
+- A block is created using the transaction pool of that Validator
+    - To create block:
+        - Fill in required data
+        - Validate individual transaction
+            - That's it! (No need to guess nonce, provide proof of work, etc.)
+
+- The new block is now submitted to the other validators
+    - This is what the other validators do now:
+        - Look at the block and make sure it looks valid
+            - If a majority of the validators agree:
+                - block is added to blockchain
+                - validator receives reward (the sum of the transaction fees)
+                    - no block reward - some blockchains have a block reward, Ethereum network does not!
+
+            - If a majority of the validators do NOT agree:
+                - block is NOT added to blockchain
+                - the validator has a portion of its stake is 'slashed'
+                    - of that 32 ETH being staked, they will lose more than they were going to gain
+                        - example: was going to gain 5 ETH, but due to acting maliciously they lose 8 of their 32 ETH
+                            - depends on a bunch of factors how much you will lose, but this example is all you need to know for now
+                            - this encourages you to be a good actor more than 1/2 of the time!
+
+- Assuming that the block is valid, this cycle continues
+
+
+##### Advantages and Disadvantages
+
+Advantages:
+- environmental impact
+    - reduces energy consumption by 99%
+
+- increases decentralization
+    - anyone can set up a validator
+        - no need for a farm of high-performing CPU's
+
+- make ETH (or any network) a more deflationary asset
+    - how?
+        - when you implement a Proof of Stake algorithm, many people will be 'locking' up their ETH ie. not using it/selling it
+            - the more coin being taken out of regular circulation ie. trading platforms/etc. makes it more difficult to obtain your own ETH
+                - this drives the price up! (less supply, so demand goes up)
+
+Disadvantages:
+- potential for a very rich person to take over the network
+    - august 12th 2022: $230B in market cap
+        - you would need access to $115B of ETH set up in different validators to take over the network
+            - this is potentially doable, for a very rich person (you need 1/2 of the network to sell you coins, but technically it is still possible...)
+
+- high barrier for entry
+    - 32 ETH is a high barrier for entry
+        - this is high (to make sure people act correctly)
+        - counter-argument: You can pool your stake!
+            - example: 32 people with 1 ETH can pool together to become 1 validator, and split the rewards 32 ways (this doesn't increase decentralization, though)
+
+
+##### Validator Selection
+
+Quick explanation on Validator Selection:
+- When you have multiple validators, they are selected based on the proportion of stake that they provide
+    - This cannot be the only way to select validators!
+        - If 1 Validator had a large proportion, they would win almost every time...
+
+- Other factors that determine which validators are chosen:
+    - he does not explain in this video...
+
+- There are scenarios where a Validator could be chosen, but then not be online/available to validate
+    - Backup validators are then gone to (think of a queue of backups)
