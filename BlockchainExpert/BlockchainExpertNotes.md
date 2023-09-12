@@ -2611,3 +2611,67 @@ Not to mention: it is very interesting and good to know. (many of those investin
 
 15. A fork chain can occur when two valid blocks are mined at the exact same time. How do nodes determine which chain to consider as valid when this occurs?
 - Nodes store both blocks and wait for the next block to be mined. The chain this next block is connected to becomes the valid chain.
+
+# 3 - Ethereum And Smart Contracts
+
+In this course we introduce Ethereum and smart contracts, which take the concept of a blockchain to far more interesting heights by injecting programmability and interactability into the mix.
+
+## Lessons
+
+### 1 - Introduction to Cryptocurrency
+
+Welcome to the world's greatest (casino) market, where (degenerate) sound-minded individuals and (money-hungry) altruistic institutions (gamble) trade cutting-edge (ponzis) technologies!f
+
+#### Key Terms
+
+##### Cryptocurrency
+
+Cryptocurrencies are a form of decentralized digital money/currency.
+- Don't have a central issuing/regulating authority
+- Uses a decentralied system to recrod transactions + issue new units
+
+##### Fiat Currency
+
+Fiat Currency is a government-issued currency that is not backed by a commodity as gold. Examples:
+- US Dollar
+- Canadian Dollar
+- Euro
+
+#### Notes from the video
+
+##### Section Overview
+
+This section:
+- What does it mean to be a Cryptocurrency vs. a Fiat Currency
+- Ethereum: A special type of Cryptocurrency
+    - Allows us to exchange payments
+    - Is a development platform that allows us to write/deploy code in a decentralized manner
+    - Can write decentralized Apps
+- Smart Contracts
+    - Are hosted on networks like Ethereum
+- ERC-20/ERC-721
+    - Special tokens deployed on the Ethereum network
+    - ERC-721 is what makes up NFT's
+- Different blockchain technologies, and their comparison in speed/scalability/security/others
+- Stablecoins
+- Oracles
+
+This will give you a comprehensive understanding of blockchain technologies, what makes up Web 3.0 ecosystem, and how Ethereum is different than Bitcoin!
+
+##### What is Cryptocurrency
+
+Note: Some of this may overlap the last section, but the point here is to look at the purpose of cyrpto and how it is different than regular currency.
+
+Examples of Cryptocurrencies:
+- 
+
+
+
+##### Whitepapers
+
+a
+
+##### Fiat Currency
+
+a
+
