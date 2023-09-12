@@ -2544,3 +2544,70 @@ Node: A computer sitting on the blockchain network
 Yes, you can write code and smart contracts without understanding all of these fundamentals, but knowing these concepts makes you a better developer and gives you a better perspective!
 
 Not to mention: it is very interesting and good to know. (many of those investing in Blockchain Technologies don't take the time to learn these basic concepts that underpin everything we will do in the future)
+
+## Assessment
+
+1. Which of the following internet eras is most commonly associated with the following characteristics?
+- A focus on community
+- User-generated content and social media.
+- More attention to user experience, front-end user interfaces and website design.
+- Data controlled by intermediaries.
+
+- Answer: Web 2.0
+
+2. Which of the following are advantages of decentralized systems? Select all that apply.
+- No single point of failure.
+- Very difficult to apply censorship.
+- Lack of gatekeepers (i.e., anyone can participate in the network)
+
+3. Which of the following are characteristics of a blockchain? Select all that apply.
+- Publicly Available
+- Decentralized
+- Distributed
+- Chronological
+
+4. Which of the following are characteristics of hash functions? Select all that apply.
+- Fast to compute
+- Have no known inverse
+- Generate uniform output
+- Rare hash collisions
+
+5. What is the correct relationship between a private key, public key and address?
+- An address is derived from the public key which is derived from the private key.
+
+6. To create a transaction you must include inputs and outputs. What outputs are required for each transaction? Select all that apply.
+- Change
+- Gas/Tx fee
+- Recipient Addresses
+
+7. A digital signature is used to prove that the person that created a transaction has access to that account's private key. How are transaction signatures validated?
+- They are verified by miners using the account's public key.
+
+8. What is the name of the field that is added to a block by miners to provide a proof of work for that block?
+- Nonce
+
+9. A block that specifies a bit value of 20 has a higher difficulty than a block that specifies a bit value of 25.
+- False
+
+10. In the Bitcoin proof of work algorithm miners that successfully mine a block receive a reward. What does that reward consist of? Select all that apply.
+- Transaction Fees
+- A pre-determined block reward
+
+11. On the Bitcoin network the block difficulty always increases over time.
+- False
+
+12. What the advantages of a proof of stake algorithm compared to the proof of work algorithm?
+- Increases decentralization due to lack of mining pools
+- Requires lower end hardware
+- Limited environmental impact
+
+13. Which of the following statements are true as they relate to Full Nodes?
+- Full nodes contain an entire copy of the blockchain.
+
+14. Which of the following statements are true as they relate to masternodes? Select all that apply.
+- Hosting a masternode typically requires a stake/collateral.
+- Masternodes must always be online.
+- You are usually compensated for hosting a masternode.
+
+15. A fork chain can occur when two valid blocks are mined at the exact same time. How do nodes determine which chain to consider as valid when this occurs?
+- Nodes store both blocks and wait for the next block to be mined. The chain this next block is connected to becomes the valid chain.
