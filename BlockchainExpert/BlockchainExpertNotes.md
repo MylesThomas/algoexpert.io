@@ -2758,3 +2758,110 @@ Fiat Currency: Traditional form of currency
 - True
 
 Note: Although cyrptocurrencies like Bitcoin and Ethereum have their own entirely separate blockchains, not all cyrptocurrencies do. For example, manyy tokens build right on top of existing networks like the Ethereum blockchain and utilize its technology to provide their token. These tokens may behave differently that the blockchain's native coin, but they still rely on the underlying network.
+
+### 2 - Ethereum Basics
+
+Say hello to Ethereum. This is where things start to get interesting.
+
+(Sorry Bitcoin! We love you too! It's just that your simplicity is a little bit... erhm...boring, for us developers.)
+
+#### Key Terms
+
+##### Turing Complete
+
+Turing Complete refers to a machine (or programming language) that, given enough time and memory along with necessary instructions, can solve any computational problem, no matter how complex.
+- Most modern programming languages (including Solidity) are turing complete.
+
+##### Solidity
+
+Solidity is the official programming language for Ethereum.
+- It is used to write smart contracts for ETH + other various blockchain networks.
+
+#### Notes from the video
+
+##### Bitcoin Properties
+
+We will start by going over some core properties of Bitcoin, so that we can compare them to Ethereum.
+
+Quick Summary of Bitcoin Properties:
+- A limited system that is only used to decentralize finance
+    - not any other aspects of the internet, all you can do is send/receive money
+
+- The original cryptocurrency
+    - Thought of as a form of digital gold
+        - It is not the best, but has been around the longest + brought crypto to the forefront to the public
+        - Downside risk = Thought of to be lower
+
+- "Turing incomplete" system: It is limited to understanding only a certain set of instructions
+    - Only capable of understanding a limited instruction set ie. you are very limited to what you can do
+
+##### Turing Completeness / Turing Machine Images
+
+Turing Completeness: 
+- To be turing complete, a language needs to be able to do anything a Turing machine can do
+    - Turing machine: infinite/endlessly long piece of tape that has a read/write head
+        - It can read and write 0's and 1's in the cell on the tape
+            - If you have an infinite amount of 0's and 1's, ANYTHING can be computed
+        - Tape: Simple version of RAM (Random Access Memory)
+        - Alan Turing: Invested CS and the idea of a computer
+        - Concept: If we have infinite amount of 0's and 1's (can have empty cells too)
+            - When you write a program and store it into memory, you are storing it into State
+        - The read/write head is connected to a processor to update State
+
+- All modern programming languages are Turing complete:
+    - Python
+    - C++
+    - JavaScript
+
+##### Turing Machine Requirements
+
+Requirements of a Turing Machine:
+- Be able to move anywhere on the tape (Perform conditional branching)
+    - Jump/Go To Blocks ie. if/then/else
+- Can express any possible program.
+    - Loops and/or recursion
+    - Repeat until (while loops - do something until a condition is true/state has been reached)
+    - May contain infinite loops
+- You cannot predict/prove the final state of a Turing complete language
+    - Abstract concept/difficult to understand
+    - Idea of concept: You don't know final outcome, how long it will take, etc.
+        - Because you can execute ANY program, you won't know the state BEFORE you run it
+            - You can for some
+
+Note: Bitcoin is Turing Incomplete
+- Since it is not Turing Complete, you can predict the state of any Bitcoin program
+    - This is not necessarily bad! (You don't need to understand/compute everything)
+
+##### Introduction to Ethereum
+
+Properties of Ethereum:
+- Turing complete
+- Decentralized development platform that provides more than decentralized finance
+    - More on this in the next point...
+- Allows development and usage of decentralized apps with the use of the native Ether (ETH) token
+    - Deploy contracts
+    - Deploy/use code
+    - Pay with Ether to deploy dApps and interact with the programs
+        - You can do some for free
+
+- Programming Language: Solidity
+    - Allows you to write code
+        - Smart contracts, which are hosted on the blockchain
+        - All interactions with smart contracts, and smart contracts itself is stored on blocks
+            - Your code that is deployed to the Ethereum network is similar to your transaction on the Bitcoin network
+                - You can never change code that you submit to Ethereum's blockchain network!
+                    - Publicly available
+                    - Distributed
+                    - etc.
+- Smart contracts allow for programs/applications that implement many things to be decentralized.
+    - Examples:
+        - Voting
+        - Games
+        - Exchanges
+        - Auctions
+
+    - Why this is cool: You don't need to trust websites like Google, Gaming websites
+        - We are decentralizing everything
+        - These are development platforms that let you interact with programs without needing to trust 1 single entity
+        - Opens up possibility of Blockchain/Web3 technology
+            - When you can write your own code to Ethereum, this gets even more cool!
