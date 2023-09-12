@@ -1841,3 +1841,78 @@ Quick explanation on Validator Selection:
 
 - There are scenarios where a Validator could be chosen, but then not be online/available to validate
     - Backup validators are then gone to (think of a queue of backups)
+
+
+##### Practice Questions
+
+1. What advantages do proof of stake algorithms have over proof of work? Select all that apply.
+- Increases decentralization by avoiding large mining pools.
+- Lower barrier to entry as even low end machines/hardware can become a validator.
+- Reduces amount of electricity required to validate a block.
+
+2. In a proof of stake blockchain network, nodes are chosen as validators solely based on the stake they provide.
+- False
+
+3. In a proof of stake algorithm, validators "stake" a certain quantity of the blockchain networks native coin. Why is a stake required?
+- To ensure each validator has collateral that can be slashed if they act maliciously.
+
+### 10 - Nodes and Masternodes
+
+The blockchain's stakeholders who tirelessly work to validate transactions and ensure the ongoing integrity of the network.
+
+#### Key Terms
+
+##### Node
+
+A node is any machine that is connected to the blockchain network.
+- Nodes may be one of the following:
+    - full nodes (store the entire blockchain)
+    - partial nodes (stores part of the blockchain)
+
+##### Full Node
+
+A full node is a node on a blockchain network that stores the entire history of the blockchain.
+- In the context of bitcoin: All miner nodes are full nodes.
+
+##### Masternode
+
+Masternodes are special nodes that only exist on certain blockchain networks.
+- Typically: Full nodes that have the following traits:
+    - require heavier equipment than normal nodes
+    - facilitate special operations (such as voting)
+
+- Providers of masternodes typically need to provide a stake and are compensated for their services.
+
+#### Notes from the video
+
+##### Full and Partial nodes
+
+Nodes: Computers that store a copy of the blockchain
+- 2 types of nodes:
+    - Partial node: stores some history of the blockchain
+    - Full node: stores the entire history of the blockchain
+        - Validators/Miners
+            - They need the entire blockchain, so they can actually validate transactions
+
+- All nodes communicate with each other via transmitting blocks + transactions (this is how the blockchain works...)
+    - Really what is happening on the blockchain:
+        - Decentralized computers around the world storing their own version of the blockchain
+        - They are trying to stay synchronized
+            - Sometimes there are outdated chains / fork chains
+
+Note: Masternodes are something completely different!
+
+
+Example in Action: 
+- 
+    - 
+
+##### a
+
+
+##### a
+
+
+##### a
+
+
