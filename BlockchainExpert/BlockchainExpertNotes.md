@@ -2663,15 +2663,98 @@ This will give you a comprehensive understanding of blockchain technologies, wha
 Note: Some of this may overlap the last section, but the point here is to look at the purpose of cyrpto and how it is different than regular currency.
 
 Examples of Cryptocurrencies:
-- 
+- Bitcoin
+- Tether
+- Binance
+- Ethereum
+- Chainlink
+- Cardano
+- Dodecoin
+- Litecoin
 
+Purpose of Cryptocurrency: It depends - they have many different utilities!
+- Some: More for fun / for a joke
+- Others: Very serious / popular platform
+- Another subset: Digital gold
+    - Bitcoin
+- Stablecoins
+    - Tether (Stablecoin that always has a value of $1 - it is pegged to the US Dollar)
+- There is often overlap between coins
 
+Now that we know there are a bunch of different coins, let's try and understand this further:
+
+Cryptocurrency: Any form of currency that exists digitally or virtually and uses cryptography to secure transactions.
+- Doesn't have a central issuing/regulating bank
+- Uses a decentralized system to record transactions/issue new units
+- Many different types, including:
+    - Currencies (BTC)
+    - Development Platforms that host codes (ETH)
+- CoinMarketCap.com has 9993 coins (There are more, but these are actively traded/tracked)
 
 ##### Whitepapers
 
-a
+As you now know, we have a bunch of different Cryptocurrencies - how can we tell them apart?
+
+Whitepapers: A document released by developers that explains the technology + purpose of the project.
+- All of your serious blockchain networks (BTC/ETH) have whitepapers
+- What characteristics the whitepaper will define:
+    - Why the project was created
+    - The project's real-world utility
+    - Consensus mechanism
+    - Initial coin distribution
+        - How new coins are created
+        - Are coins burned? (some networks do so)
+    - Technical explanation (math/cryptopgraphy/formulas/etc.)
+    - Timeline (ICO, releases, new features, specific wallet)
+        - ICO ~ IPO (Initial Coin Offering, paralle to Initial Public Offering)
+        - Why ICO occurs:
+            - Project begins: Private project maintained by group of developers
+            - ICO: Entire public can now purchase this coin if they want to
+        - A bit more on ICO's:
+            - Lots of sketchy coins out there (white paper helds hunt this out)
+
+Example: [Ethereum Whitepaper](https://ethereum.org/en/whitepaper/)
+- Explains some of the following:
+    - Merkle Trees
+
+Note: Ethereum has a very good whitepaper, many other networks do NOT!
 
 ##### Fiat Currency
 
-a
+Fiat Currency: Traditional form of currency
+- Examples of Fiat Currency:
+    - US Dollar
+    - Euros
 
+- Attributes:
+    - Comes from central authority ie. a government
+    - Not backed by a commodity such as gold
+        - Solely backed by the faith of the controlling government
+            - No security that it won't be de-valued
+                - You are trusting that the government won't de-value/hyperinflate it
+    - Corrupt governments / poor monetary policy can cause hyperinflation and devalue - this affects anybody holding the currency
+        - Example: In 2018, Venezuela experienced a 65,374% inflation rate YOU (Year-over-year) due to government printing money + geopolitical factors
+            - Possibly worst in modern history
+            - This made it so that any Venezuelan money was essentially worth nothing
+                - There was already inflation before, but this is crazy
+            - For comparison: From 1960-2021, the USA has had inflation of 3.8% YOY
+
+    - Gives central banks greater control over the economy in the following ways:
+        - Can print as much money
+        - Inflate currency
+        - Increase circulation
+        - Change policy to affect inflation/growth rates
+        - They essentially control over entire nations/countries based on these fiat currencies
+
+##### Practice Questions
+
+1. What is a white paper? Select the most accurate definition.
+- A document released by developers that explains the technology and purpose of the project they are working on.
+
+2. What is a fiat currency? Select the most accurate definition.
+- A government issued currency that is not backed by a commodity.
+
+3. Every cyrptocurrency uses it's own underlying network/blockchain.
+- True
+
+Note: Although cyrptocurrencies like Bitcoin and Ethereum have their own entirely separate blockchains, not all cyrptocurrencies do. For example, manyy tokens build right on top of existing networks like the Ethereum blockchain and utilize its technology to provide their token. These tokens may behave differently that the blockchain's native coin, but they still rely on the underlying network.
