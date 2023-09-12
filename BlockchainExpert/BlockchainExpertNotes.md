@@ -1841,3 +1841,149 @@ Quick explanation on Validator Selection:
 
 - There are scenarios where a Validator could be chosen, but then not be online/available to validate
     - Backup validators are then gone to (think of a queue of backups)
+
+
+##### Practice Questions
+
+1. What advantages do proof of stake algorithms have over proof of work? Select all that apply.
+- Increases decentralization by avoiding large mining pools.
+- Lower barrier to entry as even low end machines/hardware can become a validator.
+- Reduces amount of electricity required to validate a block.
+
+2. In a proof of stake blockchain network, nodes are chosen as validators solely based on the stake they provide.
+- False
+
+3. In a proof of stake algorithm, validators "stake" a certain quantity of the blockchain networks native coin. Why is a stake required?
+- To ensure each validator has collateral that can be slashed if they act maliciously.
+
+### 10 - Nodes and Masternodes
+
+The blockchain's stakeholders who tirelessly work to validate transactions and ensure the ongoing integrity of the network.
+
+#### Key Terms
+
+##### Node
+
+A node is any machine that is connected to the blockchain network.
+- Nodes may be one of the following:
+    - full nodes (store the entire blockchain)
+    - partial nodes (stores part of the blockchain)
+
+##### Full Node
+
+A full node is a node on a blockchain network that stores the entire history of the blockchain.
+- In the context of bitcoin: All miner nodes are full nodes.
+
+##### Masternode
+
+Masternodes are special nodes that only exist on certain blockchain networks.
+- Typically: Full nodes that have the following traits:
+    - require heavier equipment than normal nodes
+    - facilitate special operations (such as voting)
+
+- Providers of masternodes typically need to provide a stake and are compensated for their services.
+
+#### Notes from the video
+
+##### Full and Partial nodes
+
+Nodes: Computers that store a copy of the blockchain
+- 2 types of nodes:
+    - Partial node: stores some history of the blockchain
+    - Full node: stores the entire history of the blockchain
+        - Validators/Miners
+            - They need the entire blockchain, so they can actually validate transactions
+
+- All nodes communicate with each other via transmitting blocks + transactions (this is how the blockchain works...)
+    - Really what is happening on the blockchain:
+        - Decentralized computers around the world storing their own version of the blockchain
+        - They are trying to stay synchronized
+            - Sometimes there are outdated chains / fork chains
+
+Notes:
+- Important to have many different nodes on the network (partial AND full)
+- Masternodes are something completely different!
+    - miners and masternodes are needed depending on the implementation of the blockchain
+
+
+Quick Example: 
+- We have 7 nodes in total
+    - Miner node generates a block
+        - The block is then transmitted to other nodes
+            - This continues until the entire network is propogated with the new block
+                - When certain nodes don't have the block yet and are outdated, they are not in sync yet (think of a stale cache)
+                - Exact nodes it gets transmitted to can be complicated, so don't worry for now...
+
+Remember: More nodes = More security of the blockchain
+
+Examples of Full Nodes and Partial Nodes:
+- Full Nodes: Should have an update-to-date/synchronized version of the blockchain
+    - Miners
+    - Wallets
+        - To have current balance, need to have an entire history of the blockchain to know current balance
+        - Can be partial OR full
+            - Typically: Lightweight wallets (ie. ones on your phone) are partial nodes that actually link/connect to a full node, to determine an accurate balance for your specific wallet
+                - These leverage special software that can help you approximate your balance w/ a good estimate, but it is not a replacement for connecting to a full node that has information on the full blockchain history!
+
+            - What happens oftentimes on specific blockchain networks:
+                - Run a full node
+                - Rent out full node as a service
+                - Allow lighter weight/partial wallets to connect to the full nodes and access certain information
+                    - Partial wallets may have to pay a fee to the full node
+                        - depends on the application!
+
+- Partial Nodes:
+    - 
+
+Quick Notes on What non-mining Nodes do:
+- If a node rejects the validity of a block but then it loses the majority vote, it will not be a full node since it is out of sync
+    - It will have to synchronize later on, to keep up with consensus and be up-to-date
+
+- If a majority of nodes reject the validity of a block, it gets denied
+    - it is not just miners that validate the transactions, it is every node!!
+        - they do not get the reward for mining, they still want to validate blocks (in order to have the information to be up-to-date)
+        - these nodes help keep the blockchain more secure
+
+Final Note on Nodes: Nodes can go offline!
+- What happens when a full node goes offline:
+    - When it comes back from its period of time offline, it needs to re-synchronize by downloading the blockchain data to be up-to-date again
+
+##### Masternodes
+
+Masternodes: A special type of node that runs on the blockchain network
+- Only required when unique operations (ones that do not occur on all networks) are occurring
+
+- Examples:
+    - Bitcoin (BTC):
+        - You can do 1 thing: Sending BTC to other people
+
+    - Votes (Blockchain networks for political elections)
+        - Masternodes do the special operations (that are beyond the scope of mining)
+
+- Attributes:
+    - Full Node: Masternodes must be Full Nodes
+    - Online: Need to be online all the time (ie. have High Availability)
+    - Stake: Provides stake/collateral
+    - Faster: Has higher-end hardware such as more CPU cores, RAM
+        - has minimum specs, unlike full nodes that can run on any computer that has enough memory to store the full blockchain
+    - Reward: You are rewarded for running a masternode
+        - this is why you need to present some stake
+        - reward is usually less than mining (case by case, it depends on the volume of the network, what your masternode is doing, how many masternodes you have, etc.) 
+
+Note: Remember, masternodes are only needed on networks that have special operations (like voting)
+
+##### Practice Questions
+
+1. In the context of blockchain networks, what is a node? Select the most correct answer.
+- A computer that stores a partial or copmlete copy of the blockchain.
+
+2. A node that stores an entire copy of the blockchain is referred to as a:
+- Full Node
+
+3. Which of the following statements are true about masternodes? Select all that apply.
+- Masternodes store an entire copy of the blockchain.
+- Masternodes are always online.
+- To run a masternode you typically must provide collateral.
+
+4. All proof of work blockchain networks have masternodes?
+- False
