@@ -3037,3 +3037,146 @@ Let's imagine that somebody is trying to sell a house:
         - Lots of things could happen here too, such as ability to re-list
 
 In future sections, we will write our own smart contracts and deploy them with DApps!
+
+##### Practice Questions
+
+1. Which of the following statements are true as they relate to smart contracts? Select all that apply. 
+- Smart contracts can hold a balance.
+- Anyone can deploy a smart contract.
+
+2. Smart contracts can interact with outside data sources and perform HTTP requests.
+- False
+
+3. Once a smart contract has been deployed, anyone can interact with it by sending a transaction to it. However, in order for a smart contract to perform certain operations, it requires a fee to be sent with the transaction, what is the name of this fee?
+- Gas
+
+4. What is a decentralized app (a.k.a. DApp)? Select the most accurate option.
+- An application that operates on the blockchain and uses the blockchain as its single source of truth.
+
+### 4 - ERC-20 Tokens
+
+The standardization of fungible crypto tokens on the Ethereum blockchain.
+
+Yes, this sounds more badass than it actually is.
+
+#### Key Terms
+
+##### Token
+
+A token relies on a blockchain network and is created by a smart contract.
+
+##### Coin
+
+A coin is the native cryptocurrency of a blockchain network.
+- For example, Ether is the native coin on Ethereum.
+
+##### ERC-20 Token
+
+ERC-20 represents a standard for fungible tokens on Ethereum.
+- Contracts that represent an ERC-20 token must implement specified functionality that allow for uniform usage/behavior of these tokens.
+
+##### Fungible
+
+Fungible refers to the ability to replace or to be replaced by another identical item.
+- ERC-20 tokens are fungible tokens.
+
+#### Notes from the video
+
+##### Coins vs. Tokens
+
+Coins vs. Tokens:
+- Coin: the native/default
+    - Examples: Ethereum, Bitcoin, XRP, Binance Coin
+    - Attributes:
+        - Represents their own blockchain network
+            - Data between these chains are completely different (different ledgers)
+
+- Token: created on a blockchain network using a smart contract
+    - Examples: Tether, Chainlink, Wrapped Bitcoin (All On Ethereum Network, WBTC tracks BTC)
+    - Attributes:
+        - Exists on a blockchain network
+        - Can create a new one by paying with Ether and distributing with a smart contract
+        - You can interchange coins within the network
+            - To interchange with another network, you usually have to go to a centralized exchange
+
+##### ERC-20 Tokens
+
+ERC-20 the Protocol: Standardizes the way tokens are created/used on the Ethereum network.
+- Makes it easy to do the following:
+    - Interchange
+    - Transfer
+    - Show in different wallets
+
+ERC-20 Tokens: Fungible tokens on the Ethereum network follow the ERC-20 standardized protocol
+- These are the most popular type of token
+    - 100's of 1000's of them out there
+- Purpose of ERC-20 Tokens: We only care about the AMOUNT of tokens, not WHICH individual tokens you have
+    - First Bitcoin == Last Bitcoin
+    - On Ethereum, you can have non-fungible tokens
+        - ERC-721 tokens, i.e. an NFTs
+            - Special Token, oftentimes a piece of art
+
+- Attributes of ERC-20 Tokens:
+    - "Fungible" = Mutually interchangable: being able to replace or be replaced by another identical item
+        - Fungible tokens are mutually interchangeable
+        - What that means: I can swap 1 coin with your 1 coin, and we now have the same exact thing. (This is just like real world money ie. USD)
+    - Can be created by anyone: If you deploy a smart contract that adheres to the ERC-20 protocol, you can create/define a new ERC-20 Token
+    - Aims to standardize token functionality: Important so that there is some standard functionality
+    - Smart contracts define total token supply: Inside of the smart contract, all of the functionality is written, such as:
+        - Total token supply
+            - Possibly: what somebody with a certain supply must do, ie. if somebody has >= 100 tokens, they can do something
+        - How tokens are created/deleted
+        - If/how tokens can be transferred
+        - Much more!
+    - There are over 450,000 ERC-20 tokens in existence!
+        - Many: no real-world utility
+        - Some: have real-world utility
+        - Projects try to raise money using these ERC-20 tokens
+
+##### ERC-20 Use Cases/Example
+
+Next, why do people by the tokens on [CoinMarketCap](https://coinmarketcap.com/) if they don't have any actual "value"? This is where token use cases come into play!
+
+Potential use cases for ERC-20 Tokens:
+
+- Crowdfunding: Instead of traditionaly finance routes such as offering shares to investors, listing on exchange, IPO, they will create an ERC-20 token
+    - "If you own this ERC-20 token, you own a portion of the company" 
+        - Many people create tokens on Ethereum so you can invest in a project (by buying the ERC-20 token)
+        - Legality of this: Confusing
+        - Why this is cool: If you own ETH, you can go to an exchange (or the smart contract directly) and purchase tokens
+            - Tokens may not have much value, but either way, you have ownership of them
+            - Buying tokens == exchanging native currency for ownership of tokens (which is tied to a specific project)
+                - You are trusting that the owner of the project will continue to work on it! (they have 0 intrinsic value otherwise)
+
+- Voting Rights/DAOs: A bunch of people in a decentralized organization that lets you vote based on # of tokens 
+    - You can cost votes via the DApp/Smart contract
+        - No need to trust a 3rd party to count the votes (smart contract does it for us)
+
+- Represenation of Ownership: Buying a portion of real estate, a car, gold
+    - You can have an ERC-20 coin backed by gold (each token represents a certain amount of gld)
+        - You have to trust that the gold really does exist
+
+- Paying For Features/DApps: 
+    - Oftentimes: Developers will come out with their own token
+        - This makes it easy to pay with their native token instead of 0.00001 tokens
+        - Can also charge others in your token
+
+- Enterprise Software: Publicly traded/open source software companies may utilize ERC-20 as a part of their software development or a platform being built
+    - This increases transparency, trust, and security
+    - May be a little confusing for some
+
+- Stable Coins: Pegged to another asset ie. USD, gold, another cryptocurrency
+    - Very useful: Ethereum fluctuates in price a lot, and this is way to be pretty sure with security that it will retain a certain amount of value
+        - Even if Ethereum goes up and down, the stable coin should hold still
+    - You create an ERC-20 token that lives on the Ethereum network, and its value is pegged to something
+
+- Royalties: Musician/company sets this up to split profits between the artist/record label
+    - Based on % of token, that is how we will distribute the royalties
+
+- And more!
+
+Utilizing this protocol will allow you to avoid 3rd parties!
+
+Hint: Token is simply data on the blockchain that says "this address own this much of this token".
+
+Later in this course, we will build our own contracts with the smart contracts (you can even make your own ERC-20 token!)
