@@ -3180,3 +3180,112 @@ Utilizing this protocol will allow you to avoid 3rd parties!
 Hint: Token is simply data on the blockchain that says "this address own this much of this token".
 
 Later in this course, we will build our own contracts with the smart contracts (you can even make your own ERC-20 token!)
+
+##### Practice Questions
+
+1. What is the difference between a coin and a token?
+- A coin is the default cryptocurrency for a blockchain and a token is created on that blockchain using a smart contract.
+
+2. What is meant by the term fungible token?
+- That all tokens are mutually interchangable and can replace any other token.
+
+3. What is the purpose of the ERC-20 protocol? Select all that apply.
+- To provide a standard blueprint/interface for creating fungible tokens.
+- To standardize the functionality of Ethereum tokens.
+
+Note: The ERC-20 standard is not designed to make smart contracts or tokens more secure.
+
+### 5 - ERC-721 Tokens (NFTs)
+
+In this lesson, we'll try to understand why monkey JPEGs that you can right-click-save-as are arguably worth millions of dollars.
+
+Hint: they're not.
+
+Just kidding, they might be. Depends on who you ask!
+
+#### Key Terms
+
+##### Non-Fungible
+
+Non-Fungible refers to something that is unique and cannot be replaced.
+- NFTs (Non-Fungible tokens) are unique tokens that cannot be interchanged and all have their own unique id.
+
+##### ERC-721 Token
+
+ERC-721 represents a standard for non-fungible tokens (NFTs) on Ethereum.
+- Contracts that represent an ERC-721 token must implement specified functionality that allow for uniform usage/behavior of these tokens.
+
+#### Notes from the video
+
+##### ERC-721 Tokens
+
+NFT (Non-fungible token): 
+- Most popular assets it represents: Art, graphic images
+- Can be created by anyone by deploying a smart contract that adheres to the ERC-721 protocol
+- Each ERC-721 token has a unique id
+- Each token may be associated with metadata such as the following:
+    - images
+    - videos
+    - sound
+    - attributes
+
+- This data is not usually secure and may or not be on the blockchain.
+    - You link/map the ID of that NFT to the metadata
+        - You are not buying the data, but ownership of the data
+
+- Useful for providing ownership of unique items
+    - Each token is different, but
+    - Many projects that use NFT's do so to give the owner certain rights
+        - You have to trust the project owner
+
+Main Takeaway: NFT's exist to prove that you own 1 specific thing
+
+##### ERC-721 Example/Walkthrough
+
+Let's head to https://etherscan.io/ and search for 'VeeFriends', a popular NFT project.
+- Etherscan: Most popular blockchain explorer for Ethereum 
+    - Gives you more information about the blockchain
+    - More readable format that if you were to setup your own client
+    - Not decentralized/not associated with the Ethereum project/Ethereum blockchain
+        - You cannot necessarily trust what you see since the blockchain is not on your computer (although 99.9% of the time it is right - reputable website in this case)
+
+- Now looking at the properties of VeeFriends (Ticker = VFT):
+    - Overview:
+        - Max Total Supply: There are 10,255 total unique VeeFriends in existence
+        - Holders: 5,226 different people have a VeeFriend
+        - Transfers: 27,480 times, these tokens have been transferred via smart contracts
+    - Transfers (Data with 27,480 rows for each transaction):
+        - Transaction Hash
+        - Method (Cleaned up string for what is happening)
+        - Age (Timestamp)
+        - From/To Wallets
+        - Item (Which VeeFriend ie. which Token ID)
+    - Contract ()
+
+- Clicking on an individual token you can see some properties of individual tokens:
+    - Overview:
+        - TokenID: 4081
+        - Transfers: 4 (# of times transferred)
+    - Profile Summary:
+        - Contract: The Smart Contract associated with this NFT
+        - Official Site/Social Profiles
+    - Contract (This contract is made up of 20 files, just like splitting code into packages/modules):
+        - Code:
+            - Contract Name
+            - Compiler Version
+            - Source Code
+
+        - Read Contract: Get information about current state
+            - Various properties associated with the contract that you can interact with / get information back
+            - tokenURI: Metadata/Media associated with this given token
+                - This metadata can be stored in different ways (depends on type of NFT):
+                    - on the blockchain
+                    - off the blockchain
+                    - on a separate blockchain
+                    
+        - Write Contract: Transfer NFT to someone else
+            - safeTransferFrom: Transfer to someone else
+            - mint: create a new one
+                - You need specific permissions on the smart contract to perform these operations (ie. be the current owner, to be able to transfer it)
+
+This is a good look into how these tokens function on the blockchain, how you can go on Blockchain Explorers (like https://etherscan.io/) and how everything on the blockchain is public/transparent. More on this later in the course!
