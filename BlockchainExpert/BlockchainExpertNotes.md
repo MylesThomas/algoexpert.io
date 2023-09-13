@@ -491,6 +491,8 @@ If you are going for a trustless interaction with a system: Decentralized!
 - Banks
 - Governments
 
+---
+
 ### 3 - Ledgers
 
 If you had to define blockchain using only one word, this would be it!
@@ -2612,3 +2614,39 @@ Note: Although rare, it is possible for a stablecoin to lose it's peg and this h
 - Decentralization
 - Security
 - Scalability
+
+---
+
+# 4 - Solidity Fundamentals
+
+Learning blockchain development wouldn't be complete without learning Solidity, a popular object-oriented programming language used to implement smart contracts on Ethereum and other blockchains.
+
+## Lessons
+
+### 1 - MetaMask Setup
+
+#### Key Terms
+
+##### Metamask
+
+Metamask is a browser extension and mobile application that provides a cryptocurrency wallet.
+- Makes it simple to do the following:
+    - Interact with DApps
+    - Send/receive Ethereum (and other cryptocurrencies)
+
+#### Notes from the video
+
+Let's wrap up with a high-level summary of everything we have learned so far! This will help bring everything full-circle.
+
+##### Section Overview
+
+a
+
+##### MetaMask Setup
+
+a
+
+##### MetaMask Walkthrough
+
+a
+
