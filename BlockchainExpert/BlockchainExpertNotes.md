@@ -3289,3 +3289,91 @@ Let's head to https://etherscan.io/ and search for 'VeeFriends', a popular NFT p
                 - You need specific permissions on the smart contract to perform these operations (ie. be the current owner, to be able to transfer it)
 
 This is a good look into how these tokens function on the blockchain, how you can go on Blockchain Explorers (like https://etherscan.io/) and how everything on the blockchain is public/transparent. More on this later in the course!
+
+##### Practice Questions
+
+1. What does NFT stand for?
+- Non-Fungible Token
+
+2. What is the main purpose of Non-Fungible Tokens (NFTs)?
+- To provide a way to prove ownership.
+
+### 6 - Blockchain Comparisons
+
+With thousands of blockchains out in the ether - pun perhaps intended - an important question arises: what makes these blockchains different from one another?
+
+#### Key Terms
+
+##### Layer 1
+
+Layer 1 refers to the base blockchain network such as Ethereum or Bitcoin and its underlying infrastructure.
+- Layer 1 networks can validate transactions independently
+
+##### Layer 2
+
+Layer 2 refers to a protocol that relies on an integration with an existing Layer 1 blockchain network (e.g. Polygon, Bitcoin, Lightning Network).
+- Layer 2 networks typically have the following attributes:
+    - Faster
+    - Provide scalability solutions
+    - May lack decentralization / security
+
+#### Notes from the video
+
+##### Scalability Trilemma
+
+Scalability Trilemma: What we are trying to optimize for when creating a decentralized solution/blockchain network.
+- This is a very famous problem
+- Typically, when you try to do this, you will get 2 out of the 3. The 3 sides:
+    1. Security + Scalability
+    - Poor Decentralization
+        - Example: VISA/Modern day payment
+
+    2. Security + Decentralization
+    - Poor Scalability
+        - Example: Bitcoin (It cannot handle many transactions)
+
+    3. Scalability + Decentralization
+    - Poor Security
+        - Hacks/attacks are common
+
+##### Layer 1 vs. Layer 2 Chains
+
+Layer 1 vs. Layer 2 Chains:
+- Layer 1: Base network and its underlying infrastructure (Can do everything on its own)
+    - Examples: Bitcoin, Ethereum, BNB Chain
+    - To improve scalability, you must change the infrastructure
+        - Example: Ethereum going from Proof of Work to Proof of Stake
+            - This took a very long time...
+
+- Layer 2: Secondary framework/protocol that is built on top of an existing blockchain
+    - Examples of eature solutions: roll-ups, state channels, sidechains, and more
+    - Performs computations or transactions off-chain and reports back to the main chain for validation
+    - Can provide the following:
+        - Pros:
+            - Higher throughput
+            - Faster transaction processing time
+            - Lower fees
+        - Cons:
+            - Lack of decentralization (due to limited adoption/usage) 
+
+##### Layer 1 vs. Layer 2 Example
+
+Layer 1 Chains:
+- Solana
+- BNBNetwork (Binance)
+- Cardano
+- Ethereum
+- Bitcoin
+
+Layer 2 Chains:
+- Arbitrum
+- Optimism
+    - These first 2 use 'Rollups', which allow you to bundle a bunch of transactions at once, and submit them back to the main Ethereum network. This has the following advantages:
+        - Save money on gas
+        - Save time on execution speed
+- Bitcoin Lightning Network
+    - Allows you to speed up transactions and do some more complex operations (which are not supported by native Bitcoin blockchain)
+
+Main differences:
+- Layer 1: Independent (validates its own transactions)
+- Layer 2: Built on top of a Layer 1 chain (increases scalability+speed+cost, but lacks decentralization)
