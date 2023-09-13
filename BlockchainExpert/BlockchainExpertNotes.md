@@ -3704,3 +3704,21 @@ Final takeaways:
 - Oracles a very cool/new
 - There are cool applications built around them
 - One of the biggest implementations of the chainlink has been random number generation!
+
+##### Practice Questions
+
+1. In the context of blockchains, what is an oracle? Select the most accurate option.
+- Any device or entity that connections blockchains with off-chain data.
+
+2. How does an Oracle send data to the blockchain?
+- It sends transactions containing the data to smart contracts.
+
+3. Chainlink is an example of a centralized oracle network?
+- False
+
+Note: Chainlink is a decentralized network of oracle nodes that provide off-chain data to the blockchain.
+
+4. Why is it important to use a decentralized Oracle network? Select all that apply.
+- To ensure data stays consistent and is verifiable.
+- To ensure multiple data sources/entities agree on data before it's posted to the blockchain.
+- To reduce the security risks of using a single Oracle in a smart contract.
