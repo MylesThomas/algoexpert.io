@@ -3377,3 +3377,172 @@ Layer 2 Chains:
 Main differences:
 - Layer 1: Independent (validates its own transactions)
 - Layer 2: Built on top of a Layer 1 chain (increases scalability+speed+cost, but lacks decentralization)
+
+##### Practice Questions
+
+1. What are the three pillars of the blockchain scaleability trilemma?
+- Scalabilty
+- Security
+- Decentralization
+
+2. What is a Layer 2 chain?
+- A technology that is built on top of an existing blockchain, typically used to improve scalability.
+
+3. Which of the following are examples of Layer 1 blockchains? Select all that apply.
+- Solana
+- Binance Smart Chain
+- Bitcoin
+- Ethereum
+
+### 7 - Stablecoins
+
+It's no secret that cryptocurrencies can be extremely volatile. Stablecoins aim to bring some calm to the crypto storm by being precisely the opposite of volatile.
+
+Well... most of them do. *cough* TerraUSD *cough*
+
+#### Key Terms
+
+##### Fiat Collateralized
+
+Fiat-Collateralized Stablecoins are coins that hold fiat currency (ie. USD, CAD, EUR, etc.) as reserve assets.
+- They are typically audited regularly and must hold at least $1 for each coin minted.
+
+##### Crypto Collateralized
+
+a Crypto Collateralized stablecoin is a coin that holds other cryptocurrencies as reserve assets.
+- Due to the volatility of cryptocurrencies, they typically hold excess amounts in reserve
+
+##### Algorithmic Stablecoin
+
+an Algorithmic Stablecoin maintains its price stability by manipulating the supply of coins to adjust its price.
+- It does this by using a smart contract/code
+
+##### Endogenous
+
+Endogenous refers to originating inside the system.
+- In the context of stablecoins: endogenous reserve assets exist inside of the protocol
+
+##### Exogenous
+
+Exogenous refers to originating outside the system.
+- In the context of stablecoins: exogenous reserve assets exist outside of the protocol
+
+#### Notes from the video
+
+##### Stable Coins
+
+Preface: Stablecoins are very complicated, so this will be a high-level overview/introduction!
+
+What is a Stablecoin?
+
+Stablecoins: A Cryptocurrency asset whose buying power stays relatively the same (A non-volatile cryptocurrency asset)
+- Useful as a medium of exchange
+    - This is due to the volatility of other cryptocurrencies
+    - Can be thought of as digital "cash"
+- May be pegged to one of the following:
+    - a currency ie. US Dollar
+    - tangible assets ie. gold
+    - the value of another cryptocurrency
+- Pursue price stability by one of the following ways:
+    - maintaining reserve assets as collateral
+    - through algorithmic formulas that are supposed to control supply
+        - these have no collateral
+- Examples of stablecoins:
+    - Tether (USDT)
+    - USD Coin (USDC)
+    - Wrapped Ethereum
+    - BinanceUSD (BUSD)
+    - Paxos Standard (PAX)
+
+##### Stablecoin Properties
+
+Stablecoin Properties:
+- Relative Stability
+- Stability Method
+- Reserve Assets
+
+Core Use Cases
+- Storage of value: Store your value somewhere securely
+- Medium of exchange: Ability to trade these assets for other assets
+- Unit of account: Track the value of another asset using the Stablecoin
+
+
+##### Relative Stability
+
+Relative Stability:
+- Pegged: Value pegged to another asset (Another stablecoin, cryptocurrency, USD, gold, etc.)
+    - For every coin ($1) minted, a dollar of reserve asset is held.
+        - Meaning: If we had a stablecoin pegged to the USD Dollar, and we had 10 of these stablecoins minted, we would need to have at least $10 in reserve assets (Often held in USD or a combination of assets)
+    - Examples: Tether, Dai
+
+- Floating Value: Much more rare stablecoin that uses math and various mechanisms to keep the buying power the same over time.
+    - Price changes to keep buying power the same
+        - Meaning: If 5 years ago a bag of chips is $1, and today it is $1.25, we would be able to buy 1 bag of chips 5 years ago and today because the price changes to match the buying power.
+    - Example: Rai
+
+##### Stability Method
+
+Stability Method: How we maintain the price stability
+- Governed: Requires human intervention to control the price
+    - Most stablecoins are governed by an entity/individual person (Centralized)
+        - Collateral is injected into the system and sold, if required
+    - Regulated and audited often (to maintain the correct amount of reserve assets)
+    - Requires a central entity to inject collateral in the system
+    - Example: Tether
+
+- Algorithmic: Code/smart contracts facilitate burning and mining of coins
+    - Requires no human intervention (De-centralized)
+    - Example: Dai
+
+Main Difference: Centralized/Single entity vs. Decentralized/Code controlling the stability
+
+##### Reserve Assets
+
+Reserve Assets: 
+- Exogenous: Collateral exists outside of the protocol
+    - If our protocol fails: The reserve asset maintains its value
+    - Example: Tether
+        - Uses the US dollar as collateral, which is outside of the protocol, hence it is exogenous
+    - Example: Dai
+        - Uses multiple cryptocurrencies and other stablecoins as collateral, which is outside of the protocol, hence it is exogenous
+
+- Endogenous: Collateral exists inside of the protocol
+    - If our protocol fails: The reserve asset does NOT maintain its value (the coin is backed by your own protocol)
+        - Dangerous: People will lose faith in the collateral AND the stablecoin at the same time
+            - What this means: The value in the collateral drops as the faith in the stablecoin goes down (When you need collateral to be strong, you cannot since the price of your collateral is falling)
+    - Example: Terra
+        - Used LUNA as collateral, which existed inside of the protocol, hence it is endogenous
+            - This stablecoin collapsed.....
+    - Pros we must mention:
+        - Can scale very fast
+
+Takeaway: You will typically favor the outside of the system (Exogenous)!
+
+##### Stablecoin Examples
+
+Stablecoin Examples:
+- Dai:
+    - Relative Stability: Pegged
+    - Stability Method: Algorithmic
+    - Reserve Assets: Exogenous
+
+- USDC:
+    - Relative Stability: Pegged
+    - Stability Method: Governed
+    - Reserve Assets: Exogenous
+
+- Tera:
+    - Relative Stability: Pegged
+    - Stability Method: Governed
+    - Reserve Assets: Endogenous
+
+My opinion, which makes the most sense:
+- Relative Stability: Pegged
+- Stability Method: Algorithmic
+- Reserve Assets: Exogenous
+
+##### Stablecoin Price
+
+Stablecoin Price: Typically they are safe, but can have price fluctuations
+- May lose their peg
+    - Losing a peg means a stablecoin's value falls below $1 (Even 1% or 2% is a lot for a coin that is supposed to be stable...)
