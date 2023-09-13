@@ -2865,3 +2865,175 @@ Properties of Ethereum:
         - These are development platforms that let you interact with programs without needing to trust 1 single entity
         - Opens up possibility of Blockchain/Web3 technology
             - When you can write your own code to Ethereum, this gets even more cool!
+
+##### Practice Questions
+
+1. Which of the following statements are true relating to Turing complete programming languages or platforms? Select all that apply. 
+- They can do anything a Turing machine can do.
+- They must be able to express any possible program.
+- All modern programming languages are Turing complete.
+
+2. How is Ethereum different than Bitcoin? Select all that apply.
+- It aims to decentralize all aspects of the internet.
+- It is turing complete.
+- It provides a platform that others can use.
+
+Note: While Ethereum may sometimes be faster than Bitcoin, its speed is not guaranteed and speed is not a major differentiator beween the two cryptocurrencies.
+
+3. What is a smart contract? Select the most accurate option.
+- A contract (i.e. set of rules) written in code that runs on a blockchain.
+
+4. What is Ethereum's native programming language called?
+- Solidity
+
+### 3 - Smart Contracts and DApps
+
+Would you rather trust contracts ensured by banks and governments, or contracts ensured by code and mathematics?
+
+#### Key Terms
+
+##### DApp
+
+DApp stands for "Decentralized Application" and is an application that runs on a blockchain and utilizes the blockchain as its single source of truth.
+
+##### Smart Contract
+
+A smart contract is simply code that is stored on the blockchain that runs when certain conditions are met.
+- Utilized to implement the following, among others:
+    - Purchase/sale agreements
+    - Currency exchanges
+    - ERC-20 and ERC-721 tokens
+    - Various other decentralized applications!
+
+#### Notes from the video
+
+Decentralized App:
+- Made up of 1 or multiple smart contracts
+    - Just like a software project, you have multiple smart contracts that interact to make a whole contract
+
+##### Smart Contracts
+
+Smart Contracts: Programs that are stored on the blockchain and run when predetermined conditions are met
+- Essentially, this is code on the blockchain
+- Used to automate the execution of an agreement
+- Smart Contracts have the following properties:
+    - Immutable: Cannot change them once deployed
+    - Transparent/Public: Anybody can read the code, as well as events/data of your smart contract
+    - Executed by nodes on the network
+    - Cost money (crypto) to deploy (depends on the network, conjestion of network, size of contract)
+    - Can hold a balance: Send money in (or out, just like a regular address)
+    - Only run when called upon AND provided gas: Nodes on the network are executing this code, and they need a reward/incentive
+        - If you want to change the state of the contract, gas is needed (ie. a certain transaction fee in Ether)
+    - All operations are traceable and irreversible: If you submit a transaction to the smart contract, you can see it (and you cannot change it)
+    - Anyone can deploy a smart contract, but once they are deployed, it cannot be changed/deleted forever! (If there is a bug in your code, you need to release a new version, and then change to use the new one - the old one is not deleted though)
+    - Cannot make HTTP requests or rely on any data outside of the blockchain: When you have a smart contract on a blockchain, it cannot make API calls/look for data from 3rd party sources
+        - If you could make HTTP/API calls, somebody outside of the blockchain could modify the result of an API call
+        - Only being able to access data on the blockchain really limits what we can do (Oracles help, more on this later)
+    
+Note: Many of these properties are in place to make our contracts secure!
+
+Example: Selling your house
+- You create a smart contract and deploy/list it at a certain asking price
+    - You also upload the deed and necessary agreement documents
+- You have code so that if somebody submits the asking price, you will transfer the deed to them
+- This removes middle parties such as real estate agents who take fees!
+
+Here is a very simple smart contract from the Ethereum website:
+
+```
+pragma solidity 0.8.7;
+
+contract VendingMachine {
+
+    // Declare state variables of the contract
+    address public owner;
+    mapping (address => uint) public cupcakeBalances;
+
+    // When 'VendingMachine' contract is deployed:
+    // 1. set the deploying address as the owner of the contract
+    // 2. set the deployed smart contract's cupcake balance to 100
+    constructor() {
+        owner = msg.sender;
+        cupcakeBalances[address(this)] = 100;
+    }
+
+    // Allow the owner to increase the smart contract's cupcake balance
+    function refill(uint amount) public {
+        require(msg.sender == owner, "Only the owner can refill.");
+        cupcakeBalances[address(this)] += amount;
+    }
+
+    // Allow anyone to purchase cupcakes
+    function purchase(uint amount) public payable {
+        require(msg.value >= amount * 1 ether, "You must pay at least 1 ETH per cupcake");
+        require(cupcakeBalances[address(this)] >= amount, "Not enough cupcakes in stock to complete this purchase");
+        cupcakeBalances[address(this)] -= amount;
+        cupcakeBalances[msg.sender] += amount;
+    }
+}
+
+```
+
+Notes:
+- If you have not downloaded the `solidity` VSCode Extensions, do so now!
+- Solidity files have a .sol filename extension
+    - VSCode unfortunately does not recognize Solidity as a programming langauge, so the code will be all white for now
+    - If you code in a .sol file (I will save the above as Hello.sol), then you will see the colored syntax.
+
+##### DApp Examples
+
+DApp Examples
+- Decentralized Exchanges: PancakeSwap, Uniswap Protocol
+    - Places to traded BTC or ETH, or ETH for another token (doing so without a centralized exchange)
+- Games: Poker, Card games, Chess
+- Selling of assets: Real estate, watches
+- Auctions
+- Decentralized Web Browsers: Brave
+- Credit Services: MakerDAO
+- DAOs (Decentralized Autonomous Organizations): Decentralized Governing Structure
+    - Setup so people can have governing systems setup
+        - You distribute coins, based on ownership of that share of coins, you could vote for an additional project
+
+Note: People are coming out with more DApps everyday!
+
+Why you would want to use a DApp: Brings all of the aspects of blockchain technology to apps (not just Finance!)
+- Example: Gambling app - no need to worry about a 3rd party doing anything malicious in the back ie. rigging blackjack odds
+- Example: Sale of assets - No need to hire realtor for 5%, lawyer for 3%, etc. because you can trust the smart contracts
+
+With all of that said, there are plenty of issues with DApps at the moment:
+- Expensive to deploy: 
+- Expensive to use: You have to constantly sent gas/fees for the smart contract to execute
+- Slow: It can take a long time to propogate data throughout the entire network
+
+In the introductory phase, we are seeing a lot of cool things, but there is a lot more work to be done to improve them.
+
+##### DApp Walkthrough/Diagram
+
+Let's imagine that somebody is trying to sell a house:
+- Smart Contract 1: Facilitate the sale of a house
+
+    - Creator of Smart Contract wants it sold for 100 ETH, so writes it into the data of the contract
+        - Once the contract receives 100 ETH, it will be transferred
+
+    - Where this smart contract is located: Inside the data of a block
+        - Ethereum network blocks store transactions AND content/data of smart contracts (binary format)
+
+    - In order to deploy this contract, the creator has to pay a fee
+        - Remember: This fee is based on congestion of network and size of contract
+        - After paying 0.1 ETH, the contract has been deployed onto the contract
+
+    - Potential buyer wants to buy the house
+        - They look over the smart contract
+        - They send 100 ETH, the fee, and then call a specific functionality (Buy)
+
+    - Smart contract verifies that it received 100 ETH
+        - When it does, the house deed is transferred
+        - The 100 ETH is then sent to the balance of the smart contract (Remember: It can hold a balance)
+    
+    - Finally, the 100 ETH is sent from the balance of the smart contract to the creator of smart contract
+        - Creator may need to call a specific functionality (Claim) in order to get the 100 ETH into the correct address
+
+    - Smart contract is now useless, and functionality is disabled!
+        - Lots of things could happen here too, such as ability to re-list
+
+In future sections, we will write our own smart contracts and deploy them with DApps!
