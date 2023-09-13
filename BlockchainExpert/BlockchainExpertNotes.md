@@ -3546,3 +3546,161 @@ My opinion, which makes the most sense:
 Stablecoin Price: Typically they are safe, but can have price fluctuations
 - May lose their peg
     - Losing a peg means a stablecoin's value falls below $1 (Even 1% or 2% is a lot for a coin that is supposed to be stable...)
+
+##### Practice Questions
+
+1. What are the purposes of a stablecoin? Select all that apply. 
+- To act as a form of digital cash.
+- To provide a less volatile way to trade or exchange cryptocurrency.
+- To allow users to invest in assets that are stored off-chain or on other chains on their preferred chain.
+
+Note: Stable coins do not always have to have a value equal to a single dollar, and cannot be guaranteed to stay at a consistent price.
+
+2. Endogenous reserve assets are assets that exists outside of the protocol.
+- False
+
+Note: It is typically preferred to have exogenous reserve assets, as their value is entirely separate from the protocol.
+
+3. An algorithmic stablecoin never holds any reserve assets?
+- False
+
+Note: All stable coins hold reserve assets, whether their Stability Method is Governed or Algorithmic.
+
+4. It is impossible for any kind of stablecoin to lose its peg and suffer a price decrease.
+- False
+
+Note: This happened to Tether on May 25, 2022 where its value dropped below $1.
+
+### 8 - Introduction To Oracles
+
+In Ancient Greece, oracles served as portals through which the gods spoke to the people, offering prophetic revelations about the future.
+
+In modern blockchains, oracles serve as portals through which the outside world speaks to smart contracts, injecting cryptographic truth about off-chain data.
+
+#### Key Term
+
+##### Oracle
+
+An oracle is an entity that provides off-chain data to the blockchain for use in smart contracts.
+- Chainlink provides one of the most popular decentralized oracle networks
+
+#### Notes from the video
+
+##### Oracles
+
+Remember: We talked earlier about how smart contracts cannot access data that is not on the blockchain
+- Why: You need to be able to validate the data being used by the smart contract is correct / the same across all nodes executing that same smart contract
+- Examples:
+    - No calling APIs
+    - No making HTTP requests
+- Solution to this problem: an oracle!
+
+Oracles: Any device or entity that connect deterministic blockchains with off-chain data.   
+- A trusted 3rd party that gives reliable information (Code that is written by trusted 3rd parties)
+- Allows our smart contracts to utilize 3rd party data
+- Most important point: Off-chain oracles send data to the blockchain through a transaction
+    - Then, it can be validated and used by smart contracts!
+
+How to do it in a secure way, to bring off-chain data onto the blockchain:
+- Take same validated/correct off-chain data
+- Submit to data to the blockchain via a transaction
+- Data is posted to the blockchain permanently
+- Now, whenever a smart contract executes, anyone can validate by comparing it to the data posted on-chain
+
+Think of a diagram: Smart contract <-> Oracle <-> Outside data/WWW
+
+Thought: How do we know that the data posted to the blockchain is correct?
+
+##### Chainlink
+
+Chainlink: Provides a bridge between the blockchain networks and data sources
+- Layer 2 solution that relies on Ethereum
+    - Think of it as an "Oracle Network"
+- Referred to as blockchain middleware
+    - Middleware: It is in between the blockchain + outside data source
+- Node operators lock up currency/collateral and provide data to the chainlink network (Just like any other proof of stake network!)
+    - Types of data a node operator on chainlink may provide:
+        - Reviews
+        - Price of a stock
+        - etc.
+    - What reward/fee node operators receive for staking their collateral:
+        - ...
+- Multiple operators provide the same data to ensure the data is valid
+    - Then, we have a consensus mechanism (proof of stake) decide if it is correct
+    - If nodes submit incorrect data, they may lose collateral (just like proof of stake)
+    - Chainlink determines if nodes are reliable, and sends data requests to trusted nodes
+
+
+Steps for how this works:
+- I am a smart contract sitting on the Ethereum network, and I want to receive a certain type of data
+- I write this into my smart contract and connect that smart contract to the chainlink network
+- Once that is done, a request is sent to Chainlink saying "I need this type of data, give it to me!"
+- Chainlink then goes to trusted nodes and asks for the data
+- Once it gets the data, it posts it back onto Ethereum network as a transaction
+- The smart contract can now use it however it wants!
+    - May need to pay a fee to utilize the data (paid to node operator/chainlink network)
+
+Remember: an Oracle is ANY device/entity that connects blockchains with off-chain data
+- The oracle does not have to be for existing data, it can be for live data we are creating
+- We can have different types of oracles!
+    - Hardware Oracle:
+        - Sensors tracking temperature/motion
+        - Cameras
+    - Software Oracle:
+        - 
+
+##### Oracle Example/Use Cases
+
+Before we start: Chainlink, although it has a Layer 2 solution for Ethereum (which we use here), it also has Layer 2 solutions for other blockchain networks!
+
+Let's walk through a basic example and the flow of using an Oracle on the Ethereum network:
+
+Givens:
+- 2 users who are guessing a random number
+    - Each put down 1 ETH to have the right to guess the random number (Winner wins 2 ETH)
+
+How this would work in an easy world:
+- Write the smart contract
+- 2 people put down 1 ETH each and make a guess
+- Smart contract gives 2 ETH to whoever was closer
+
+In reality - Smart contract cannot generate a random number
+- Even if they could: The number would not actually be random!
+    - Would be easy to guess: fn(seed) = value
+        - Since we are on the blockchain network, you have to generate a public seed value, so then at this point the value is public too.
+            - Computers don't actually make random numbers. (All you need to do is reverse-engineer the value by plugging in the same seed)
+
+How to get the smart contract to generate a true random number, so we can play our game: Use an oracle! (We will generate the random number off of the blockchain, then send it to the blockchain via a transaction)
+
+Steps:
+- 2 users send a transaction to the smart contract.
+    - Contents:
+        - Whatever their wagers are (1 ETH, 1 ETH)
+        - Whatever their guesses are (43, 77)
+
+- Now, the smart contract (on the Ethereum network) reaches out to get a random number.
+    - Smart contract omits an "event" saying "I am requesting a random number"
+        - event: logging information onto the blockchain (events are used since you cannot make API calls)
+
+- Here is the Oracle: Nodes that are off of the blockchain network see that an event has been generated that requires a random number, they generate a number (64) and send it to the smart contract in a transaction.
+    - These nodes sitting off of the blockchain are listening for the events on the Ethereum blockchain.
+    - This is the step where oracles submit data to the blockchain
+
+- Now that we have the random number, we send the wager from both participants to the winner.
+    - User #2 receives 2 ETH (since 77 is closer to 64 than 43 is)
+
+
+Final notes:
+- We trusted that the oracle would act fairly. What if there was an example where one of the users was in control of the Oracle, causing it to cheat so he/she can win every time?
+    - Chainlink comes into play!
+        - Multiple, separate/decentralized node operators lock up currency/collateral and provide data to the chainlink network (We will not have the same node giving us the number everytime!)
+            - We can trust that the source node operators supply correct data, because if they do not, they may lose collateral
+
+Note: We will not get too far into the weeds with Chainlink, as it is new and uses some fairly complicated algorithms/selection processes to decide who is submitting data.
+- All you need to know is that chainlink handles the process of selecting the node, and gives us our data back
+    - We pay chainlink a small fee in return for doing that (Chainlink then goes that fee to the node)
+
+Final takeaways:
+- Oracles a very cool/new
+- There are cool applications built around them
+- One of the biggest implementations of the chainlink has been random number generation!
