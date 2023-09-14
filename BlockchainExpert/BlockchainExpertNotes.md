@@ -2636,6 +2636,8 @@ Metamask is a browser extension and mobile application that provides a cryptocur
     - Interact with DApps
     - Send/receive Ethereum (and other cryptocurrencies)
 
+You can download it [here](metamask.io).
+
 #### Notes from the video
 
 Let's wrap up with a high-level summary of everything we have learned so far! This will help bring everything full-circle.
@@ -2707,3 +2709,110 @@ If you click on MetaMask in the top right, you will see the following:
         - Amount of ETH
 
 - Swap: Swapping ERC-20 Tokens
+
+##### Practice Questions
+
+1. What is Metamask?
+- A wallet application.
+
+2. The password that Metamask asks you to enter is the same as your private key.
+- False
+
+Note: The password is used to encrypt your wallet, it is not the same as your private key. Applications like Metamask do not show you your private key, they simply lock/unlock it using your password.
+
+### 2 - Remix IDE
+
+A popular IDE for smart contract development with a cool name to boot!
+
+#### Key Terms
+
+##### Remix
+
+Remix is a free IDE (integrated development environment) for smart contract development. It is available in-browser or as a desktop application.
+
+You can download the desktop version (recommended) [here](https://remix-project.org/).
+
+#### Notes from the video
+
+##### Remix Introduction/Setup
+
+Remix: an IDE for smart contract development
+- Popular because it has online AND desktop versions
+    - Recommended: Download the desktop application
+
+- Main reason we use Remix: It makes it very easy to do everything we need to do! This included:
+    - Writing code
+    - Compiling smart contracts
+    - Deploying smart contracts to different blockchain networks
+    - "Virtual machine"
+
+##### Remix Online IDE Walkthrough
+
+Remix Online IDE - Properties:
+- File Explorer (left pane):
+    - Workspaces (folders for projects)
+        - Online IDE stores all workspaces/data on your browser
+            - Browser storage can be lost, so that is another reason why you should lean towards using the desktop version!
+        - Example workspace: default_workspace
+            - Folder: contracts
+                - Files:
+                    - 1_Storage.sol
+                    - 2_Owner.sol
+                    - 3_Ballot.sol
+                        - Note: All solidity files end in .sol (that is the extension for smart contracts)
+
+- Terminal (bottom of screen): Displays important actions made while interacting with the Remix IDE (i.e. sending a new transaction).
+    - You can type in different commands, view logs of transactions, etc.
+
+- Search: Search for different files, etc.
+
+- Solidity Compilter:
+    - You need to compile your smart contracts before deploying to a blockchain network
+        - More on compiling later, but here's a quick lesson:
+            - Write source code (Ethereum virtual machine cannot read this)
+            - Compile source code into byte code
+            - Ethereum virtual machine can now read byte code
+            - You can now deploy
+    - Allows you to choose compiler version
+
+- Deploy & Run Transactions: Where you actually deploy smart contracts once they have been compiled
+    - Environment to deploy in:
+        - Remix VM
+        - Injected Provider - Metamask (Deploy via MetaMask)
+        - and more!
+    - Account: Select test account
+        - We are using the VM, a fake blockchain network
+    - Gas limit
+    - Value (Amount of ETH to send to smart contract)
+    - Smart Contract (Which contract to send to)
+
+- Solidity Static Analysis: This goes through and audits the smart contract for issues/problems
+
+- Solidity Unit Testing: If you are writing a production application, you write tests for your code here
+
+- Plugin Manager: Install plugins (just like any other IDE or editor)
+    - Should have the following plugins installed:
+        - Solidity Static Analysis
+        - Solidity Unit Testing
+
+- Settings:
+    - Can change theme, etc.
+
+That is it for the Remix IDE!
+
+##### Remix Local IDE Walkthrough
+
+Instructions:
+- I downloaded this file: Remix-IDE-1.3.6-win.zip
+    - Extracted all contents from zip folder
+    - Run 'Remix-IDE-1.3.6-win.exe'
+
+The desktop version is pretty much the same thing as online, except on your desktop.
+
+We are missing a few thing, though:
+- Plugins:
+    - Go into the Plugin Manager (Ctrl-Shift-A) and download/activate the following:
+        - Solidity Static Analysis (I believe it is now called 'Solidity Analyzers')
+        - Solidity Unit Testing
+
+Reminder: Use the Remix IDE Desktop Version!
