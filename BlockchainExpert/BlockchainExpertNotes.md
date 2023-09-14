@@ -2625,6 +2625,8 @@ Learning blockchain development wouldn't be complete without learning Solidity, 
 
 ### 1 - MetaMask Setup
 
+A versatile Ethereum wallet with a cuter Fox logo than Firefox—what's not to love?
+
 #### Key Terms
 
 ##### Metamask
@@ -2640,13 +2642,68 @@ Let's wrap up with a high-level summary of everything we have learned so far! Th
 
 ##### Section Overview
 
-a
+What we will learn in the next set of videos:
+- Setup IDE to code in Solidity
+- Theory of Smart Contracts
+    - Immutability
+    - Stack
+    - How they are executed/deployed
+- Solidity Syntax
+    - Writing basic smart contracts
+    - More aspects of the Solidity language
+- How to deploy to test networks and/or the real Ethereum network
 
 ##### MetaMask Setup
 
-a
+Metamask: Very popular cryptocurrency wallet
+- We will use it in a lot of videos in this series
+
+Download the Google Chrome extension here: https://metamask.io/
+
+If you need to create a new wallet, agree to the terms, press 'Create a new wallet', and follow the instructions on-screen. Make sure to write down the following information with pencil and paper:
+- wallet address
+- password
+- secret recovery phrase
+
+Note: MAKE SURE TO HAVE YOUR SECRET RECOVERY PHRASE WRITTEN DOWN ON PAPER/PENCIL IN A SAFE LOCATION.
+
+If you are importing an existing wallet (I am since I created a MetaMask account in 2021), agree to the terms, press 'Import an existing wallet', and follow the instructions on-screen. You will need the following information:
+- 12-word secret recovery phrase
+
+Once this has been entered in, you are logged in!
+
+Head to the Metamask application by clicking Chrome > Extensions (Puzzle Piece) > MetaMask
 
 ##### MetaMask Walkthrough
 
-a
+If you click on MetaMask in the top right, you will see the following:
+- Account Name: Account 1 (This is the default name)
+    - You can setup different accounts, which can be on 
+        - These are just different addresses/locations to send ETH
 
+- Lock: Hitting this will lock MetaMask. (You will need to enter your password again before being able to buy/send ETH)
+
+- Network we are currently on: 
+    - Default: Ethereum Mainnet
+    - You can also connect to other networks:
+        - Binance Smart Chain
+        - More!
+            - If you hit 'Show test networks', you can switch over to one of those.
+            - More on test networks: They are kind of like a "fork" of the Ethereum network. Properties include:
+                - Meant for testing
+                - All ETH on these networks is fake/free
+                    - Typically: You would deploy smart contracts on a test network + make sure it working, before paying the real gas fee on the Ethereum Mainnet
+
+- Address: Right by 'Account 1' you can copy/paste your public wallet address
+    - We can head to https://etherscan.io/, a Blockchain Explorer, and view our address online.
+    - Important information:
+        - none (we have not done anything yet with these accounts)
+
+- Buy: Deposit ETH/Other crypto
+
+- Send: Creating transactions
+    - Information needed:
+        - Wallet address of recipient
+        - Amount of ETH
+
+- Swap: Swapping ERC-20 Tokens
