@@ -3205,3 +3205,112 @@ Advice:
     - try to fit into stack, if you cannot, use storage
 
 Note: You will never be manually referencing the stack, but you will with Memory + Storage.
+
+##### Practice Questions
+
+1. What is source code? Select the best definition.
+- The code that programmers/humans write.
+
+2. Select all of the true statements as they relate to smart contract calls.
+- A call typically reads data from a smart contract and does not result in state changes.
+- Anyone can perform a smart contract call.
+- Calls are typically executed instantly.
+
+Notes: 
+- Most calls are instant and do not require any gas.
+- Anyone can make a smart contract call as these calls simply return data that is publicly available on the blockchain.
+
+3. Select all of the true statements as they relate to smart contract storage.
+- All smart contract state variables are stored in storage.
+- Storage is permenant and cannot be changed without a transaction.
+
+Note: You should only use storage when necessary.
+
+4. Select all true statements as they relate to smart contract memory.
+- Memory is a cheap way to store temporary data.
+- Memory is used to store larger values like arrays, strings and structs that can't be stored on the stack.
+
+5. Smart contracts always require the same amount of gas to execute any arbitrary operation?
+- False
+
+### 5 - Deploying Smart Contracts
+
+How do you deploy smart contracts to an actual live network? You've got questions, we've got answers.
+
+#### Key Terms
+
+##### EVM (Ethereum Virtual Machine)
+
+The EVM (Ethereum Virtual Machine) is a computation engine that runs on Ethereum nodes such as miners.
+- EVM allows for the execution of smart contracts
+- EVM is also the foundation for Ethereum's entire operating structure
+
+#### Notes from the video
+
+Learn about Ethereum Mainnet vs. Ethereum Testnets [here](https://ethereum.org/en/developers/docs/networks/).
+
+##### Ethereum Test Networks
+
+Ethereum Mainnet: The main network
+
+Ethereum Testnets: Test Networks
+- There are bunch of them
+    - they are all unreliable
+    - less decentralization
+    - used just for testing
+    - provided by the community
+    - if the one you want to use doesn't work, don't worry - they are all essentially the same
+
+- Examples:
+    - Sepolia
+    - Goerli
+    - Ropsten (depracated - we can still use, may not have all features though)
+    - ...
+    - Layer 2 test networks (not going to get into these)
+
+Fortunately: We are not going to be deploying to a real/persistent network in this video, just a test network!
+
+For all of these test networks, we have the following:
+- main page
+- faucet
+
+##### Faucets
+
+Faucet: Way to get free Ethereum on test networks
+- Unfortunately: Many of these faucets simply do not work
+
+Let's try and get some free Ethereum!
+
+Steps:
+- Change which network your MetaMask wallet is on: MetaMask > Networks > Show test Networks > Sepolia
+    - You should see '0 GoerliETH' instead of '0 ETH'
+- Connect your wallet to a Faucet and send yourself some ETH: https://sepoliafaucet.com/ > Enter Wallet Address > 'Send me ETH'.
+    - Once the Request is complete, you should see the following:
+        - 0.5 SepoliaETH in your MetaMask wallet
+        - Link to the transaction hash on Etherscan (See the note: [ This is a Sepolia Testnet transaction only ])
+
+Note: Your wallet address is the same for each test network.
+
+##### Deploying to Test Networks
+
+Now that we have some test Ethereum, let's deploy to the test Ethereum network!
+
+Steps:
+- Open up Remix IDE in your Google Chrome browser: https://remix.ethereum.org/
+    - Why we are not using Desktop: It is difficult to connect MetaMask to the desktop
+- Solidity Compiler: Compile the file '1_Storage.sol'
+- Deploy & Run Transactions:
+    - Environment: Injected Provider: MetaMask
+        - This will open MetaMask and prompt you to connect to the wallet with 0.5 SepoliaETH
+    - Account: This is your account with 0.5 ether
+    - Deploy: Once you press Deploy, MetaMask will open, and you will hit 'Confirm'
+        - If you click the link to view on Etherscan, you can see contract details.
+
+Note: 2_Owner.sol is a larger file with more bytes, so it will require more gas if you want to Deploy! (almost double in this case)
+
+Now that we can see our deployed contract transaction on Etherscan, let's update the state!
+- Remix IDE > Deployed Contracts
+    - Store a new number:
+        - To update state: You need to send a transaction (MetaMask pops up)
+    - Retrieve:
+        - No need to send a transaction (MetaMask will not pop up)
