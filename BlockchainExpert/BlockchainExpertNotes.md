@@ -2816,3 +2816,154 @@ We are missing a few thing, though:
         - Solidity Unit Testing
 
 Reminder: Use the Remix IDE Desktop Version!
+
+##### Practice Questions
+
+n/a
+
+### 3 - Your First Smart Contract
+
+This lesson will guide you to writing your first smart contract, an accomplishment that will undoubtedly become one of your life's fondest memories.
+
+#### Key Terms
+
+##### Pragma Line
+
+In Solidity, the `pragma` line is placed at the beginning of a code file to indiciate the solidity compiler version(s) that can be used for this contract.
+
+Example:
+
+```
+pragma solidity >=0.7.0 <0.9.0;
+```
+
+#### Notes from the video
+
+##### Creating Your First Smart Contract
+
+Let's start by creating a new workspace that we will be working in for the next few videos:
+- Create new workspace: Workspaces > Create > 'blockchain-expert'
+    - After creating this workspace, delete all of its contents (folders, dependencies, etc.)
+- Create new folder: Create new folder > 'contracts'
+- Create new file: Create new file > 'HelloWorld.sol'
+    - Pascal case convention: Begin with a capital letter, use capital letters for each word in the filename.
+
+##### Pragma Line
+
+The first thing you write with each Smart Contract is the Pragma Line.
+- What it does: States which compiler versions work for this smart contract
+    - Solidity is fairly new, so there are a lot of new features begin added. The older (or even newer) versions of the compiler may not always work!
+- How to set the Pragma Line:
+    - min
+    - max
+
+Example:
+
+```
+pragma solidity >=0.7.0 <0.9.0;
+```
+
+##### Contract Class / Class Variables
+
+Next, we will write the Contract Class.
+
+Contracts Class:
+- Contract: Special class type for Smart Contracts
+    - Has the logic for your smart contract
+- You can import from other files and use them within your Solidity file
+- Typically: Name of contract == name of filename
+    - If you have multiple contracts in one file, you obviously can ignore this
+
+Example:
+
+```
+contract HelloWorld {
+    uint256 number;
+}
+```
+
+Note: We will get into data types more later, but here is a breakdown of what we currently have:
+- uint256: Can store an unsigned integer with 256 bits.
+
+##### Functions/Operations
+
+Next, let's write the following:
+- a function that will allow us to assign a value to this uint256 variable `number`
+- a function that will allow us to retrieve the `number` value
+
+Notes:
+- `public` in the function definition means that the function is callable.
+- `returns (uint256)` in the function definition means that the function will return a uint256.
+
+Current state of code:
+
+```
+pragma solidity >=0.7.0 <0.9.0;
+
+contract HelloWorld {
+    uint256 number;
+
+    function store(uint256 num) public {
+        number = num;
+    }
+
+    function get() public view returns (uint256) {
+        return number;
+    }
+}
+```
+
+Save the contract - this will cause the contract to automatically be compiled by Solidity. (You can disable this in the settings if you'd like - I will leave as-is)
+
+##### Deploying to Local VM
+
+Before we can execute our smart contracts and deploy them, we need to compile them.
+
+(Even though saving the file should have compiled our code, let's do it manually to get the hang of it.)
+
+Head to Solidity Compiler > select a Compiler that will fit into the Pragma conditions (anything 0.8 will work) > Press 'Compile HelloWorld.sol'
+
+Now that it has been compiled, let's head to Deploy & Run Transactions.
+
+In Deploy & Run Transactions, take note of the following:
+- Environment: Remix VM (London)
+    - You don't have to worry about the difference between London/Berlin
+    - This is the Remix Virtual Machine, ie. a temporary blockchain (this lets us test out the smart contract)
+        - One note about Virtual Machines: Any state associated with our Smart Contract will not be stored persistently
+            - As soon as we turn off/on our computer, or close/open Remix IDE, our state will be destroyed (in other words: this is only used for basic testing purposes)
+
+- Account: 
+    - We are given 10-15 accounts by default (to test/mess around with), all have 100 Ether
+
+- Gas Limit: The maximum amount of gas we will allow the smart contract to represent
+    - Allows the smart contract to actually operate (all operations in the smart contract cost a certain amount of gas)
+
+- Value: 
+
+- Contract: Select HelloWorld.sol
+    - Sometimes we will have multiple contracts, so this is how we switch between them\
+
+- Deploy: This will deploy your contract!
+    - After deploying, we will see output in the terminal:
+        - creation of HelloWorld pending... [vm]from: 0x5B3...eddC4to: HelloWorld.(constructor)value: 0 weidata: 0x608...00033logs: 0hash: 0x4cb...df349
+            - This means "you have successfully deployed the smart contract!"
+
+Reminder: This is all local - not actually on the blockchain and is for testing purposes on a temporary blockchain!
+
+Next, scroll down to Deployed Contracts, hit the dropdown box next to HelloWorld, and we will see the 2 functions we wrote:
+- store: set a value
+    - default value: 0
+    - if you store a 10, it will send that value to the smart contract, and you will get the following in the terminal: [vm]from: 0x5B3...eddC4to: HelloWorld.store(uint256) 0xD7A...F771Bvalue: 0 weidata: 0x605...0000alogs: 0hash: 0xb4e...a4154
+- get: get a value
+    - you will see 'uint256: 10' when pressing this button
+
+In reality: In order to be able to call the store function, you must submit a transaction.
+- This is because you are modifying state
+    - You need a gas fee to do this
+    - You also need to wait a few seconds because miners/validators on the Ethereum network need to mine it
+        - Once this is done, the value will update
+
+Takeaways:
+- This is a very basic smart contract to explain some of the different concepts we will need going forward
+    - Some of it may be confusing right now, but it will start to make more sense as we go along!
+- Remember: If we close/re-open Remix IDE, we will have destroyed the temporary blockchain network, and the value of 10 will be gone from our smart contract.
