@@ -2967,3 +2967,241 @@ Takeaways:
 - This is a very basic smart contract to explain some of the different concepts we will need going forward
     - Some of it may be confusing right now, but it will start to make more sense as we go along!
 - Remember: If we close/re-open Remix IDE, we will have destroyed the temporary blockchain network, and the value of 10 will be gone from our smart contract.
+
+##### Practice Questions
+
+1. What is the purpose of the pragma line at the beginning of a Solidity program?
+- To specify the Solidity compiler version this contract is written for.
+
+2. Which of the following code snippets accurately defines a Solidity smart contract with the name HelloWorld?
+- Code chunk below:
+
+```
+contract HelloWorld {
+  ...  
+}
+```
+
+Note: A Solidity smart contract uses the keyword contract and the pascal case naming convetion for the class name.
+
+3. What character is used to terminate lines in Solidity?
+- ;
+
+4. What is the correct file extension for Solidity code?
+- .sol
+
+### 4 - Smart Contract Theory
+
+It's time to dive deeper into the weeds of smart contract theory in our quest for smart contract mastery.
+
+#### Key Terms
+
+##### Transaction
+
+In the context of blockchains, a transaction (commonly denoted "tx") represents a state changing operation.
+- May represent the transfer of coins, or the invocation of a smart contract.
+
+##### Call
+
+In the context of smart contracts, a call is a free operation that reads information from a smart contract.
+- Calls do not require transactions, therefore cannot modify the state of a smart contract 
+
+##### Gas
+
+In the context of Ethereum, gas is a fee required to execute transactions or smart contracts.
+- Gas is paid in Ether
+- Gas is denoted in gwei
+
+##### Source Code
+
+Source Code is the code that programmers write/read.
+
+##### Bytecode
+
+Bytecode is the program code that has been compiled from source code into a lower level language that can be understood by an interpreter.
+
+#### Notes from the video
+
+Smart Contract Theory:
+- How to write Smart Contracts 
+- Terminology
+    - How they are deployed
+        - Source code vs. bytecode
+    - Gas/Transactions/Calls
+    - Storage options
+        - Memory
+        - Storage
+        - Stack
+    - Op codes
+
+Current state of our code:
+
+```
+pragma solidity >=0.7.0 <0.9.0;
+
+contract HelloWorld {
+    uint256 number;
+
+    function store(uint256 num) public {
+        number = num;
+    }
+
+    function get() public view returns (uint256) {
+        return number;
+    }
+}
+```
+
+##### Contract Deployment Process
+
+Starting out: How do we get our code that we have written, onto the blockchain? (We should have some idea of how this works, but let's go deeper into it)
+
+Answer: 
+
+- Source code: High level, human-readible
+    - Not typically executed
+        - Un-optimized/inefficient
+        - This is where a compiler comes in
+- Compiler: Takes source code and re-writes it into a way our machine can understand it
+    - Compiles Solidity into Bytecode
+- Bytecode: Lower level code 
+    - Not easy for humans to understand, but a machine can
+    - This is what the machine actually reads/executes
+
+We now have the information needed to send our smart contract to the blockchain!
+
+Note: The blockchain stores our Bytecode, not our Source Code
+
+EVM (Ethereum Virtual Machine): An interpreter for the Bytecode
+- Interpreter: Can read code and execute instructions based on it
+- All of the full nodes on the Ethereum blockchain run a version of the EVM, making them capable of reading/executing Bytecode
+
+Steps to Deploy our Smart Contract:
+- Compile our Source code into Bytecode
+- Bundle up our Bytecode and send it to the blockchain in a transaction
+    - Once we pay our fees, it will be mined, and added to the blockchain, making our contract immutable
+    - It now has an address, and we can interact with the code on the blockchain!
+- We then have different nodes sitting on the blockchain network that are able to execute the smart contract by running their Ethereum Virtual Machine
+    - This can be done with one of the following:
+        - Transactions
+        - Calls
+
+##### Calls vs. Transactions
+
+State: Something permanent stored in the blockchain database
+- Same for every person that interacts with the contract
+    - Must be validated and stored
+        - Expensive to store state (any data stored permanently on the blockchain costs us a lot money)
+
+- Goal of smart contracts: Minimize amount of state!
+    - As mentioned before: Expensive to store state
+
+- Anything in state == Secure
+- Whenever you write something inline with the contract, it is considered state
+    - When the contract is first deployed, we allocate blockchain resources for storing the value of state 
+        - By default: 0 (default for uint256)
+
+
+As mentioned above, when interacting with the contract, we can do so in 2 ways:
+- Call: For reading/viewing information on the blockchain
+    - Free
+        - We are getting the current state, not modifying anything
+
+Note: Beyond scope of this video, but sometimes you have to pay for a call.
+
+- Transaction: 
+    - For modifying/updating state
+    - Requires Gas Fee
+        - We are modifying the current state, and since a transaction has to be mined/validated by the nodes on the network, run through EVM, we must pay
+
+##### Gas and Transactions
+
+Transaction:
+Gas: Fee given to miners
+- Not related to: Traffic on network
+- Related to: Gas required for specific operations (Proportional to the type of computations you are performing)
+    - Example: Lots of state changes/lots of computations: More gas
+    - Example: Something simple: Less gas
+        - We will go into these calculations more later
+
+- Address: Address of the Smart Contract on the Blockchain
+    - Smart contracts have their own address/balance, and sit on the network like any other account
+
+- Data: What operation we want to perform
+    - Will be in a format difficult for use to read
+    - Example: store(7)
+
+All of this gets bundled into the transaction we are submitting to our blockchain network.
+
+Steps to submit a transaction to change state:
+- You call store(7), it goes to the transaction pool
+- One of the miners sees your transaction in the transaction pool
+- Miner performs the operations on the smart contract, using Ethereum Virtual Machine (EVM)
+- New state is determined / updated
+- A block is submitted that says "based on this transaction, this smart contract now has a new value of state, which is 7"
+- Block is broadcasted out to the network, and validated by other miners/nodes sitting on the network
+- Assuming everything is correct, this transaction is in and the state has changed!
+
+One last note: Transaction are asynchronous
+- What this means: Transactions can take any amount of time
+    - You don't know when/if it will go through, since we never know if/when your transaction will be validated
+    - You cannot return a value from transactions
+        - Instead: You would make a call to view OR listen for an event using a webhook (More on this later...)
+
+##### Op Codes
+
+Back to beginning of video, this is what we have:
+- We have Source code
+- We compile Source Code to get Bytecode
+- We submit Bytecode to the blockchain network
+    - This Bytecode is made up of 'Op codes'
+
+Op codes (Operational codes): What is understood by Ethereum Virtual Machine
+- Made up of 2 hexadecimal digits
+    - hexadecimal digits: 0-9, a-f (16 digits total)
+        - 16*16 = 256 possible operational codes
+            - Currently: Solidity implements 140 Op codes, so we have room for 116 in the future
+                - These 140 Op codes allow Solidity to be Turing Complete
+                - All of these codes are associated with a specific operation (typically a low-level operation) 
+                    - Example: Op code 1 - This op code may 'Jump' to another Op code or Block
+
+- Each op code has a required amount of gas to perform the operation
+    - Depends based on other factors, but value varies
+
+You will see Op Codes if you look at graphs/charts on Solidity!
+
+##### Types of Smart Contracts
+
+In our Smart Contracts, we have 3 main areas/methods to store data:
+
+1. Storage: Holds state
+- Permanent
+- Stored on blockchain
+- Most expensive way to store something (expensive: gas needed to write/change values)
+- Can store large values, essentially whatever you'd like
+
+2. Memory (Similar to RAM on computer): Holds arguments you pass to different functions
+- Temporary
+- Used during functions arguments (cleared after usage)
+- Much cheaper than storage
+- Can store relatively large values
+- Example: 
+    - I just need access while processing the function, after it is done, I don't need that value anymore
+
+3. Stack: Local function variables
+- Temporary
+- Used for small values that need to be accessed immediately/quickly
+- Cheaper than memory
+- Can only store small values
+    - The stack is very small, can only store 1024 different values - Each are stored in 32 bits spots (not a lot of bits)
+- Example:
+    - Array will not fit in the stack (not enough slots)
+
+Advice:
+1. Storage: Permanent - Only use if you absolute need it to be permanent/state of the project
+2. Memory: Temporary - Relatively large values
+3. Stack: Temporary - Very small values, limited slots
+- default location for values that need to be immediately accessed
+    - try to fit into stack, if you cannot, use storage
+
+Note: You will never be manually referencing the stack, but you will with Memory + Storage.
