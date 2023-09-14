@@ -3314,3 +3314,183 @@ Now that we can see our deployed contract transaction on Etherscan, let's update
         - To update state: You need to send a transaction (MetaMask pops up)
     - Retrieve:
         - No need to send a transaction (MetaMask will not pop up)
+
+##### Practice Questions
+
+n/a
+
+### 6 - Data Types
+
+What do Pokémon and Solidity data have in common? They both come in a variety of different types!
+
+#### Key Terms
+
+##### Data Types
+
+In Solidity, data types are separated into value types and reference types.
+- The common value types are as follows:
+    - uint
+    - int
+    - bool
+    - address
+    - bytes
+
+#### Notes from the video
+
+##### Data Types Overview
+
+Note: There are many other data types - these are the simple value data types. (We will go over the rest of the value data types, and the reference data types, in another video)
+
+Solidity: Strongly typed language
+- What this means: When you declare a variable, you need to do the following:
+    - declare the type
+    - make sure it stays that type the entire program
+        - if it does not, you will crash the program/compiler will not let you compile
+
+Note: Python is a dynamically typed programming languages, where you can change the type of values.
+
+Unlike many dynamically typed programming languages, you can declare a program without giving it a value:
+
+```
+contract HelloWorld {
+    uint x;
+}
+```
+
+This will give x the default value for a uint type, which is 0.
+
+##### Value Data Types
+
+Types we want to talk about:
+
+```
+contract HelloWorld {
+    unit
+    // signed int: one of the bits being used is the signed bit, we can store negative values
+    int
+    // boolean: true/false (lowercase)
+    bool
+    // address: an Ethereum address
+    // - default: address(0) or address(0x)
+    // - uses 20 bytes / 160 bits to store a value (by default)
+    address
+}
+```
+
+##### uint
+
+uint: un-signed integer
+- un-signed meaning: no +/- sign (no negative values!)
+- can store from 0 -> number of bits it is using to represent its value, minus 1
+    - this is because the 0 is taking up a value
+- default value: 0
+- uint defaults to the uint256 variant (which takes up the most space)
+    - if you try and store a value too large for your unit size, you get a compiler error
+
+```
+contract HelloWorld {
+    // uint: unsigned int
+    uint    // 32 bytes
+    uint8   // 1 byte   (goes from 0 to 2^8 - 1)
+    uint16  // 2 bytes  (goes from 0 to 2^16 - 1)
+    uint32  // 4 bytes  (goes from 0 to 2^32 - 1)
+    uint64  // 8 bytes  (goes from 0 to 2^64 - 1)
+    uint128 // 16 bytes (goes from 0 to 2^128 - 1)
+    uint256 // 32 bytes (goes from 0 to 2^256 - 1)
+}
+```
+
+##### int
+
+uint: un-signed integer
+- can store from negative number of bits -> number of bits minus 1
+    - this is because the sign (+/-) is taking up a value, and so is the 0
+- default value: 0
+- uint defaults to the uint256 variant (which takes up the most space)
+    - if you try and store a value too large for your unit size, you get a compiler error
+
+```
+contract HelloWorld {
+    // int: signed int
+    int    // 32 bytes
+    int8   // 1 byte   (goes from -2^(8-1) to 2^(8-1) - 1)
+    int16  // 2 bytes  (goes from -2^(16-1) to 2^(16-1) - 1)
+    int32  // 4 bytes  (goes from -2^(32-1) to 2^(32-1) - 1)
+    int64  // 8 bytes  (goes from -2^(64-1) to 2^(64-1) - 1)
+    int128 // 16 bytes (goes from -2^(128-1) to 2^(128-1) - 1)
+    int256 // 32 bytes (goes from -2^(256-1) to 2^(256-1) - 1)
+}
+```
+
+Note: You cannot make a larger bit int (ie. int32) fit into a smaller bit int (ie. int8), unless you use type a conversion. Example:
+
+```s
+int32 y = 8;
+int8 x = y; // error
+int8 x = int8(y); // type conversion (good, as long as the number is not too large)
+```
+
+##### bool
+
+bool: boolean value
+- can only store 2 values (anything else gets a compile error):
+    - true
+    - false
+
+##### address
+
+address: stores an ethereum address
+- any to/from address
+- default value: address: 0x0000000000000000000000000000000000000000
+
+You can see the default value with a function like this:
+
+```s
+// SPDX-License-Identifier: GPL-3.0
+
+pragma solidity >=0.8.2 <0.9.0;
+
+contract HelloWorld {
+    address x;
+
+    function getAddress() public view returns(address) {
+        return x;
+    }
+}
+
+```
+
+Note: I did the following in Remix Online IDE to test this out:
+- copy/pasted this into HelloWorld.sol
+- compile
+- deploy
+- deployed contracts > getAddress
+    - return value: address: 0x0000000000000000000000000000000000000000
+
+##### Variable Naming
+
+Variable Naming: Regular, using Camel Case
+- Camel Case:
+    - capital letters at the start of words
+    - no underscores
+    - no special characters
+- Cannot start with a number
+
+##### Comments
+
+Anything that is commented out will be ignored by the compiler. (Simply there for documentation/readability)
+
+How to do a single line comment:
+
+```
+// hello world
+```
+
+How to do a multi-line comment:
+
+```
+/*
+hello
+world
+*/
+```
