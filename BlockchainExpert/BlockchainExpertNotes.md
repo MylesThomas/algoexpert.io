@@ -3494,3 +3494,251 @@ hello
 world
 */
 ```
+
+##### Practice Questions
+
+1. Which of the following are valid data types in Solidity? Select all that apply.
+- uint
+- int
+- address
+- bool
+
+Note: Reference data types like arrays will be covered in later lessons.
+
+2. How many bits can the uint8 data type store?
+- 8
+
+Recall, 8 bits = 1 byte. Hence, the unit8 data type can store 1 byte/8 bits.
+
+3. What are the accepted values for the bool type in Solidity? Select all that apply.
+- true
+- false
+
+4. Referring to the Solidity smart contract below, what is the value of the variable x?
+- address(0)
+
+```
+contract BlockchainExpert {
+  address x;
+}
+```
+
+Note: In Solidity, the default value of the address type is the zero address which can be represented by address(0) or 0x0000000000000000000000000000000000000000, which is a 20 byte long value.
+
+5. Write a smart contract named DataTypes that declares four public state variables as follows:
+- A variable named smallNumber that can store numbers in the range of 0 - 255 that is equal to 9.
+- A variable named negativeNumber that can store numbers in the range of -127 - 128 that is equal to -7.
+- A variable named zeroAddress that stores an address and is equal to the zero address.
+- A variable named canEdit that stores a boolean and is equal to true.
+
+Use the most correct data type for each variable. The order in which you declare them does not matter.
+
+Note: For our automated tests to run properly you'll need to make sure you denote your state/storage variables as public. For example, if you were defining a variable named x, you'd do it like so: uint public x;.
+
+My answer:
+
+```s
+pragma solidity >=0.4.22 <=0.8.17;
+
+// Write your code here
+contract DataTypes {
+    uint8 public smallNumber = 9;
+    int8 public negativeNumber = -7;
+    address public zeroAddress;
+    bool public canEdit = true;
+}
+
+```
+
+### 7 - Operators & Type Conversions
+
+What do Porygon (the Pokémon) and Solidity have in common? They can both convert types!
+
+#### Key Term
+
+##### Logical Operators
+
+In Solidity, the Logical Operators are implemented using the following symbols:
+- && == and
+- || == or
+- ! == not
+
+#### Notes from the video
+
+##### Arithmetic Operators
+
+Arithmetic Operators:
+- `+`
+- `-`
+- `/`
+- `*`
+- `&`
+- `++`
+- `--`
+
+```
+contract HelloWorld {
+    int y = 9;
+    uint x = 10;
+
+    function op() public {
+        x = x + 1; // 11
+        x++;       // 11
+        x = x - 1; // 9
+        x--;       // 9
+        
+    }
+}
+```
+
+Rules:
+- Division: You will always get the same type back as the main type, which in the case of `x = x / 7` would be the left-hand side
+
+- When working with arithmetic, types should be one of the two:
+    - the same
+    - easily converted (compiler can convert for us)
+
+- Working with decimals in Solidity is quite complicated
+
+- Rule of thumb: Go with the larger/more detailed type
+    - Even if it takes up more space, at least it will not error out
+
+- 
+
+Note: An overflow is when you assign a negative value to an unsigned int. Example:
+
+```
+contract HelloWorld {
+    int y = -9;
+    uint x = 10;
+
+    function op() public {
+        x = x + uint(y);
+    }
+}
+```
+
+Tip: Convert uint into int
+- Can get a runtime error if you do it the other way around!
+
+Now, let's look at an example doing arithmetic with same base type, but different number of bits:
+
+```
+contract HelloWorld {
+    uint8 y = 9;
+    uint x = 100000;
+
+    function op() public {
+        x = x + y; // works (x is uint256, so it can handle an uint8)
+        y = x + y; // may not work (y is a uint8, so it cannot handle a uint256)
+        y = uint8(x) + y; // types match on left and right side now, but x is too large for uint8
+    }
+
+    function getY() public view returns (uint8) {
+        return y; // if you call the first first and then this, you will not get 10009 (integer overflow)
+    }
+}
+```
+
+Takeaways:
+- When you convert down on the base type, you will get a different number
+    - This is another subject on what number you get, but just know this is integer overflow. 
+
+##### Conditional/Comparison Operators
+
+Conditional/Comparison Operators:
+- `==`
+- `!=`
+- `>`
+- `<`
+- `>=`
+- `<=`
+
+These work the same as other programming languages
+- However: Left/Right side operands need to be the same type or convertible
+
+Example without type conversions:
+
+```
+contract HelloWorld {
+    int8 y = 9; // would not work
+    uint8 y = 9; // works!
+    uint x = 100000;
+
+    function op() public {
+        bool result = (x == y);
+    }
+}
+```
+
+Example WITH conversions:
+
+```
+contract HelloWorld {
+    int8 y = 9;
+    uint x = 100000;
+
+    function op() public {
+        bool result = int8(x) == y; // does not work (cannot convert x from uint256 to int8 - not enough bits!)
+        bool result = int(x) == y; // works (int256 works, y becomes an int256, and it works)
+    }
+}
+```
+
+Note: All of the operands work the same way when it comes to type conversions.
+
+##### Logical Operators
+
+Logical Operators:
+- `&&`
+- `||`
+- `!`
+
+Ordering for chained conditions:
+- NOT
+- AND
+- OR
+
+##### Assignment Operators
+
+Assignment Operators:
+- `=`
+- `+=`
+- `-=`
+- `*=`
+- `/=`
+- `%=`
+
+```
+contract HelloWorld {
+    int8 y = 9;
+    uint x = 100000;
+
+    function op() public {
+        y = y + 100; // old way
+        y += 7;      // assigns to y
+        y -= 8;      // assigns to y
+        y *= 8;      // assigns to y
+        y /= 8;      // assigns to y
+        y %= 8;      // assigns to y
+    }
+}
+```
+
+##### Video Takeaways
+
+Notes:
+- When we want to perform type conversion, we use construction syntax ie. `int8()`
+    - This is a constructor
+    - This is how we perform type conversions
+
+- Most important thing to learn from this lesson:
+    - Type conversions
+        - Implicit/Explicit
+        - Which types are comparable
+            - which ones Solidity takes care of for you
+            - which ones you must take care of yourself
+    - Overflows
+    - What happens when you convert larger value to smaller data type
+        - runtime error
+        - weird number spits out
