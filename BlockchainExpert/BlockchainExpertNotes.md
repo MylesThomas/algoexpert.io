@@ -3742,3 +3742,149 @@ Notes:
     - What happens when you convert larger value to smaller data type
         - runtime error
         - weird number spits out
+
+##### Practice Questions
+
+1. Counter - Complete the `Timer` smart contract such that each functions implements the functionality described below. All of these functions should use the `count` state variable. The `count` variable represents the number of seconds on the timer that have elapsed.
+- `increment`: should increase the count by one.
+- `decrement`: should decrease the count by one.
+- `reset`: should reset the count to zero.
+- `addBy`: should add the passed value to the count.
+- `subtractBy`: should subtract the passed value to the count.
+- `multiplyBy`: should multiply the count by the passed value.
+- `getMinutesElapsed`: should return the number of minutes based on the current count (there are 60 seconds in 1 minute).
+
+My answer:
+
+```
+pragma solidity >=0.4.22 <=0.8.17;
+
+contract Counter {
+    uint256 public count;
+
+    function increment() external {
+        count++;
+    }
+
+    function decrement() external {
+        count--;
+    }
+
+    function reset() external {
+        count=0;
+    }
+
+    function addBy(uint256 value) external {
+        count+=value;
+    }
+
+    function subtractBy(uint256 value) external {
+        count-=value;
+    }
+
+    function multiplyBy(uint256 value) external {
+        count*=value;
+    }
+
+    function getMinutesElapsed() external view returns (uint256) {
+        return count/60;
+    }
+}
+
+```
+
+2. Complete the functions in the contract `LogicGates` such that they implement the functionality described below:
+- `and`: return `true` if both the arguments passed to the function are `true`; otherwise, return `false`.
+- `or`: return `true` if either of the arguments passed to the function are `true`; otherwise, return `false`.
+- `not`: return `true` if the input passed is `false`; otherwise, return `false`.
+- `xor`: return `true` if one of the two inputs passed are `true`, but not both; otherwise, return `false`.
+
+My answer:
+
+```s
+pragma solidity >=0.4.22 <=0.8.17;
+
+contract LogicGates {
+    function and(bool a, bool b) public pure returns (bool) {
+        return (a && b);
+    }
+
+    function or(bool a, bool b) public pure returns (bool) {
+        return (a||b);
+    }
+
+    function not(bool a) public pure returns (bool) {
+        return !a;
+    }
+
+    function xor(bool a, bool b) public pure returns (bool) {
+        // return ((!a)||(!b));
+        return (a && !b) || (!a && b);
+    }
+}
+
+```
+
+### 8 - Conditionals
+
+Conditionals are just as fundamental to Solidity as they are to most other programming languages, so don't skip this video. No ifs and elses buts about it!
+
+#### Key Terms
+
+##### Conditional Operators
+
+Solidity has the following Conditional Operators:
+- `<`
+- `<=`
+- `>`
+- `>=`
+- `==`
+- `!=`
+
+#### Notes from the video
+
+##### if/else/else if
+
+Let's look at the if/else/else if structure in Solidity:
+
+```s
+pragma solidity >=0.4.22 <=0.8.17;
+
+contract HelloWorld {
+    bool canEdit = true;
+    bool admin = false;
+
+    function canEditDoc() public view returns (bool) {
+        if (canEdit) {
+            return true;
+        }
+    }
+}
+
+```
+
+##### Conditional Operator
+
+Conditional Operator: Shorthand for writing simple if-statements
+- This is the 1 line if-else:
+    - condition 
+    - then (?)
+    - else (:)
+
+Example:
+
+```s
+contract HelloWorld {
+    bool canEdit = true;
+    bool admin = false;
+
+    function canEditDoc() public view returns (uint) {
+        // basic example
+        // return canEdit || admin ? 1 : 0;
+        
+        // nesting!
+        uint8 result = canEdit || admin ? (true ? 1 : 0) : 0;
+        return result;
+    }
+}
+```
