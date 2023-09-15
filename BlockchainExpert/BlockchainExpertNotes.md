@@ -3888,3 +3888,225 @@ contract HelloWorld {
     }
 }
 ```
+
+##### Practice Questions
+
+1. Within the `Comparison` smart contract complete the `compare` function that accepts two `int` arguments. This function should return the following `int` values:
+- `0`: if the arguments are the same value.
+- `1`: if the first argument is greater than the second.
+- `-1`: if the second argument is greater than the first.
+
+Please use `if/else/else if` statements to complete this problem.
+
+My answer:
+
+```
+pragma solidity >=0.4.22 <=0.8.17;
+
+contract Comparison {
+    function compare(int256 a, int256 b) public pure returns (int256) {
+        if (a==b)
+        {
+            return 0;
+        }
+        else if (a>b)
+        {
+            return 1;
+        }
+        else
+        {
+            return -1;
+        }
+
+    }
+}
+
+```
+
+2. Within the `Comparison` smart contract complete the `compare` function that accepts two `int` arguments. This function should return the following `int` values:
+- `0`: if the arguments are the same value.
+- `1`: if the first argument is greater than the second.
+- `-1`: if the second argument is greater than the first.
+
+Please use the conditional operator `?` to complete this problem. (You may need more than 1)
+- Do not use `if/else/else if` statements
+
+My answer:
+
+```
+pragma solidity >=0.4.22 <=0.8.17;
+
+contract Comparison {
+    function compare(int256 a, int256 b) public pure returns (int256) {
+        return a==b ? int256(0) : (a>b ? int256(1) : (int256(-1)));
+    }
+}
+
+```
+
+### 9 - Mappings
+
+Solidity's version of dictionaries allows you to store and look up key-value pairs, much like a physical dictionary lets you look up words and their associated definition.
+
+#### Key Term
+
+##### Mapping
+
+In Solidity, the reference data type known as `mapping` allows you to store key-value pairs.
+- Mappings, like in other languages, are useful for quickly accessing associated data.
+- Mappings can only be stored in contract storage
+
+#### Notes from the video
+
+##### Mappings
+
+Mappings: Similar to hashmaps, dictionaries, etc. (Key-value pairs)
+- They are a bit different due to some limitations, such as:
+    - You can only use certain types for the key: (Hash to be something hashable/fixed value)
+        - uint
+        - 
+        - 
+    - You cannot initialize a map with values (You must create an empty map, and add on later)
+    - 
+
+Let's get into an example:
+
+```
+contract HelloWorld {
+    mapping(uint => bool) map;
+
+    function addItem(uint key, bool value) public {
+        map[key] = value;
+    }
+
+    function getItem(uint key) public view returns (bool) {
+        return map[key];
+    }
+}
+
+```
+
+Notes:
+- If you try and retrieve a value you have not added yourself, it will return the default value for that data type.
+    - Example: bool (false), uint (0)
+        - Keep this in mind: Makes it difficult to tell if we set a value, since we get a value back no matter what...
+            - Will have to use auxiliary data structure to be able to keep track of what we have added.
+
+##### Nested Mappings
+
+Nested Mappings: 
+- This involves making the value of the map, another map!
+
+Let's look at another example: (Note how we have changed value/return types to int)
+
+```
+contract HelloWorld {
+    mapping(uint => mapping(uint => int)) map;
+
+    function addItem(uint key, uint key2, int value) public {
+        map[key][key2] = value;
+    }
+
+    function getItem(uint key, uint key2) public view returns (int) {
+        return map[key][key2];
+    }
+}
+
+```
+
+##### Mappings as Local Variables
+
+Mappings vs. Local Variables (Using a Map inside of a function as a local variable)
+
+```
+// This does not work!
+contract HelloWorld {
+    function x() public {
+        mapping(uint => int) storage map;
+    }
+}
+```
+
+2 problems with this code:
+1. We are going to have to store this somewhere other than the stack (For this data type, you cannot be in the stack)
+- How: specify `storage` when initializing the map
+    - This also gets an error, taking us to #2...
+2. There is a rule that you cannot make an empty map inside of the function
+- You cannot create them dynamically, must assign from a state variable
+
+
+How to fix: Copy an existing map and then change within the function
+- initialize an empty map in the State/Storage of the contract
+- initialize your map from that map
+
+```
+contract HelloWorld {
+    mapping(uint => int) map1;
+
+    function x() public {
+        mapping(uint => int) storage map = map1;
+        map[0] = 1;
+        map[1] = 2;
+    }
+
+    function getItem(uint key) public view returns (int) {
+        return map1[key];
+    }
+}
+
+```
+
+What happened here:
+- Made a reference to existing map
+    - Any changes you make to `map` will go onto `map1`
+
+Takeaway: It is not very useful to use maps inside of functions as local variables!
+
+##### Map Limitations
+
+Map Limitations: We cannot access all of the keys/values at all time at once
+- Nothing like this:
+    - .keys()
+    - .values()
+- How to get around this: Using an external data structure
+    - Initialize an array
+    - Store keys in the array that you have added to the map
+    - Remove keys from the array that you have removed from the map
+
+Notes:
+- If you never add any value that is default, you don't need the external data structure
+    - If it has a value 0, it means you have not added it yet
+    - If it has a value other than 0, it means you HAVE added it!
+
+##### Mappings as Parameters
+
+Mappings as Parameters to a Function: (It is a little bit confusing)
+- Other programming languages: You can make the 1st function arg a mapping/hashmap
+- Solidity: You cannot do this
+    - You cannot have parameters to functions that are not in-memory (default: they are in the stack)
+        - But then, if you put it in-memory, you get an error saying nested mappings must be in-storage
+            - This happens because the access/visibility modifier `public`
+
+Remedy: This is the only way to use a mapping as a parameter to a function:
+
+```s
+contract HelloWorld {
+    function x(mapping(uint => uint) storage map) internal {
+        ...
+    }
+}
+
+```
+
+Why this works:
+- Visibility modifier must be `internal` (More on this later!)
+    - The function can only be called within the smart contract
+        - Cannot be called from outside blockchain/the contract itself (if you deploy, you cannot use Remix IDE to access it)
+
+- Type must be `storage`
+
+Takeaways:
+- Mappings are very limited
+    - Typically: Only used as state for the contract
+- To use within a local function: You are copying the existing mapping
+    - This is essentially making a reference to it (anytime you change the mapping you defined, it changes the original as well)
