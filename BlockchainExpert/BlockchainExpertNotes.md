@@ -4110,3 +4110,388 @@ Takeaways:
     - Typically: Only used as state for the contract
 - To use within a local function: You are copying the existing mapping
     - This is essentially making a reference to it (anytime you change the mapping you defined, it changes the original as well)
+
+##### Practice Questions
+
+1. Write a smart contract named `Inventory` that declares a state variable named `quantities` that holds a `mapping` of `uint` to `int`. Each `uint` key will represent the id of a specific item, while each `int` value will be the quantity of that item in the inventory.
+
+Implement the following functions in this smart contract. Do NOT change any of the function signatures.
+- `addItem(uint itemId, uint quantity)`: Adds an item to the inventory by adding it to the `quantities` mapping. If the `itemId` already exists in the mapping it should increment the value associated with the `itemId` key by the passed quantity.
+- `getQuantity(uint itemId)`: Returns the quantity of the passed `itemId` that is currently stored in the `quantities` mapping. If there is no item with the given `itemId`, it should return `-1`.
+
+My answer:
+
+```
+pragma solidity >=0.4.22 <=0.8.17;
+
+contract Inventory {
+    // Write your code here
+    mapping(uint => int) quantities;
+
+    function addItem(uint256 itemId, uint256 quantity) public {
+        // 
+        quantities[itemId] += int256(quantity);
+    }
+
+    function getQuantity(uint256 itemId) public view returns (int256) {
+        // 
+        if (quantities[itemId] == 0) {
+            return -1;
+        }
+        else {
+            return quantities[itemId];
+        }
+    }
+}
+
+```
+
+2. Write a smart contract named `DebtTracking` that declares a state variable `owing` which is of the type `mapping(address => mapping(address => uint))`. This nested mapping maps the addresses of people who are owed money with a mapping containing all of the addresses that owe this user money, and how much money they owe. See below for an example:
+
+If address `1` is owed `5 ether` from address `2`, and `7 ether` from address `3`, then the mapping would look like this:
+
+```
+1: {
+    2: 5,
+    3: 7
+}
+```
+
+Complete the following functions on this smart contract:
+- `addDebt(address toBePaidAddress, address payingAddress, uint amount)`: Adds the correct entry in the mapping to indicate that `payingAddress` owes `toBePaidAddress` `amount` ether.
+
+- `payDebt(address toBePaidAddress, address payingAddress, uint amountPayed)`: Updates the mapping accordingly to reduce the amount of debt owed by `payingAddress` to `toBePaidAddress` by the `amountPayed`. If `amountPayed` is greater than the amount that was owed, then update the mapping accordingly such that `toBePaidAddress` owes `payingAddress` the difference/change.
+
+- `getDebt(address toBePaidAddress, address payingAddress)`: Returns the amount of ether that `payingAddress` owes `toBePaidAddress`.
+
+My answer:
+
+```
+pragma solidity >=0.4.22 <=0.8.17;
+
+contract DebtTracking {
+    mapping(address => mapping(address => uint)) owing;
+
+    function addDebt(
+        address toBePaidAddress,
+        address payingAddress,
+        uint256 amount
+    ) public {
+        owing[toBePaidAddress][payingAddress] += amount;
+    }
+
+    function payDebt(
+        address toBePaidAddress,
+        address payingAddress,
+        uint256 amount
+    ) public {
+        if (amount <= owing[toBePaidAddress][payingAddress]) {
+            // normal
+             owing[toBePaidAddress][payingAddress] -= amount;
+        }
+        else if (amount > owing[toBePaidAddress][payingAddress]) {
+            // if there is change
+            owing[payingAddress][toBePaidAddress] = amount - owing[toBePaidAddress][payingAddress];
+            owing[toBePaidAddress][payingAddress] = 0;
+        }
+    }
+
+    function getDebt(address toBePaidAddress, address payingAddress)
+        public
+        view
+        returns (uint256)
+    {
+        return owing[toBePaidAddress][payingAddress];
+    }
+}
+
+```
+
+### 10 - Functions and Access Modifiers
+
+Like in many other programming languages, functions in Solidity come with a variety of access and behavioral modifiers.
+
+#### Key Terms
+
+##### Public
+
+In Solidity, `public` is a visibility modifier that can be used to mark variables and functions as accessible from within or outside of the contract.
+- Any variable or function marked as public can be accessed from any location.
+
+##### Private
+
+In Solidity, the `private` visibility modifier is used to mark a function or variable as only accessible from within the contract it is defined in.
+- Private functions and variables cannot be accessed from any of the following:
+    - derived contracts
+    - outside of the blockchain
+    - any location other than the contract they are defined in!
+
+Note: even if something is marked as `private`, its value can still be read from outside of the blockchain. (This is because everything on the blockchain is publicly available and transparent, remember)
+
+##### Internal
+
+In Solidity, `internal` is a visibility modifier that can be used to mark functions and variables as only accessible from within the contract or any derived contracts.
+- `internal` functions can only be called from the contract type they are defined in.
+
+##### External
+
+In Solidity, `external` is a visibility modifier that can be used to mark functions and variables as only callable from outside of the contract itself.
+- `external` functions can only be called from outside of the blockchain or from another smart contract.
+
+##### Pure
+
+In Solidity, a `pure` function is one that does not rely on any contract state to execute.
+- However: pure functions can call other pure functions and utilize types like structs, enums
+
+##### View
+
+In Solidity, a `view` function is one that does not mutate/modify the state of a contract but may read it.
+- View functions can read contract state and call other view/pure functions
+
+#### Notes from the video
+
+##### Internal (Variables)
+
+When we make a variable, by default the visibility/access modifier is internal.
+
+```
+contract HelloWorld {
+    uint x = 0;
+    uint internal x = 0; // same thing
+}
+```
+
+What private means:
+- This variable can only be accessed by the contract, or a derived contract (Same as 'protected' in Java)
+    - derived contract: a contract that inherits from this contract (uses it from its base class - think Inheritance from Object Oriented Programming)
+
+You can see this by deploying the contract - you will see there are no actions you can perform on it!
+
+##### Public (Variables)
+
+Building on internal, if you change internal to public and deploy, you will see that there is automatically a 'getter' function for this variable! (If you click on x, you will get the value of 0)
+
+What public means:
+- This variable can be accessed by the following:
+    - contracts
+    - derived contracts
+    - outside of the contract 
+
+##### Private (Variables)
+
+Next, we have the option to make this private.
+
+What private means:
+- Variable is only accessible from within the contract
+    - difference between internal: no derived contracts can access it
+
+##### Variables Recap
+
+In order from most security to least security, here are our 3 visibility/access modifiers:
+- Public: Anyone can access (Within, inherited, and outside)
+    - YES: Within the same contract
+    - YES: From a derived contract
+    - YES: Outside of the contract
+
+- Internal: Within and derived
+    - YES: Within the same contract
+    - YES: From a derived contract
+    - NO: Outside of the contract
+
+- Private: Within only
+    - YES: Within the same contract
+    - NO: From a derived contract
+    - NO: Outside of the contract
+
+##### Public (Functions)
+
+Public Function: We can invoke it from anywhere (Essentially same as a public variable)
+- You can call this function from within functions/derived function/outside of the blockchain
+
+```s
+contract HelloWorld {
+    function x() public returns (uint) {
+        return 1;
+    }
+}
+```
+
+##### Private (Functions)
+
+Private Function: We can only invoke from within
+- You can only call this functions from within the function
+    - not derived from contract
+    - not from outside blockchain
+
+##### Internal (Functions)
+
+Internal Function: We can only invoke from within OR 
+- You can only call this functions from within the function OR derived from contract
+    - not from outside blockchain
+
+##### External (Functions)
+
+External Function: We can only invoke from outside of the function
+- You can only call this functions from outside the function
+    - not within the contract
+    - not derived from the contract
+
+Why use this over Public:
+- Public: Can be called within the contract OR other smart contracts OR transactions
+- External: Only called outside of this contract
+    - Important because of the way data is passed to the function:
+        - If External: Data can be passed in a more efficient way (optimizing performance vs. using public)
+        - If Public: Not sure if it will be called from another contract/within this one/another transaction
+
+The following example would give us an error:
+
+```s
+contract HelloWorld {
+    function x() external returns (uint) {
+        return 1;
+    }
+
+    function y() public {
+        x();
+    }
+}
+
+```
+
+Why does this not work:
+- x() is external
+    - it cannot be called from within the same contract (which these 2 obviously are both in the smart contract `HelloWorld`)
+        - would need to make it `public` for the error to go away
+
+Note: If you fix the error and deploy, you will be able to call x from Remix IDE (that is because you are outside of the contract!)
+
+##### Functions Recap
+
+In order from most security to least security, here are our 3 visibility/access modifiers:
+- Public: Anyone can access (Within, inherited, and outside)
+    - YES: Within the same contract
+    - YES: From a derived contract
+    - YES: Outside of the contract
+
+- Internal: Within and derived
+    - YES: Within the same contract
+    - YES: From a derived contract
+    - NO: Outside of the contract
+
+- External: Outside only
+    - NO: Within the same contract
+    - NO: From a derived contract
+    - YES: Outside of the contract
+
+- Private: Within only
+    - YES: Within the same contract
+    - NO: From a derived contract
+    - NO: Outside of the contract
+
+##### Returning Multiple Values
+
+Returning Multiple Values: You cannot return data to a transaction
+- If you have a return value, it only returns under 2 conditions:
+    - You are making a call
+    - Another smart contract is calling this one
+
+- If we want to return some data: Write the type we want to return in parentheses!
+    - 
+
+Example:
+
+```
+contract HelloWorld {
+    function x() public returns (uint, uint, uint) {
+        return (1, 1, 1); // looks good!
+        return 1, 2, 3;   // error
+    }
+}
+
+```
+
+##### View Functions
+
+We have seen the keyword view already!
+
+View Functions: Function that does NOT modify any state
+- We do not have to specify as `view`, but it helps with readability/strict that we cannot modify state.
+- In a view function, you can only call functions that are view OR pure:
+    - view: can invoke
+    - pure: can invoke
+    - others: cannot invoke (even if it does not modify state!)
+        - Solidity is not smart enough to tell, so we need to say it is view or pure.
+
+Example:
+
+```
+contract HelloWorld {
+    uint a = 1;
+
+    function x() public view returns (uint) {
+        y(); // this would error, since y() is NOT a view function
+        z(); // this would work, since we marked it as a view function
+
+        return a; // view function: does not modify state
+    }
+
+    function y() public {
+        a = 2; // pure function: DOES modify state
+    }
+
+    function z() public view {
+        a + 1; // view function: does not modify state
+    }
+}
+
+```
+
+Advice: We want our code to be readable, so if you are writing a view function, put that in the initialization!
+
+##### Pure Functions
+
+Pure Functions: Does not view, modify, or rely on anything that is in the contract
+- 
+- Essentially: Pure is a view function, but cannot view data
+    - It is a function that does a calculation, and returns it to you
+
+Example:
+
+```s
+contract HelloWorld {
+    uint a = 1;
+
+    function x() public pure returns (uint) {
+        return 1;
+    }
+
+    function y() public pure {
+        1;   // valid: does not access state or do anything
+        x(); // valid: pure function can call another pure function 
+    }
+
+```
+
+Note: You have to see these a bunch of times before you will have it memorized!
+
+Difference between View and Pure:
+- View: Can view (but not modify) the state
+- Pure: Cannot view OR modify the state
+    - only gets used when you do something that has nothing to do with state, or a function that may have to do with state
+
+##### Recap (View vs. Pure)
+
+Recap (View vs. Pure):
+- Similarities:
+    - Invoke a function that is not View OR Pure: NO
+    - Modify/Overwrite state variables: NO
+    - Create new contracts: NO
+    - Omit events: NO
+    - Use the function self-destruct: NO
+    - Use low-level function calls: NO
+    - Send/receive ETH: NO
+
+- Differences:
+    - Invoke a function that is View OR Pure:
+        - View: YES
+        - Pure: NO
