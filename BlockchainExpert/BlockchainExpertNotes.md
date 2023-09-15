@@ -4451,8 +4451,7 @@ Advice: We want our code to be readable, so if you are writing a view function, 
 ##### Pure Functions
 
 Pure Functions: Does not view, modify, or rely on anything that is in the contract
-- 
-- Essentially: Pure is a view function, but cannot view data
+- Essentially: Pure is a view function, but Pure functions do not read and do not modify state of the block chain
     - It is a function that does a calculation, and returns it to you
 
 Example:
@@ -4495,3 +4494,235 @@ Recap (View vs. Pure):
     - Invoke a function that is View OR Pure:
         - View: YES
         - Pure: NO
+
+##### Practice Questions
+
+1. Select the access/visibility modifier that fits the following description:
+Functions that are part of the contract interface and can be called from other contracts. They cannot be called internally.
+- external
+
+2. Select the access/visibility modifier that fits the following description:
+Functions and state variables that can be accessed within the same contract and in deriving contracts. They are not accessible from the outside.
+- internal
+
+3. What properties must be true of a `view` function? Select all that apply.
+- It cannot modify any contract state.
+- It cannot send or receive Ethereum.
+
+4. Select the function that correctly returns multiple values.
+
+My answer: 
+
+```
+function x() public view returns (uint, int) {
+  uint a;
+  int b;
+  return (a, b);
+}
+```
+
+5. If a state variable is private it's data is hidden on the blockchain (i.e., it cannot be read from outside of the contract).
+- False
+
+Note: Although private variables cannot be accessed from outside of a contract their data can still be found and read on the blockchain. This is because the blockchain is publicly available and anybody can view and verify all of the data on the blockchain.
+
+6. Analyze the smart contract seen below.
+
+```
+contract X {
+  uint a = 1;
+  int b = 2;
+  
+  function sum() public returns (int){
+    return int(a) + b;
+  }
+
+  function getA() public returns (uint) {
+    return a;
+  }
+
+  function setAt(uint newValue) public {
+    a = newValue;
+  }
+
+  function calc(uint a, uint b) public returns (uint){
+    return a * b + a - b;
+  }
+
+  function add(uint value) {
+    return a + value;
+  }
+}
+
+```
+
+Which functions could be marked as a pure function?
+- calc
+
+Explanation: A function marked as pure is not able to use anything outside of its function definition. It cannot modify or access any state variables or call any function that is not a pure function. This makes calc the only function that could be marked as pure as it's the only function that does not use the state of the contract.
+
+### 11 - Global Keywords
+
+Solidity's global variables are unique and very blockchainy in flavor, certainly unlike anything you've seen in other languages. Don't skip this lesson!
+
+#### Key Terms
+
+##### Global Keywords
+
+In Solidity, there are various Global Keywords that give you information about the current block, transaction, and more.
+- The following is a subset of these global keywords:
+    - block
+    - msg
+    - txt
+
+#### Notes from the video
+
+This is where things start to get interesting, and moving away from the basic things that most of us already had intuition about.
+
+Let's start learning how to make contracts with a real purpose!
+
+##### Global Keywords
+
+Global Keywords/Variables: Things you have access to access to within the contract/specific functions in the contract
+- 4 main ones:
+    - this: the contract instance itself
+        - think .this in Java, .self in Python
+        - makes more sense once we get into constructor
+
+    - msg: how the smart contract execution begun 
+        - who forced the smart contract to start executing this function, how much money was sent, etc.
+
+    - block: information about the block that the transaction being sent to the smart contract, is included in
+        - when you submit the transaction, it is added to a block
+            - once that block has mined, the execution actually begins
+                - NOT: the block the smart contract was deployed to
+                - YES: the block the transaction forcing the smart contract to execute is on
+                    - this block could change change for every single transaction that is sent to the smart contract (cannot rely on block data being the same between transactions)
+
+    - tx: gives us information about the transaction itself
+        - similar to the message:
+            - msg: refers to how the smart contract was executed
+                - could be about the smart contract that called this smart contract
+            - tx: information about the original transaction 
+                - origin of the transaction ie. original person thing that submitted the transaction, causing this smart contract to call another
+
+##### this
+
+this: 
+- Current usage: Get balance of a smart contract.
+
+```
+contract HelloWorld {
+    function getBalance() public view returns (uint) {
+        return this.balance; // old
+        return address(this).balance // new!
+    }
+}
+
+```
+
+Note: Each address has a .balance property
+
+##### msg
+
+msg: 
+- Current usage: Useful when we want to know who called the contract, and how much was sent to the contract.
+
+```
+contract HelloWorld {
+    function viewMsg() public view returns (address) {
+        return msg.sender;
+    }
+}
+
+```
+
+Notes:
+- sender: who invoked the smart contract. could be one of the following:
+    - another smart contract
+    - an address of Ethereum account (in this case, it will be our wallet address)
+
+##### msg (Extras)
+
+Extras:
+- msg.data: Data associated with the call to the function
+    - Arguments to the function
+- msg.sig: First 4 bytes of the call data
+    - Specifically: For the function that is to be called
+- msg.value: How much ETH was sent to the smart contract/function via transaction
+    - we will do more with this later!
+
+##### block
+
+block: 
+- block.number
+- block.chainid
+- block.gaslimit
+- block.difficulty
+- block.timestamp
+- block.coinbase: Address of the miner who mined the block (Where the reward went)
+
+```
+contract HelloWorld {
+    function viewBlockNumber() public view returns (uint) {
+        return block.number;
+    }
+    function viewBlockTimestamp() public view returns (uint) {
+        return block.timestamp;
+    }
+}
+
+```
+
+##### tx
+
+tx: Origin of the transaction
+- 
+
+```
+contract HelloWorld {
+    function viewMsg() public view returns (address) {
+        return tx.origin;
+    }
+}
+
+```
+
+Remember:
+- msg.sender: who called the smart contract
+- tx.origin : who originated the transaction
+
+##### gasleft
+
+gasleft: How much gas is actually remaining
+- Involves a function, not a global variable
+- Can derive how much gas was sent with the following calculation:
+    - Gas Remaining = Gas Limit - gasleft()
+        - Gas Limit: Set when deploying in Remix IDE
+        - gasleft(): self-explanatory
+
+```
+contract HelloWorld {
+    function viewGas() public view returns (uint) {
+        return gasleft();
+    }
+}
+
+```
+
+##### Quick Recap
+
+Next video we will use the global variables with more utility, but here is a quick recap:
+- address(this).balance: Balance of the smart contract itself
+- msg:
+    - msg.sender
+    - msg.value: amount of ETH sent
+    - msg.sig
+    - msg.data
+- block:
+    - block.chainid
+    - block.difficulty
+    - block.coinbase: Address of miner who mined the block 
+    - much more!
+- tx:
+    - tx.origin: Address of whoever originated the initial call that ended up at this smart contract
