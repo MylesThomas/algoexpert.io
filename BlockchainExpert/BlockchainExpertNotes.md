@@ -4726,3 +4726,307 @@ Next video we will use the global variables with more utility, but here is a qui
     - much more!
 - tx:
     - tx.origin: Address of whoever originated the initial call that ended up at this smart contract
+
+##### Practice Questions
+
+1. Which of the following are valid global variables? Select all that apply.
+- msg
+- tx
+- block
+
+Note: The important global variables to know are tx, block and msg.
+
+2. What code snippet would return the balance of the current smart contract?
+- address(this).balance
+
+3. What is the most correct way to view the address of the creator of the transaction that is being executed?
+- tx.origin
+
+Explanation:
+- The most correct way to determine the address of the creator of the transaction is to use tx.origin.
+    - This returns the address of the origin of the transaction.
+- If you were to use msg.sender you would receive the address of whoever made the external function call, which could be another smart contract and not necessarily the address of whoever originally created the transaction.
+
+Note: In most cases it is fine to use msg.sender but it is good to be aware of the differences.
+
+### 12 - Sending And Receiving Eth
+
+How do you actually receive and send Ether into and from a smart contract? This lesson will show you the wei.
+
+#### Key Term
+
+##### Ether Units
+
+Solidity provides built-in keywords that make working with amounts of Ether easier.
+- `wei`: the smallest unit of ether.
+- `gwei`: equal to 1,000,000,000 or 10^9
+- `ether`: equal to 1,000,000,000,000,000,000 or 10^18
+
+#### Notes from the video
+
+##### Ethereum Units
+
+Ethereum Units (that we can use in Solidity):
+- wei: smallest possible unit of measure (you cannot have less than 1 wei)
+- gwei: 
+- ether: 
+
+Recap:
+- 1 wei = 1
+- 1 gwei = 1e9
+- 1 ether = 1e18
+
+Note: There are more units, but we will not get into those!
+
+This is all valid code:
+
+```
+contract HelloWorld {
+    uint x = 1 wei;
+    uint y = 1 gwei;
+    uint z = 1 ether;
+}
+```
+
+##### Receiving Ethereum
+
+In lots of cases, you will send a bunch of Ethereum to the contract. There are a few ways to do this:
+
+1. receive(): Handles receiving ETH
+- Not necessary for receiving ETH, but handles all of the work for you
+    - Function is triggered automatically when ETH is sent to the smart contract (function is called if msg.data is blank ie. we are not calling a function/sending data to the contract)
+
+- Invoked via 'Transact' in the bottom left of Remix IDE
+
+```
+contract HelloWorld {
+    uint public received;
+
+    receive() external payable {
+        received += msg.value;
+    }
+}
+
+```
+
+2. fallback(): Called anytime that there is no function that handles what was sent to the smart contract (Not used just for receiving ETH)
+- msg.data is NOT empty
+    - Think of it as the else-statement, or the default of a switch-statement
+- contains a function that doesn't exist ie. information that cannot be handled by the smart contract
+    
+
+```
+contract HelloWorld {
+    uint public received;
+    uint public fallbackReceived;
+
+    receive() external payable {
+        received += msg.value;
+    }
+
+    fallback() external payable {
+        fallbackReceived += msg.value;
+    }
+}
+
+```
+
+3. pay(): Sending Ethereum to a specific function in the smart contract
+- 
+
+```
+contract HelloWorld {
+    uint public received;
+    uint public fallbackReceived;
+    uint public payReceived;
+
+    function pay() external payable {
+        payReceived += msg.value;
+    }
+
+    receive() external payable {
+        received += msg.value;
+    }
+
+    fallback() external payable {
+        fallbackReceived += msg.value;
+    }
+}
+
+```
+
+Recap on Receiving Ethereum:
+- receive(): no msg.data
+    - if you remove this function: it goes to the fallback function automatically (if you don't call a specific function)
+- fallback(): msg.data OR function call that is not handled by smart contract
+- pay(): send to a specific function
+
+Notes:
+- These are Special functions that must be an `external` + `payable` function
+    - If you try to send ETH to a function that is not `payable`, the transaction error out (when you error out, it will revert the smart contract to original state ie. nothing will be persistent)
+
+##### Sending Ethereum
+
+Start out by writing a function in 3 ways that allows us to withdraw the funds (This will send the balance of the smart contract to whoever calls the function withdraw())
+- Not recommended: These 2 methods only forwards 2300 gas (not a lot of gas...) to whichever function is receiving the ETH
+    - send(): returns bool
+    - transfer(): returns nothing
+        - These are in place to prevent a re-entrance attack
+            - Makes them inflexible because if another smart contract calls this, it won't have enough gas and will fail
+
+- Recommended: This forwards all of the gas along to whatever is receiving the ETH
+    - call(): 
+        - This method will allow you unlimited flexibility in how you are calling the function
+        - Argument takes an empty string (no data)
+        - Returns:
+            - bool sent
+            - bytes memory data
+
+```
+contract HelloWorld {
+    function withdraw() public {
+        address payable user = payable(msg.sender); // convert regular address to payable
+        
+        // send ETH to this user (of the 3 ways, #3 is the best!)
+        // 1. send()
+        bool sent = user.send(address(this).balance); // balance of smart contract
+        // 2. transfer()
+        // - same as #1, but it does not return a boolean value
+        user.transfer(address(this).balance);
+        // 3. call()
+        user.call{value: address(this).balance}("");
+        // (bool sent, bytes memory data) = user.call{value: address(this).balance}("");
+        
+    }
+
+    receive() external payable {
+    }
+
+    fallback() external payable {
+    }
+}
+
+```
+
+Recap on Receiving Ethereum:
+- send()/transfer(): 2300 gas only
+- call(): Preferred method to send Ethereum
+
+##### Re-entrance Attacks
+
+Withdrawal Pattern
+
+Re-entrance Attacks
+
+Key thing to understand: When we sending ETH, we are giving up control to whatever contract we potential are calling that receives the ETH
+- ETH address: Address has no function
+- Smart Contract: The contract can perform operations, and even call back into the same contract!
+
+Example in action:
+
+```
+contract Theif {
+    HelloWorld ctr = new HelloWorld();
+
+    function callWithdraw() public {
+        ctr.withdraw();
+    }
+}
+
+```
+
+What is going on here:
+- 2 smart contract interacting with each other
+    - Opportunity to wipe out one of the contract exists (If we don't check that they have gotten their 1 ETH, they can keep draining the smart contract)
+
+Let's do a basic example to keep track like a bank account:
+
+```
+contract HelloWorld {
+    mapping(address => uint) received;
+
+    function withdraw() external {
+        uint value = received[msg.sender];
+        received[msg.sender] = 0;
+        payable(msg.sender).call{value: value}("");
+    }
+
+    receive() external payable {
+        received[msg.sender] += msg.value;
+    }
+
+    fallback() external payable {
+        received[msg.sender] += msg.value;
+    }
+}
+
+```
+
+What is going on here:
+- When a user calls withdraw(), we put their balance at 0 BEFORE making the payable() call
+    - If you do this after, you open up the opportunity for them to clear out the smart contract (They would continue to call withdraw() until it failed!)
+
+Next, let's look into the situation where you are trying to send an amount of ETH that you do not have:
+
+```
+contract HelloWorld {
+    function withdraw() external {
+        (bool sent, ) = payable(msg.sender).call{value: 1 ether}("");
+    }
+}
+
+```
+
+What happens here:
+- Even though we have a balance of 0 ETH, when we hit withdraw(), it still works
+    - We do not get an exception/error
+        - The return value `(bool sent, )` is going to return false, though to indicate you did not have enough ETH
+
+Note: This is probably the most important thing, so that is why this video goes so long.
+
+##### More Security Concerns
+
+When you are sending funds to somebody, 
+
+```
+contract HelloWorld {
+    function pay() external payable {
+        uint value = msg.value;
+        if (value > 1000) {
+            payable(msg.sender).transfer(value - 1000); // OK, but you should store values in a mapping
+        }
+    }
+}
+
+```
+
+Better option:
+
+```
+contract HelloWorld {
+    mapping(address => uint) changeOwed;
+
+    function pay() external payable {
+        uint value = msg.value;
+        if (value > 1000) {
+            changeOwed[msg.sender] = value - 1000;
+        }
+    }
+
+    function withdraw() public {
+        uint value = changeOwed[msg.sender];
+        changeOwed[msg.sender] = 0;
+        payable(msg.sender).transfer(value);
+    }
+}
+
+```
+
+What is going on here:
+- the transaction has been put into another function (withdraw()) so all the user can do is have the contract fail for them
+    - Without this, function can be put into an unusable state (Code can then be exploited, smart contract balance drained, etc.)
+
+- Remedy: Put withdraw() function separate 
+    - If they make it fail, it will just fail for them
+
+Takeaway: Giving control to other smart contracts is a really big deal in Solidity - need to be aware of this and the security of your smart contracts when you are sending/doing state changes/etc.
