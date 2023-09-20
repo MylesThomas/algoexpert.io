@@ -5635,3 +5635,326 @@ contract Theif {
 ```
 
 Takeaway: Do not rely on address(this).balance, as it relies on the smart contract, which can be impacted by a malicious selfdestruct().
+
+##### Practice Questions
+
+1. The selfdestruct function can fail if it attempts to send Ethereum to a smart contract that doesn't implement the fallback or receive function?
+- False
+
+Explanation: The selfdestruct function always passes Ethereum to the address that is passed as an argument, even if that address is a smart contract that doesn't implement fallback or receive.
+
+2. Calling the selfdestruct function deletes the smart contract state from the blockchain?
+- True
+
+Note: However, all transactions that were sent to the smart contract are still stored on the blockchain.
+
+3. Review the smart contract below:
+
+```
+contract AmISecure {
+  address owner;
+
+  constructor() {
+      owner = msg.sender;
+  }
+
+  receive() external payable {
+      require(msg.value == 1 ether, "you can only send one ether at a time");
+      require(msg.sender == owner, "only the owner can send money to this contract");
+  }
+
+  function withdraw() external {
+      require(msg.sender == owner, "only the owner can call this function");
+      require(address(this).balance == 5 ether, "you can only withdraw if the balance is 5 ether");
+      (bool sent, ) = payable(owner).call{value: address(this).balance}("");
+      require(sent, "failed to send");
+  }
+}
+```
+
+- False
+
+Explanation: This smart contract is not secure because the withdraw() function relies on address(this).balance which can be manipulated by hackers sending Ethereum to this contract using a selfdestruct function. To fix this you should instead use a state variable that holds the balance sent by the owner that can only be changed by the owner.
+
+4. Multiple Depositors
+
+Complete the smart contract `Competitors` that only accepts deposits from the first two addresses to send Ethereum to the contract. Each depositor should only be able to send exactly `1` ether to the contract at a time. Once the smart contract has received `3` ether from the depositors, the depositor who deposited the most ether should be able to withdraw `3` ether from the contract.
+
+Complete this smart contract by implementing the following functions, as well as writing the appropriate constructor. Ensure your smart contract is secure from `fallback` function exploits.
+- `deposit()`: a payable function that only allows the first two address to call the function to deposit funds to the smart contract. The first two depositors should be able to deposit multiple times. The only accepted deposit amount is 1 ether. Once the sum of the deposits totals `3` ether, no more deposits should be accepted.
+- `withdraw()`: allows the depositor who deposited the most ether to withdraw `3` ether. This function should only be callable once the contract has received exactly `3` ether.
+- `destroy()`: if the depositor that deposited the most ether has withdrew their funds, this function should call `selfdestruct()` and send the smart contract balance to the address who depoyed it. This function should only be callable by the address that deployed the smart contract.
+
+You may add as many state variables as necessary but do NOT add any new functions.
+
+My answer:
+
+```
+pragma solidity >=0.4.22 <=0.8.17;
+
+contract Competitors {
+    // Write your code here
+    address owner;
+    // uint256 balance;
+    address depositor1_address;
+    uint256 depositor1_value;
+    address depositor2_address;
+    uint256 depositor2_value;
+
+    address maxDepositor;
+    bool withdrew;
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    // notice: no argument, because user has to send 1 ether via 'transact'
+    function deposit() external payable {
+        require(
+            depositor1_value + depositor2_value < 3 ether,
+            "no more deposits accepted!"
+        );
+        require(
+            msg.value == 1 ether,
+            "only deposit allowed is 1 ether."
+        );
+        // see if 1 of 2 depositors
+        if (depositor1_address == address(0)) {
+            depositor1_address = msg.sender;
+            // depositor1_value += 1 ether;
+        }
+        else if (depositor2_address == address(0)) {
+            depositor2_address = msg.sender;
+            // depositor2_value += 1 ether;
+        }
+
+        // deposit 1 ether
+        if (msg.sender == depositor1_address) {
+            depositor1_value += 1 ether;
+        }
+        else if (msg.sender == depositor2_address) {
+            depositor2_value += 1 ether;
+        }
+        else {
+            // depositor1_value > 0 && depositor2_value > 0
+            revert("2 depositors have already been decided on.");
+        }
+
+        // update maxDepositor
+        if (depositor1_value + depositor2_value >= 3 ether) {
+            if (depositor1_value > depositor2_value) {
+                maxDepositor = depositor1_address;
+            }
+            else {
+                maxDepositor = depositor2_address;
+            }
+        }
+        
+    }
+
+    function withdraw() external {
+        require(
+            depositor1_value + depositor2_value >= 3 ether,
+            "not enough ether deposited yet."
+        );
+        require(
+            msg.sender == maxDepositor,
+            "you did not deposit the most ether."
+        );
+
+        payable(maxDepositor).call{value: 3 ether}("");
+        withdrew = true;
+    }
+
+    function destroy() external {
+        require(owner == msg.sender, "function only callable by deployer of smart contract.");
+        require(
+            withdrew == true,
+            "max depositor has not yet withdrew their funds..."
+        );
+
+        selfdestruct(payable(owner));
+    }
+}
+
+```
+
+### 16 - Events
+
+Unfortunately, this lesson about events isn't particularly eventful.
+
+#### Key Terms
+
+##### Event
+
+Events are emitted by smart contracts and stored in transactions logs.
+- They are useful for tramsmitting information about a smart contract to outside of the blockchain network.
+- Clients sitting outside of the blockchain can query event data or listen for specific events to occur.
+
+#### Notes from the video
+
+##### What Are Events?
+
+When you submit a transaction to the blockchain, you don't get a return value. However, we want to wait and see what is happening inside of the smart contract + what our transaction did. This is where events come in!
+
+Events: Logs that we can emit from our smart contract
+- Stored on the blockchain, in the transaction logs
+    - What do transaction logs track:
+        - arguments sent to smart contract
+        - events emitted during smart contract transaction
+            - if we emit multiple events, they will be stored in the logs, so we can see what happened
+
+- Events can be used to see the state / update user interface
+    - Example: We have a user interface that displays info about our Web3 application, and we want live updating whenever the state changes!
+        - Instead of repeated calls to the contract, we will do the following:
+            - Listen for events being emitted (listen using webhooks)
+            - Once an event is emitted, update something on the front-end interface
+
+Now that we understand basics of events / logging data from the contract, let's get into an example.
+
+##### Auction Example
+
+Basic Auction Example: 
+- Somebody deploys the smart contract, who is auctioning off the item
+    - Physical item
+    - Owner gives the winner the item in real life
+- What to keep track of:
+    - highest bid
+    - highest bidder
+        - once highest bid is high enough, owner will let the bidder purchase the item.
+
+Code:
+
+```
+contract Auction {
+    address owner;
+    uint highestBid;
+    address highestBidder;
+    mapping(address => uint) oldBids;
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    function bid() external payable {
+        // check if the bid coming in is the highest
+        require(msg.value > highestBid,"must be the highest bid");
+        // make sure owner is not bidding ie. racking up their bid price
+        require(msg.sender != owner,"owner cannot bid!");
+        // set values
+        oldBids[highestBidder] = highestBid;
+        highestBid = msg.value;
+        highestBidder = msg.sender;
+        
+    }
+
+    function withdraw() external {
+        require(msg.sender != owner,"owner cannot bid!");
+        uint value = oldBids[msg.sender];
+        oldBids[msg.sender] = 0;
+        (bool sent,) = payable(msg.sender).call{value: value}("");
+        require(sent, "payment failed");
+    }
+
+    function stopAuction() external {
+        // require owner to be the one using this function
+        require(msg.sender == owner);
+        selfdestruct(payable(owner)); // self destruct and send leftover ETH to owner
+    }
+}
+
+```
+
+##### Creating and Emitting Events
+
+Let's see how we can create events:
+
+```s
+event Bid(address indexed bidder, uint value);
+...
+
+function bid() external payable {
+    ...
+    emit Bid(msg.sender, msg.value);
+}
+
+```
+
+What this code means:
+- `Bid()`: Declaration of the event Event
+    - Parameters:
+        - address indexed bidder:
+            - `address`: data type
+            - `indexed`: "we can search through the Bid event by address"
+                - any field that you add indexed to, you can search (up to 3 - it uses more storage)
+                    - topic: you can search by (up to 3)
+                    - data: all other (unlimited)
+            - `bidder`: name of data
+
+        - uint value:
+            - `uint`: data type
+            - `value`: name of data
+
+- `emit `: Emit the event
+    - If somebody makes a transaction and successfully makes a bid, there will be a log for the following
+        - `address indexed bidder`: who sent the bid
+        - `uint value`: how much the bid was
+            - anyone on the blockchain can listen to this, and anybody listening to the event will
+            - anyone listening for this event will have it broadcasted to them
+
+Note: You can emit the event before OR after the events in bid(), as long as it is after the require() statements
+
+Let's add one more event:
+
+```s
+event StopAuction(address indexed highestBidder, uint highestBid);
+...
+
+function stopAuction() external {
+    ...
+    emit StopAuction(highestBidder, highestBid);
+    ...
+}
+
+```
+
+##### Viewing EventsWhat happens when we run this entire smart contract:
+
+Following Tim's steps:
+- Bid 2 ETH
+    - You will see the event and its arguments in the logs
+- Withdraw 2 ETH
+    - No logs
+- Bid 5 ETH
+    - You will see the event and its arguments in the logs
+- stopAuction
+    - This will stop the smart contract from existing (no more logs, state is reset)
+- Bid 1 ETH
+    - Nothing will happen
+
+Example of the log from event `StopAuction` which was called by function `stopAuction()`:
+
+```
+[
+	{
+		"from": "0x06baEaD96B4a42124B09Bb76429cF3535CB4e2E3",
+		"topic": "0x3f43f3e16b474b9a8c50f4e6863422d83177779a4e7fbaf75b3be390a2991afb",
+		"event": "StopAuction",
+		"args": {
+			"0": "0x0000000000000000000000000000000000000000",
+			"1": "0",
+			"highestBidder": "0x0000000000000000000000000000000000000000",
+			"highestBid": "0"
+		}
+	}
+]
+
+[{"address":"0x06baEaD96B4a42124B09Bb76429cF3535CB4e2E3","blockHash":"0xf0198b156c37e922eb7739ec41f22f4cfa74ce34f33e4876f8c6e3f6283be7bc","blockNumber":4329392,"data":"0x0000000000000000000000000000000000000000000000000000000000000000","logIndex":2,"removed":false,"topics":["0x3f43f3e16b474b9a8c50f4e6863422d83177779a4e7fbaf75b3be390a2991afb","0x0000000000000000000000000000000000000000000000000000000000000000"],"transactionHash":"0x85a65fbc1700402f8d5e6af817cf9853b2128db42448f00cd4d9d3c4339a730a","transactionIndex":2,"id":"log_6a036ba8"}]
+```
+
+These were the basics on events. In later videos, we will go over the following:
+- View event data from outside of the blockchain
+- Making use of these logged events (it is cool being able to see this right now, but it did not actually help with anything...)
+    - Much more useful when building out Front-end User Interfaces that are dealing with our smart contracts
+        - listen to events and do something based on them
+        - get all of events omitted based on a specific transaction
