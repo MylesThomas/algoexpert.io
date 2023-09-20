@@ -5030,3 +5030,270 @@ What is going on here:
     - If they make it fail, it will just fail for them
 
 Takeaway: Giving control to other smart contracts is a really big deal in Solidity - need to be aware of this and the security of your smart contracts when you are sending/doing state changes/etc.
+
+##### Practice Questions
+
+1. How many wei are in 1 Ether?
+- 1e18
+
+Explanation: Wei is the smallest unit of Ethereum, followed by gwei which is equivalent to 10e9 wei, followed by ether which is 10e18 wei.
+
+2. How much gas does the transfer method pass when called?
+- 2300
+
+Explanation: Both the transfer and send methods pass 2300 gas. This is a hard limit and makes it so that contracts cannot perform a re-entrance attack. These methods are used to safely transfer Ethereum, however, they are inflexible and no longer recommended to be used. This is because if a contracts fallback or receive function performs any operations these calls will fail due to insufficient gas.
+
+3. When writing smart contracts you may implement both a receive and fallback function. In which scenario(s) is the fallback function called? Select all that apply.
+- When Ethereum is sent to the contract and msg.data is not empty.
+- When a function that does not exist is called on the contract.
+- When the Ethereum is sent to the contract and the receive function is not defined.
+
+Explanation: The fallback function is used as a last resort or backup in case the contract cannot handle the call it receives. fallback is called anytime Ethereum is sent to the contract and no receive function is defined.
+- If the receive function is defined and no msg.data is passed then receive will be called instead of fallback.
+- If Ethereum is sent and msg.data is not empty then the fallback function will be called instead of receive.
+- Lastly, if a function that does not exist on the contract is called the fallback function will be called.
+
+4. Write a smart contract named `Richest` that keeps track of the user who has sent the most ether to the contract. Every time a new user becomes the "richest" the Ethereum sent by the previous richest user should be refunded to that user. When the contract is first deployed, the richest user should be the zero address.
+
+Be sure to implement the withdrawl pattern such that no re-entrance attack is possible.
+
+To implement this functionality, complete the following functions on this smart contract:
+- `becomeRichest`: a function that accepts ether and updates the richest user if they have sent more Ethereum than the previous richest user
+    - should return `true` if the user successfully become the richest, otherwise it should return `false`
+    - if a user sends Ethereum to this function and does not become the richest, they should NOT be refunded their Ethereum or be able to withdraw it
+- `withdraw`: a function that allows the users who were previously the richest to withdraw their funds. The current richest user should not be able to withdraw any funds. (Be sure to protect against re-entrance attacks!)
+- `getRichest`: a function that returns the address of the current richest user
+
+Make sure to get the correct visibility modifiers for your functions such that they are callable from outside of the contract. You may declare any state variables you like/need.
+
+You do not need to handle edge case scenarios like if the richest user sends multiple sets of transactions to the smart contract while they are still the richest user.
+
+Note: this example is a variation of the `WithdrawlContract` shown in the official Solidity Documentation.
+
+My answer:
+
+```
+pragma solidity >=0.4.22 <=0.8.17;
+
+contract Richest {
+    address richestUser;
+    uint richestUserValue;
+    mapping(address => uint256) pendingWithdrawls;
+    
+    function becomeRichest() external payable returns (bool) {
+        uint value = msg.value;
+        if (value > richestUserValue) {
+            pendingWithdrawls[richestUser] += richestUserValue;
+            richestUser = msg.sender;
+            richestUserValue = value;
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    function withdraw() external payable {
+        uint256 value = pendingWithdrawls[msg.sender];
+        pendingWithdrawls[msg.sender] = 0; // important to do this before transferring the funds to avoid reentrance
+        // payable(msg.sender).transfer(value);
+        (bool sent, ) = payable(msg.sender).call{value: value}("");
+        require(sent);
+    }
+
+    function getRichest() public view returns (address) {
+        return richestUser;
+    }
+}
+
+```
+
+5. Write a smart contract named `Balances`. This contract should track the amount of ether received from any address that sends ether to the contract. To do this, implement both a receive() and fallback() function as well as a getAmountSent() function as described below:
+- getAmountSent(address addr): returns the amount in ether in `wei` that `addr` has sent to the contract.
+
+Make sure to use the correct visibility modifiers for all your functions and state variables.
+
+My answer:
+
+```
+pragma solidity >=0.4.22 <=0.8.17;
+
+contract Balances {
+    mapping(address => uint256) balances;
+    function getAmountSent(address addr) public view returns (uint256) {
+        return balances[addr];
+    }
+    receive() external payable {
+        balances[msg.sender] += msg.value;
+    }
+
+    fallback() external payable {
+        balances[msg.sender] += msg.value;
+    }
+}
+
+```
+
+### 13 - Exceptions And Errors
+
+Proper error handling is exceptionally important in Solidity, since the language doesn't give users feedback by default in the case of transaction failure.
+
+#### Key Terms
+
+##### Require
+
+`require`: Solidity function that is used for error handling.
+- If the condition passed to a `require` function returns false: the transaction will fail and the state of the contract will revert.
+- Typically: `require` is used to check for preconditions that should be true before executing a block of code.
+
+##### Assert
+
+`assert`: Solidity function that is used for error handling.
+- If the condition passed to a `assert` function returns false: the transaction will fail and the state of the contract will revert.
+- Typically: `assert` is used to check for conditions that should never be false.
+
+##### Revert
+
+`revert`: Solidity function that when called causes a transaction to fail and the state of the contract to revert.
+- Typically: `revert` is used as an alternative to `require` when you are dealing with complex logic
+
+#### Notes from the video
+
+##### Intro
+
+First thing to understand: What an error is in Solidity/what it does.
+- When an error is raised, the state of the smart contract reverts to whatever it was before the transaction was submitted
+    - Remember: A transaction is required to update the state
+    - As soon as an error happens in any smart contract as a part of this transaction, the entire state of the transaction is reverted back to the original value (as if the transaction never happened)
+        - If you submitted the transaction, there is not a way to know (You can detect, but not easily/directly told)
+
+##### Require
+
+Let's start explaining with an easy example of a bank account that you can deposit/withdraw money:
+
+```
+contract HelloWorld {
+    mapping(address => uint) balances;
+
+    function deposit() external payable {
+        balances[msg.sender] += msg.value;
+    }
+
+    function withdraw(uint amount) public {
+        uint balance = balances[msg.sender];
+        // if (balance >= amount) {} (we don't use if-else because we won't catch errors...)
+        require(balance >= amount, "balance is not sufficient - transaction revert! (refund remaining gas in this smart contract to whoever sent the transaction...)");
+
+        balances[msg.sender] -= amount; // change balance
+        payable(msg.sender).call{value: amount}(""); // send money
+    }
+}
+
+```
+
+What is going on here:
+- We added a guard-block (instead of if-else) to check preconditions/arguments
+    - We want to let the user know if the condition is false
+    - If the condition is true, we will send the money
+
+Note: Remix IDE will give you error messages, but that's not how it works on the real blockchain network. (Not as simple to see what errors are)
+
+Recap on Require:
+- Put a condition.
+    - if true: continue
+    - if false: raise error message + revert state back to pre-transaction
+
+- Usually used at the beginning of a function to check pre-conditions
+
+##### Assert
+
+Assert: Validate that what should be the case, is true
+- Stronger statement than require (It should never fail - just like a unit test)
+    - If assert() fails, you have a bug in your program
+    - If require() fails, you don't necessarily have an issue
+
+Here is an example where assert() should never be wrong, otherwise there is a problem elsewhere in the code:
+
+```
+function withdraw(uint amount) public {
+    balances[msg.sender] -= amount; // change balance
+    (bool sent, ) = payable(msg.sender).call{value: amount}(""); // send money + get return value
+    assert(sent, "payment failed"); // if sending money did not work, this will raise
+}
+```
+
+More on assert():
+- Does not refund the gas from the transaction (all gas is consumed, then it throws an error)
+- Usually used at the end of the function
+
+##### Revert
+
+Revert: Shortcut for require()
+- Essentially the same as require(), but used in more complex situations
+    - require(): more clear for checking simple condition / 2-3 conditions chained together
+    - revert(): more advanced logic, ability to define/raise custom errors
+        - makes it more clear to user what you did wrong (think raise exception in Python)
+
+Example:
+
+```
+function withdraw(uint amount) public {
+    balances[msg.sender] -= amount;
+    (bool sent, ) = payable(msg.sender).call{value: amount}("");
+    if (!sent) {
+        revert(); // without error
+        revert("payment failed"); // with error
+    }
+}
+
+```
+
+Note: You can use revert with OR without an error message.
+
+##### Custom Errors
+
+You can also use revert() to raise custom errors!
+
+If you are going to re-use the error, you can define it in 2 places:
+- global namespace: 
+- contract namespace: 
+
+Example:
+
+```
+pragma solidity >=0.7.0 <0.9.0;
+
+// error BalanceNotLargeEnough(uint balance, uint amount); // global namespace
+
+contract HelloWorld {
+    error BalanceNotLargeEnough(uint balance, uint amount); // in smart contract
+
+    mapping(address => uint) balances;
+
+    function deposit() external payable {
+        balances[msg.sender] += msg.value;
+    }
+
+    function withdraw(uint amount) public {
+        uint balance = balances[msg.sender];
+        if (balance < amount) {
+            revert BalanceNotLargeEnough(balance, amount);
+        }
+        balances[msg.sender] -= amount;
+        (bool sent, ) = payable(msg.sender).call{value: amount}("");
+        if (!sent) {
+            revert();
+        }
+    }
+}
+
+```
+
+##### Key Takeaways
+
+Key Takeaways:
+- Whenever an exception/error occurs, the state reverts back to before transaction
+- 3 guard clauses:
+    - require(): pre-conditions, most commonly used
+    - revert(): same as require, raise custom errors
+    - assert(): check state at end of function (backup), should never fail, consumes all of the gas
