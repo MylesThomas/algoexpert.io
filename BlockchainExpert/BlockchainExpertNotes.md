@@ -5297,3 +5297,170 @@ Key Takeaways:
     - require(): pre-conditions, most commonly used
     - revert(): same as require, raise custom errors
     - assert(): check state at end of function (backup), should never fail, consumes all of the gas
+
+##### Practice Questions
+
+1. If you were writing a smart contract function that could only be executed by a specific address what type of guard statement would you use.
+- require
+
+Explanation: The require statement is used to check for prerequisites before running a function. In this case the prerequisite is that the caller must be a specific address, warranting the use of a require statement. If a require statement fails it returns the remaining gas to the sender and reverts any state changes.
+
+2. The revert statement returns all unused gas and reverts the state to the original state?
+- True
+
+3. If you were writing a smart contract function and wanted to ensure one of your state variables was never holding the value 0 which guard clause would you use?
+- assert
+
+Explanation: An assert statement is used to check for invariants and verify contract state. An assert statement should never return false, if it does this means there is a bug or issue with your smart contract. assert's are used as a last line of defense and are typically placed near the end of a function.
+- In this scenario, since we are checking an invariant related to state of the smart contract we would use an assert and hope that this would never be false.
+
+4. Write a smart contract named `Voting` that allows people to vote for their favorite number. Each person only gets one vote and must vote for a number in the range of `1-5` (inclusive). Your contract should keep track of the number of votes for each number and be able to determine which number has the most number of votes.
+
+To write this smart contract implement the following methods:
+- `getVotes(uint8 number)`: returns the number of votes for the passed `number`. if `number` is not in the range of `1-5` this function call should fail.
+- `vote(uint8 number)`: allows a user to vote for the passed `number`. This function call should fail if the user has already voted of they pass an invalid number.
+- `getCurrentWinner()`: this function shouuld return the number that currently has the most votes. If two numbers have the same number of votes, it should return the number that received the most recent vote. If no number have received any votes, this function should return `1`.
+
+My answer:
+
+```
+pragma solidity >=0.4.22 <=0.8.17;
+
+contract Voting {
+    // Write your code here
+    mapping(address => bool) voted;
+    mapping(uint => uint) votes;
+    uint8 currentWinner;
+    uint8 mostVotes;
+
+    function vote(uint8 number) public {
+        require(!voted[msg.sender], "address has already voted");
+        require(number <= 5 && number >= 1, "number not in range 1-5");
+        // add address to voted
+        voted[msg.sender] = true;
+        // increment votes
+        votes[number]++;
+        // apply logic for the person w/ most votes
+        if (votes[number] >= mostVotes) {
+            currentWinner = number;
+            mostVotes = votes[number];
+        }
+    }
+
+    function getVotes(uint8 number) public view returns (uint8) {
+        require(number <= 5 && number >= 1, "number not in range 1-5");
+        return votes[number];
+    }
+
+    function getCurrentWinner() public view returns (uint8) {
+        if (currentWinner == 0) {
+            return 1;
+        }
+        return currentWinner;
+    }
+}
+
+```
+
+### 14 - Constructors
+
+This one-and-done function's lifespan is even more ephemeral than that of a butterfly.
+
+#### Key Terms
+
+##### Constructor
+
+In Solidity, a contract `constructor` is called one time when the contract is deployed. This `constructor` is used to initialize values or accept initial values required by the contract.
+
+```
+contract Constructor {
+    uint count;
+
+    constructor (uint startingCount) {
+        count = startingCount;
+    }
+}
+```
+
+#### Notes from the video
+
+##### Full Video
+
+Constructor: Special function that runs when your smart contract is deployed
+- Works similarly to constructors in other programming languages
+    - It invokes automatically when the smart contract is deployed
+        - you cannot choose when it runs
+        - you cannot run it more than 1x
+    - We will not get into inheritance just yet in this lesson...
+
+- Adding parameters to the constructor:
+    - You can, but it is only relevant when we get into inheritance
+    - Currently: We will add none
+
+- Access identifier:
+    - Leave as-is for now
+
+What we can do in the constructor:
+- Init variables
+- Check who deployed the smart contract
+- etc.
+
+Main thing that is often done: Checking/Setting who deployed the smart contract
+- You may write a smart contract that you only want deployable by a certain person (or a contract with special writes to some person)
+
+Example:
+
+```
+contract HelloWorld {
+    address public owner;
+
+    constructor() {
+        owner = msg.sender;
+    }
+}
+
+```
+
+Basic example: Smart Contract that people can send money to, and only the owner can withdraw the money:
+
+```
+contract HelloWorld {
+    address public owner;
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    receive() external payable {}
+
+    function withdraw(uint amount) public {
+        require(msg.sender == owner, "you are not the owner.");
+        require(address(this).balance >= amount, "not enough balance");
+        (bool sent, ) = payable(owner).call{value: amount}("");
+        require(sent, "failed to send");
+    }
+}
+
+```
+
+What happens if you try and call withdraw() from an address that is not your own: error! (you are not the owner)
+
+How to use it correctly:
+- deploy smart contract
+- switch to another account/user
+- switch 'value' from 0 to 1000 and press 'transact' (this sends the ETH to receive())
+- switch back to your (owner) account
+- withdraw the 1000
+
+##### Takeaways
+
+Most common things done with Constructors:
+- set owner
+- other initial values
+
+Takeaways on Constructors:
+- Very basic
+- Runs 1x (when contract is deployed)
+    - Cannot run after contract is deployed
+- When dealing with inheritance, they run different
+    - For now, we will not get into parameters/inheritance
