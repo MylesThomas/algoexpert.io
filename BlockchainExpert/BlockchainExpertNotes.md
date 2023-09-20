@@ -5464,3 +5464,174 @@ Takeaways on Constructors:
     - Cannot run after contract is deployed
 - When dealing with inheritance, they run different
     - For now, we will not get into parameters/inheritance
+
+##### Practice Questions
+
+1. The constructor() function runs every time a smart contract is sent a transaction?
+- False
+
+Explanation: The constructor() function is only run once, immediately after the contract is deployed.
+
+2. Write a smart contract named `OnlyOwner` that only allows the address that deployed the smart contract to interact with it. If any address other than the owner tries to interact with the smart contract, it should raise an exception/error. This smart contract should also contain a state variable that holds a `uint8` value that will be manipulated by the functions listed below. The starting value of the state variable should be `0`.
+- `add(uint8 number)`: Adds `number` to the state variable (this function does not return anything)
+- `subtract(uint8 number)`: Subtracts `number` from the state variable (this function does not return anything)
+- `get()`: returns the value of the state variable keeping track of the `uint8` value.
+
+Use the correct visiblity modifiers and ensure only the owner of the contract can use the functions listed above. You may assume your functions will never encounter an overflow or underflow.
+
+My answer:
+
+```
+pragma solidity >=0.4.22 <=0.8.17;
+
+contract OnlyOwner {
+    // Write your code here
+    uint8 value;
+    address owner;
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    function add(uint8 number) public {
+        require(msg.sender == owner, "only the owner can use this function");
+        value += number;
+    }
+    
+    function subtract(uint8 number) public {
+        require(msg.sender == owner, "only the owner can use this function");
+        value -= number;
+    }
+
+    function get() public view returns (uint8) {
+        require(msg.sender == owner, "only the owner can use this function");
+        return value;
+    }
+    
+}
+
+```
+
+### 15 - Self Destruct
+
+Not quite as destructive as Voltorb's signature move.
+
+Okay, okay, we promise we're done with the Pokémon references.
+
+#### Key Terms
+
+##### Self Destruct
+
+In Solidity, the `selfdestruct` function removes a smart contract from the blockchain and sends the balance of that contract to a provided address.
+
+#### Notes from the video
+
+##### Self Destruct
+
+selfdestruct(): Deletes smart contract, and sends balance of contract to the address we place
+- Does all of the following:
+    - Removes contract from blockchain (Keeps all transaction history, though)
+    - Deletes all state
+    - Make contract unusable (going forward)
+        - Cannot call/send transactions to it
+
+- Why you would use this selfdestruct() function:
+    - 
+
+Note: No matter what smart contract/wallet address you put it for `address`, this address is going to receive the funds
+- No functions can disallow receiving the funds
+    - This allows us to use selfdestruct() in a malicious way (more on this later)
+
+##### Self Destruct Example
+
+Example: A smart contract that allows us to destroy it at any point at time, and when we do, the owner receives all of the funds in the contract
+
+```
+contract HelloWorld {
+    address owner;
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    receive() external payable {}
+
+    function destroy() external {
+        require(owner == msg.sender, "you are not the owner");
+        selfdestruct(payable(owner));
+    }
+
+    // this function will NOT work after we self destruct! (state has been destroyed)
+    function getOwner() public view returns (address) {
+        return owner;
+    }
+}
+
+```
+
+##### Self Destruct Exploit
+
+Let's write an example where the following occurs:
+- Require that 1 ETH is sent
+- Check if you sent the 7th ETH
+    - If you are the winner, 
+
+```
+contract Winner {
+    address winner;
+
+    function pay() external payable {
+        require(msg.value == 1 ether, "you need to send 1 ether");
+        if (address(this).balance == 7 ether) {
+            winner = msg.sender;
+        }
+    }
+
+    function withdraw() public {
+        require(msg.sender == winner, "you are not the winner");
+        (bool sent, ) = payable(winner).call{value: address(this).balance}("");
+        require(sent, "payment failed");
+    }
+}
+
+```
+
+Let's talk about the flaw in the code/exploit here:
+- We are relying on the balance of the smart contract
+    - If we were to selfdestruct() a smart contract and send ETH to this contract, we could make it so that there is never exactly 7 ETH
+        - Think about it in the following ways, where nobody can win OR withdraw:
+            - If you selfdestruct() 0.5 ETH, then increments of 1 Ether will never get you to hit exactly 7.0 ETH
+            - If you selfdestruct() more than 7 ETH, the address(this).balance will always be above 7 Ether
+
+The following code would have the `Theif` smart contract ruin the `Winner` smart contract since it relies on the smart contract's balance. If you change the code to use public state variable `balance` (which I implemented while commenting out the old code), then everything is fine:
+
+```
+pragma solidity >=0.7.0 <0.9.0
+
+contract Winner {
+    address winner;
+    uint balance;
+
+    function pay() external payable {
+        require(msg.value == 1 ether, "you need to send 1 ether");
+        balance += 1 ether;
+        if (balance == 7 ether) {
+            winner = msg.sender;
+        }
+    }
+
+    function withdraw() public {
+        require(msg.sender == winner, "you are not the winner");
+        (bool sent, ) = payable(winner).call{value: 7}("");
+        require(sent, "payment failed");
+    }
+}
+
+contract Theif {
+    receive() external payable {
+        selfdestruct()
+    }
+}
+```
+
+Takeaway: Do not rely on address(this).balance, as it relies on the smart contract, which can be impacted by a malicious selfdestruct().
