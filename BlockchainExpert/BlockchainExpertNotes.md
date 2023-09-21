@@ -5958,3 +5958,392 @@ These were the basics on events. In later videos, we will go over the following:
     - Much more useful when building out Front-end User Interfaces that are dealing with our smart contracts
         - listen to events and do something based on them
         - get all of events omitted based on a specific transaction
+
+##### Practice Questions
+
+1. Where is event data stored?
+- Transaction Logs
+
+2. What is the maximum number of parameters you can mark as indexed when defining an event?
+- 3
+
+3. You can only define events in the global namespace.
+- False
+
+Explanation: Events can be declared in the both the global namespace as well as the contract namespace.
+
+4. Which of the following contracts correctly emits an event when the x function is called?
+
+My answer:
+
+```
+contract Events {
+  ...
+  event XCalled(address indexed sender, uint8 value);
+
+  function x(uint8 value) external {
+    ...
+    emit XCalled(msg.sender, value); 
+  }
+}
+```
+
+Explanation: In Solidity, you define an event by using the type event followed by the event name and the event parameters. If you decide to list an event parameter as indexed you put the indexed keyword between the type and the parameter name. Once the event is defined you can emit it by using the emit keyword followed by the event with the correct parameters passed.
+
+5. Event Count
+
+Write a smart contract named `EventEmitter` that contains a single public funciton called `count`. This function should emit an event named `Called` that contains two parameters:
+- `count`: the number of times this event has been emitted, this value should start at `1`.
+- `sender`: the address of the account that called this function.
+
+You may add as many state variables as necessary but do NOT add any functions.
+
+My answer:
+
+```
+pragma solidity >=0.4.22 <=0.8.17;
+
+contract EventEmitter {
+    // Write your code here
+    uint value = 1;
+    event Called(address indexed sender, uint count);
+
+    function count() public {
+        emit Called(msg.sender, value);
+        value += 1;
+        // return value;
+    }
+}
+
+```
+
+### 17 - Arrays
+
+Arrays in Solidity are largely the same as arrays in other languages: a data structure that is used to store stuff.
+
+#### Key Terms
+
+##### Fixed-Size Array
+
+A fixed-sized array is a data structure whose sized is determined when it is created/allocated and cannot change.
+
+```
+uint[5] fixedArray = [1, 2, 3, 4, 5];
+```
+
+##### Dynamic-Sized Array
+
+A dynamic-sized array is a data structure that allows elements to be removed or added and can change its size.
+- In Solidity, dynamic-sized arrays can only be defined in storage
+- They also have access to the following methods:
+    - .push()
+    - .pop()
+
+```
+uint[] dynamicArray;
+```
+
+#### Notes from the video
+
+##### Storage Arrays
+
+```
+contract HelloWorld {
+    uint[] numbers; // dynamic-sized
+    uint[5] numbers; // fixed-sized (defaults to [0, 0, 0, 0, 0])
+    uint[5] numbers = [1, 2]; // fixed-sized ( [1, 2, 0, 0, 0])
+    uint[5] public numbers = [1, 2]; // creates a getter so we can look at the values, by index
+    uint[] public numbers = [1, 2]; // only indices you have access to are 0, 1
+}
+
+```
+
+About storage arrays:
+- Default type for all elements: The type declared when initializing the array
+- Using the getter function, you provide an index of the array
+    - When passing an index that does not exist, the transaction is reversed
+        - This holds true for dynamic-sized arrays, unless you do some push/pop/delete of values...
+
+##### Push, Pop and Delete
+
+```
+contract HelloWorld {
+    uint[] public numbers = [1, 2];
+
+    function add(uint x) public {
+        numbers.push(x);
+    }
+
+    function pop() public {
+        numbers.pop();
+    }
+
+    function length() public view returns (uint) {
+        return numbers.length;
+    }
+
+    function remove(uint idx) public {
+        delete numbers[idx];
+    }    
+}
+
+```
+
+About push/pop/delete:
+- .push():
+    - Only works for dynamic-sized arrays
+        - Fixed-size arrays will throw an error
+- .pop():
+    - Removes the last element from the array
+        - Cannot pass indexes to delete elements other than the last
+- .length:
+    - Works for both dynamic/fixed sized arrays
+- .delete
+    - Does not actually remove any elements / change length of the array
+        - Resets the value to be the default for that data type
+
+Note: Once you choose an array to be fixed-size, you cannot change that (would have to make a new array)
+
+##### Memory Arrays
+
+Arrays in Memory work much different than those in the Storage of a contract!
+
+```
+contract HelloWorld {
+    function test() public {
+        uint[] numbers; // 1. throws error (for array storage in stack)
+        uint[] memory numbers; // good!
+        numbers.push(1); // 2. throws error (cannot use push)
+    }
+}
+
+```
+
+What is going on here:
+1. You cannot put an array in the stack
+- If you do not specify location, it will try and store in the stack
+2. You must use fixed-size arrays when in-memory
+- When you have a dynamic-sized array defined in-memory, you do not have access to .push()
+    - It look like a dynamically sized array, but you cannot add anything... so why even use it...
+    - Remedy: use fixed-size
+
+More quirks with memory arrays:
+
+```
+contract HelloWorld {
+    function test() public {
+        uint[] memory numbers = [1, 2, 3]; // error: first type is uint8, array type is uint256
+        uint[] memory numbers = [uint(1), 2, 3]; // still error: first type is uint256 now, but Solidity requires you to provide fixed size
+
+        uint[3] memory numbers = [uint(1), 2, 3]; // good!
+        
+    }
+}
+
+```
+
+Takeaways on Memory Arrays:
+- Initialize array and set with fixed-size
+- Ensure it is in memory
+- Cast the first element to be the element of the array
+
+##### Dynamic Array Allocation
+
+How to Dynamically Allocate a fixed-size array in-memory (Essentially: Use variable sizing to create the array)
+
+```
+contract HelloWorld {
+
+    uint constant constant_x = 1; // constant, we know it will not change at all!
+
+    function test(uint size) public {
+        // error: invalid array length (cannot use a dynamic value ie. a function parameter)
+        uint[size] memory numbers;
+        
+        // error: must use a constant value!
+        uint x = 2;
+        uint[x] memory numbers;
+
+        // good: using constant/static data (see top of contract for init of `constant_x`)
+        uint[constant_x] memory numbers; 
+    }
+}
+
+```
+
+Now this is fine, but how do we define a fixed-size array that is a specific size, when the size is not known until runtime?
+
+Answer: Special syntax!
+
+```
+contract HelloWorld {
+    function test(uint size) public {
+         uint[] memory numbers = new uint[](size);
+    }
+}
+
+```
+
+What is going on here:
+- `uint[]`: data type
+- `(size)`: constructor
+
+Next, how do we return an array from the function?
+
+```
+contract HelloWorld {
+    function test(uint size) public pure returns (uint[] memory) {
+         uint[] memory numbers = new uint[](size);
+         return numbers;
+    }
+}
+
+```
+
+What is going on here:
+- We cannot return `uint[]` when we are actually using a `uint[] memory`
+    - Data location must be memory/calldata for return parameter in a function
+- We CAN return 
+
+Remember in Solidity:
+- `pure` function: does not rely on any contract state to execute.
+- `view` function: does not mutate/modify the state of a contract but may read it.
+
+##### Array References
+
+Now that we have done this, let's see what happens when we make reference to another array!
+
+Remember: Arrays are a reference-type
+- Difference between reference-type and value-type:
+    - reference-type: We are pointing to another piece of data
+        - Examples:
+            - arrays
+            - mappings
+
+    - value-type: We create copies of these as we assign them to variables
+        - Examples:
+            - uint
+            - int
+            - bool
+
+I will use this example to illustrate:
+
+```
+contract HelloWorld {
+    uint x = 1;
+
+    function test(uint size) public returns (uint[] memory) {
+        uint y = x;
+        ...
+        y = 100; // this is where the difference is...
+    }
+}
+
+```
+
+Difference between reference-type and value-type here, if we change `y` to be `100`:
+- reference-type: `x` also becomes 100 (it is a reference, not a copy)
+- value-type: `x` stays 1 (it is a copy)
+
+Notes:
+- Solidity automatically makes a copy if you assign a storage array to a memory array.
+    - Not a copy, but a reference/alias, if you go from memory => memory
+
+Example:
+
+```
+contract HelloWorld {
+    uint[] public nums = [1, 2];
+
+    function test(uint size) public returns (uint[] memory) {
+        uint[] memory numbers = nums;
+        numbers[1] = 0;
+        return numbers;
+    }
+}
+
+```
+
+What happens here:
+- Calling test() will change index 1 to be a 0
+- Viewing public nums, you will see that index 1 is NOT a 0
+    - Any change to `numbers` (in the function) does NOT affect `nums` (in the contract)
+
+Another example:
+
+```
+contract HelloWorld {
+    function test() public pure returns (uint[3] memory, uint[3] memory) {
+        uint[3] memory numbers = [uint(1), 2, 3];
+        uint[3] memory numbers2 = numbers;
+        numbers[1] = 0;
+        numbers2[1] = 0; // these both do the same
+        return (numbers, numbers2);
+    }
+}
+
+```
+
+What happens here:
+- Both arrays return the exact same thing!
+    - Making a change to `numbers` also makes a change to `numbers2` (we did not create a copy, but used alias/reference)
+
+##### Array Gas Usage
+
+Arrays: Fairly costly to use!
+- As a storage variable (where it can grow to infinite size): Potential exploits to make your code unusable
+    - If your transaction cannot complete all of its operation within the gas limit, transactions will fail 
+        - Multiple dimensions arrays, looping through entire arrays or O(n^2) time operations will cause every transaction to fail
+        - Methods to fix this: Batch/Bundling transactions
+
+Takeaways: Be careful! (especially if you are looping through arrays)
+
+##### Nested Arrays
+
+Nested Arrays: Important to go over since they work differently than other programming languages!
+
+Nested Arrays:
+
+```
+contract HelloWorld {
+    function test() public pure returns (uint[][3] memory) {
+        // 1. both of these work
+        uint[][3] memory x;
+        uint[][3] memory x = [[], [], []];
+        
+        // 2. fine, since they are dynamically-allocated size arrays
+        uint[][3] memory x = [new uint[](2), new uint[](1), new uint[](1)]; 
+        return x;
+        
+    }
+}
+
+```
+
+What is going on here:
+1. 1 fixed size array of length 3, and the 3 values are 3 dynamically allocated arrays
+- type: uint[] (dynamically allocated array)
+- length: [3] (number of uint[]'s)
+
+2. 1 fixed size array of length 3, and the 3 values are 3 different-sized dynamically allocated arrays (2, 1, 1)
+- type: uint[] (dynamically allocated array)
+- length: [3] (number of uint[]'s)
+- new uint[](2): dynamically-allocated array with 2 values of 0 for now
+
+One more example looking at how to access values from: Same as you are used to!
+
+```
+contract HelloWorld {
+    uint[][3] public x = [new uint[](2), new uint[](1), new uint[](3)];
+}
+```
+
+Indexing values from `public x`:
+- `0, 0`: 1st array, 1st value
+- `1, 0`: 2nd array, 1st value
+- `1, 1`: error (2nd array does not have a 2nd value - has length of 1!)
+
+
+Takeaway:
+- Accessing values: The same
+- Creating arrays/values: Reversed (type, then number of that type)
