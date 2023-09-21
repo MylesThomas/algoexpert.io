@@ -6347,3 +6347,361 @@ Indexing values from `public x`:
 Takeaway:
 - Accessing values: The same
 - Creating arrays/values: Reversed (type, then number of that type)
+
+##### Practice Questions
+
+1. Analyze the smart contract below.
+
+```
+contract Arrays {
+    uint8[] y;
+  
+    function test() external {
+        uint8[] memory x = y
+        ...
+        }
+}
+```
+Does the variable x store a copy or a reference of y?
+
+My answer: Copy
+
+Explanation: The variable x stores a copy of the array y. In Solidity, any assignment from storage to memory always makes a copy. (y is in storage, since it was not otherwise stated)
+
+2. Analyze the smart contract below.
+
+```
+contract Arrays {
+    uint8[] y = [1, 2, 3];
+}
+```
+
+Can the push() and pop() methods be used on the array y?
+
+My answer: Yes
+
+Explanation: The array y is a dynamic-sized array. Even though it is intialized with three values it is still dynamically sized because it's size was not explicitly set. Therefore, both push() and pop() will work on this array.
+
+3. Write a smart contract named `Following` that keeps track of which addresses are following other addresses. The maximum amount of addresses one address can follow is `3`. Use a combination of the `mapping` and `address[]` array type to achieve this.
+
+To complete this smart contract write the following functions:
+- `follow(address toFollow)`: adds the `toFollow` address to the array of addresses the `msg.sender` is following if they are not already following `3` users. If `msg.sender` is already following the maximum number of addresses, this function should raise an exception/error. It should be possible for on address to follow another address multiple times, but an address should not be able to follow itself.
+- `getFollowing(address addr)`: returns an array of addresses that the `addr` passed is following.
+- `clearFollowing()`: removes all of the addresses that the `msg.sender` is following.
+
+Use the correct visibility modifiers and any state variables you deem necessary.
+
+
+My answer
+
+```
+pragma solidity >=0.4.22 <=0.8.17;
+
+contract Following {
+    // Write your code here
+    mapping(address => address[]) following;
+
+    function follow(address toFollow) public {
+        require(
+            // following[msg.sender][2] == address(0),
+            following[msg.sender].length < 3,
+            "this address is already following 3 users."
+        );
+        require(
+            msg.sender != toFollow,
+            "you cannot follow yourself..."
+        );
+        // add to mapping
+        following[msg.sender].push(toFollow);
+        // if (following[msg.sender][0] == address(0)) {
+        //     following[msg.sender][0] = toFollow;
+        // }
+        // else if (following[msg.sender][1] == address(0)) {
+        //     following[msg.sender][1] = toFollow;
+        // }
+        // else {
+        //     following[msg.sender][2] = toFollow;
+        // }  
+    }
+
+    function getFollowing(address addr) public view returns (address[] memory) {
+        return following[addr];
+    }
+
+    function clearFollowing() public {
+        // following[msg.sender] = address[3];
+        delete following[msg.sender]; // this will clear them back to address(0
+    }
+}
+
+```
+
+### 18 - Strings
+
+This lesson about strings is secretly a lesson about bytes.
+
+#### Key Terms
+
+##### Strings
+
+In Solidity, the `string` data type is used to store UTF-8 encoded characters.
+- Strings have the following properties, making them not-so-fun to use:
+    - not flexible
+    - expensive to use
+    - difficult to manipulate
+
+For this reason, we prefer the `bytes` type when possible!
+
+##### Bytes
+
+In Solidity, the `bytes` type represents an array of bytes. It is useful for storing characters as raw data. The `bytes` type must be stored in `memory`, `calldata`, or `storage`. (Not the stack)
+
+```
+bytes myRawData = "hello world";
+```
+
+#### Notes from the video
+
+We have left string until this lessons, because we need to know arrays first!
+
+Keep the following in mind:
+- Strings are not very useful in Solidity
+- You will want to use `bytes` instead
+
+##### Defining Strings
+
+Strings: 
+- Reference type: Stores a reference to the string, not the actual string itself
+- Default `string`: empty string ie. ""
+
+```
+contract HelloWorld {
+    string public x = "hello world";
+    string public y;
+}
+
+```
+
+Notes:
+- It is recommended to use double quotes
+
+More examples of what we can/cannot do:
+
+```
+contract HelloWorld {
+    string public x = "hello world";
+
+    function testString() {
+        // these are all INVALID
+        x[0]; // no index access
+        x.push("z"); // not an operator (neither is .pop())
+        x.length; // cannot view length of string
+
+        // Why to use String: It has the UTF-8 characters
+
+    }
+}
+
+```
+
+So, why would we use strings if we have to manipulate it ourselves?
+- String stores the UTF-8 characters, which are encoded by the bytes, which are a part of the string
+    - Each character on your keyboard/you see is encoded with a unique integer
+        - Examples:
+            - 65 -> A
+            - 66 -> B
+            - ...
+            - ...
+
+    - String does not store the number, but it stores the de-coded UTF-8 character itself!
+
+##### The Difference Between Unicode and UTF-8
+
+Unicode is a character set. UTF-8 is encoding.
+
+Unicode is a list of characters with unique decimal numbers (code points). A = 65, B = 66, C = 67, ...
+
+Example:
+- This list of decimal numbers represent the string "hello": 104 101 108 108 111
+- UTF-8 encoding will store "hello" like this (binary): 01101000 01100101 01101100 01101100  01101111
+
+##### Defining Bytes
+
+String: UTF-8 data/character
+Bytes: Raw data
+
+Bytes: Array that allows index access 
+- Preferred data type when working with strings/characters
+
+```
+contract HelloWorld {
+    string public x = "hello world";
+    bytes public y = "hello world";
+
+    function testString() public {
+        y[0] = "1";
+        y.length;
+        y.push("1");
+        y.pop();
+        delete y[1]; // set to default value
+    }
+}
+
+```
+
+What is going on here:
+- `bytes` type: byte array
+    - each slot in this array: 1 byte
+        - 1 byte == 8 bits
+            - example: uint8 == 1 byte
+
+##### Converting Between bytes and String
+
+Reminder:
+- String: UTF-8 data/character
+- Bytes: Raw data
+- You can convert between bytes/string as you please!
+
+Example:
+
+```
+contract HelloWorld {
+    string public x = "hello world";
+    bytes public y = "hello world";
+
+    function testString() public view returns (bytes memory, string memory, bytes memory) {
+        return (
+            y,
+            string(y),
+            bytes(string(y))
+        );
+    }
+}
+
+```
+
+What happens when you deploy:
+- public x: "hello world"
+- public y: "0x68656c6c6f20776f726c64"
+- testString(): bytes, string, bytes
+    - this is the bytes version of "hello world"
+        - you can convert this to a string, so that it is readable
+        - In the same way we can go from bytes to string, we can go from strings to bytes!
+
+Note: If you are using strings/bytes outside of the state variables/storage area, you must use `memory` or `calldata`.
+
+Summary:
+- Bytes: for manipulating strings
+- Strings: for viewing
+
+Quick note about the bytes type: This is a bytes array!
+
+Let's look at this example to show:
+
+```
+pragma solidity >=0.7.0 <0.9.0;
+
+contract HelloWorld {
+    string public x = "hello world";
+    bytes[] public y = [bytes("one"), bytes("two"), bytes("three"), bytes("four")];
+
+    function getValue(uint idx) public view returns (bytes memory, string memory) {
+        return (
+            y[idx],
+            string(y[idx])
+        );
+    }
+}
+
+```
+
+What this means:
+- string public x: bytes as before
+- bytes[] public y: an array of bytes
+    - this is a dynamic array, and the values of this array are bytes!
+
+##### Strings and Bytes in local functions
+
+Let's look at an example of using strings/bytes in a local function:
+
+```
+contract HelloWorld {
+    string public x = "hello world";
+    bytes public y;
+
+    function test(string memory str) public pure {
+        // this method does not work: cannot push onto a data type in memory
+        bytes memory convertedStr = bytes(str);
+        convertedStr.push("1"); // error: push not available in bytes memory
+    }
+}
+
+```
+
+What is going on here:
+1. To accept string/bytes as a function argument, we must use `memory` (or another location besides stack)
+2. To add a character to the end of the string, you must take the following steps:
+- convert string to bytes
+- add character
+- convert bytes to string
+3. You cannot use push/pop outside of storage
+- Just like arrays, you cannot have dynamic storage in memory
+    - Remedy: Create a large enough array so the extra character would be inside of it
+        - 1 slot larger works!
+
+So, now that we cannot do it this way, how will we go about doing this?
+
+##### String concat
+
+Tim's Example:
+
+```
+contract HelloWorld {
+    string public x = "hello world";
+    bytes public y;
+
+    function test(string memory str) public pure returns (string memory) {
+        string memory newStr = string.concat(str, "s");
+        return newStr;
+    }
+}
+
+```
+
+My example:
+
+```
+pragma solidity >=0.7.0 <0.9.0;
+
+contract HelloWorld {
+    string public x = "finish this sentence with a period";
+
+    function test(string memory strEndingOfSentence) public view returns (string memory) {
+        string memory newStr = string.concat(x, strEndingOfSentence);
+        return newStr;
+    }
+}
+
+```
+
+What is going on here:
+
+1. concat existing string with new string
+2. return!
+
+What concat does at a low-level: Convert the bytes arrays
+
+##### Takeaways on Bytes
+
+Takeawys on Bytes:
+- Expensive to use
+    - much like arrays, because they store multiple values
+- bytes > strings:
+    - strings are hard to work with
+    - strings use up more data than bytes
+
+How to create a dynamically-allocated bytes array:
+
+```
+bytes memory z = new bytes(10);
+```
