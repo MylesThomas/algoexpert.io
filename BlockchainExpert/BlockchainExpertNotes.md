@@ -6989,7 +6989,7 @@ Recap:
 - Refund = Tx Fee Sent - Real Tx Fee (Cost)
 
 Recap #2:
-- Units * (base + tip) = Tx Fee
+- Transaction Fee/Tx Fee = Gas Units * (base fee + tip fee)
     - We set this number, and the higher it is, higher chance of transaction going through quickly
     - Units = determined by operations performed by the smart contract/transaction
 - Gas Limit = Max fee
@@ -7146,3 +7146,107 @@ What is going on here:
 - After 3rd iteration of test():
     - sum: 14850
     - gasLeft: 63939 (?)
+
+##### Practice Questions
+
+1. Which of the following is the correct formula for determing the transaction fee of a completed transaction?
+- gas units * (base fee + tip fee)
+
+Explanation: The transaction fee of a completed transaction is determined by multiplying the gas units by the gas price which is equal to (base fee + tip fee). The gas units value represents the amount of computational effort that was used to process the transaction while the gas price is what the transaction sender specified as the price they are willing to pay per unit of gas.
+
+2. If a transaction runs out of gas during execution the gas is refunded to the sender?
+- False
+
+3. Largest Holders
+- Complete the smart contract named `LargestHolder` by implementing the functions defined below. The smart contract will be responsible for processing two large array structures, one containing `address`'s and the other containing `uint`'s. Each corresponding index will represent the balance of an arbitrary Ethereum account (ie. index 1 in the `uint` array represents the balance of the address stored at index 1 in the `address` array). In order to process these large structures, you will need to perform sub-computations and will require multiple transactions be sent to the contract
+
+The goal of this smart contract will be to determine the address of the two largest Ether holders using the passes arrays. The largest holder is the address that contains the largest corresponding value in the passed `uint` array.
+
+When implementing these functions, imagine you can do at most `10` iterations of a for/while loop for each provided transaction.
+- `submitBalances(uint[] memory _balances, address[] memory _holders)`: this function must be called first, before any other function can be called. it should store the appropriate storage values (from the two arrays) and determine the number of transactions that will be required to process the structures (recall, you can only do 10 iterations per transaction). You may assume each address in the passed `_holders` array will be unique and that there will never be a tie for the largest holder. You may also assume the length of the two passed arrays will be the same.
+- `process()`: this function will be called multiple times to process the arrays passed to `submitBalances` and determine the addresses of the two largest holders. It should iterate through portions of the arrays (or other data structures you decide to create) and keep track of where it left off. Once the addresses of the largest holders have been determined, this function should not be callable (ie. it should fail when called). This function should raise an exception/error if called when the balances have not yet been submitted.
+- `numberOfTxRequired()`: this function should return the current number of transactions still required to process the values passed to `submitBalances`. This function should raise an exception/error if called when the balances have not yet been submitted.
+- `getLargestHolder`: this function should return the addresses of the largest holder. This function should raise an exception/error if called when the largest holders have not been determined or if the balances have not yet been submitted.
+
+To solve this problem you will likely need to store multiple values in storage.
+
+My answer:
+
+```
+
+
+pragma solidity >=0.4.22 <=0.8.17;
+
+contract LargestHolder {
+    address[] holders;
+    uint256[] balances;
+
+    bool balancesSubmitted;
+
+    uint256 txRequired;
+
+    uint256 processStartIdx;
+    uint256 processEndIdx;
+
+    address largestHolder;
+    uint256 currentLargestBalance;
+    function submitBalances(
+        uint256[] memory _balances,
+        address[] memory _holders
+    ) public {
+        // Write your code here
+        require(!balancesSubmitted, "balances have already been submitted");
+        balancesSubmitted = true;
+        holders = _holders;
+        balances = _balances;
+
+        txRequired = holders.length / 10;
+        if (txRequired * 10 < holders.length) {
+            txRequired++; // need to handle remainder from division
+        }
+
+        processEndIdx = 10;
+        if (processEndIdx > balances.length) {
+            // make sure we do not iterate over values that do not exist
+            processEndIdx = balances.length;
+        }
+    }
+
+    function process() public {
+        // Write your code here
+        require(balancesSubmitted, "balances have not yet been submitted");
+        require(txRequired > 0, "you have already processed the balances");
+
+        for (uint256 idx = processStartIdx; idx < processEndIdx; idx++) {
+            uint256 amount = balances[idx];
+
+            if (amount > currentLargestBalance) {
+                address account = holders[idx];
+                largestHolder = account;
+                currentLargestBalance = amount;
+            }
+        }
+
+        processStartIdx = processEndIdx;
+        processEndIdx += 10;
+        if (processEndIdx > balances.length) {
+            processEndIdx = balances.length;
+        }
+        
+        txRequired--;
+    }
+
+    function numberOfTxRequired() public view returns (uint256) {
+        // Write your code here
+        require(balancesSubmitted, "balances have not yet been submitted");
+        return txRequired;
+    }
+
+    function getLargestHolder() public view returns (address) {
+        // Write your code here
+        require(txRequired == 0, "you have not finished processing");
+        return largestHolder;
+    }
+}
+
+```
