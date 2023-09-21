@@ -6877,3 +6877,272 @@ About this approach:
 - Cons:
     - Need more gas in storage (We have an additional field)
         - This is the constant battle of time vs. space!
+
+##### Practice Questions
+
+1. There is no limit to the number of iterations that can be performed by a for or while loop.
+- False
+
+Explanation: Although there is no specific number of iterations as an upper limit, loops can only execute if they have sufficient gas. Often times large loops will fail to complete due to the gas limit imposed by the Ethereum network.
+
+2. Create Grid
+- Complete the smart contract named `GridMaker` that is capable of returning two-dimensional arrays of specified sizes. To complete the smart contract, implement the following functions:
+- `make2DIntGrid(uint rows, uint cols, int value)`: this function should return a two-dimensional `int` array that contains `row` nested arrays that contain `cols` elements with the value equal to the passed `int` value. For example, if the function was called like so: `make2DIntGrid(3, 4, -9)`, the expected return value would be `[[-9, -9, -9, -9], [-9, -9, -9, -9], [-9, -9, -9, -9]]`
+- `make2DAddressGrid(uint rows, uint cols)`: this function should return a two-dimensional `address` array that contains `row` nested arrays that contain `cols` elements with the value equal to the address of the account that called this function. For example, if the function was called by address `"0xabc"` like so: `make2DIntGrid(5, 2)`, the expected return value would be `[["0xabc", "0xabc"], ["0xabc", "0xabc"], ["0xabc", "0xabc"], ["0xabc", "0xabc"], ["0xabc", "0xabc"]]`
+
+My answer:
+
+```
+pragma solidity >=0.4.22 <=0.8.17;
+
+contract GridMaker {
+    function make2DIntGrid(
+        uint256 rows,
+        uint256 cols,
+        int256 value
+    ) public pure returns (int256[][] memory) {
+        // Write your code here
+        int256[][] memory array = new int256[][](rows);
+        for (uint row = 0; row < rows; row++) {
+            int256[] memory nestedArray = new int256[](cols);
+            for (uint col = 0; col < cols; col++) {
+                // array[row][col] = value;
+                nestedArray[col] = value;
+            }
+            array[row] = nestedArray;
+        }
+
+        return array;
+
+    }
+
+    function make2DAddressGrid(uint256 rows, uint256 cols)
+        public
+        view
+        returns (address[][] memory)
+    {
+        // Write your code here
+        address[][] memory array = new address[][](rows);
+        for (uint row = 0; row < rows; row++) {
+            address[] memory nestedArray = new address[](cols);
+            for (uint col = 0; col < cols; col++) {
+                // array[row][col] = value;
+                nestedArray[col] = msg.sender;
+            }
+            array[row] = nestedArray;
+        }
+
+        return array;
+    }
+}
+
+```
+
+### 20 - Gas Cost And Estimation
+
+The definitive video on gas. Did it suddenly get smelly in here?
+
+#### Key Terms
+
+##### Gas
+
+In the context of Ethereum, gas is a fee required to execute transactions or smart contracts. Gas is paid in Ether and is denoted in gwei.
+
+#### Notes from the video
+
+##### Gas Units, Gas Price, Tx Fee
+
+Let's break Gas down:
+- Gas Units: Measures the computational effort required for a contract
+    - Does not tell how much it costs the user to submit this gas, but how many units are being used
+    - Examples:
+        - 20,000 gas units
+        - 50,000 gas units
+    
+
+- Gas Price: Amount of Ethereum we are willing to pay, per unit of gas
+    - Equation: base + tip
+        - base: minimum value we need to pay, per unit of gas
+            - if you want your transaction to be added, you need to pay this minimum amount of gas
+            - determined by volume of Ethereum network
+            - this base fee is burnt ie. miners do not collect this base fee, it actually gets "destroyed"
+                - this is to offset the amount of ETH that is created when new blocks are added to the Ethereum blockchain
+        - tip: amount you add if you want your transaction to go through faster
+            - you want it to go through in a reasonable amount of time, so you will tip to incentivize miners
+
+    - Examples:
+        - gas price (gwei) = base + tip
+
+- Tx Fee: Amount of transaction cost
+    - When you send a transaction, you pick a maximum value (Tx Fee Sent) that is above the Tx Fee (Not necessarily how much you sent with the transaction)
+        - If you send money as your transaction fee, that is more than the actual cost to perform the transaction, you will be refunded!
+    - Examples:
+        - Tx Fee Sent - Tx Fee (cost) = refunded amount/change
+
+Recap:
+- Gas Units: Measure of computational effort
+- Gas Price: How much we are willing to pay, per unit of gas
+- Real Tx Fee: Cost to perform operation
+    - Number of units consumed * gas price
+- Sent Tx Fee (Gas Limit/MaxFee): Amount we submit with the transaction
+    - Max fee we are willing to pay
+- Refund = Tx Fee Sent - Real Tx Fee (Cost)
+
+Recap #2:
+- Units * (base + tip) = Tx Fee
+    - We set this number, and the higher it is, higher chance of transaction going through quickly
+    - Units = determined by operations performed by the smart contract/transaction
+- Gas Limit = Max fee
+    - 21000 * max price
+        - 21000 = max. gas required
+- Refund = Gas limit - Tx Fee
+
+##### Gas Edge Cases
+
+What happens if the gas limit we specify is not high enough ie. we run out of gas?
+- Operation is incomplete
+- State is reverted
+- Gas is NOT returned
+    - it is used by the smart contract, because the smart contract required to gas to perform the operations in the first place (it still had to perform the computations... too bad for us on losing the Tx fee!) 
+
+When submitting a transaction: Set your gas limit as HIGH as possible! (So that you don't run out of gas and lose it all)
+
+Contradictory, but Reasons why you may not want to send a bunch of gas for each transaction:
+- Becomes a problem if you need the money you are sending
+    - Example: You have 1 ETH, and you send 1 ETH to the transaction
+        - If you want to send another transaction, you have to wait for the 1st transaction to process (that 1 ETH is unavailable until you get the refund)
+
+##### What Is Meant By Gas
+
+What you submit as user: 100 Gas = 100 gwei
+- Fee consumed/used by the transaction
+In the smart contract: Gas unit = 274
+- Smart contract does not know price in terms of ETH, but it knows this operation costs 274 gas units
+
+After operation is performed: Refund = 100 gwei - 274 gas units * gas price = 
+
+##### Block Gas Limit
+
+Max. amount of gas per block:
+- Ethereum soft limit: 8,000,000 gas per block
+    - This is so each block receives 8,000,000 gas
+        - this is so you cannot submit a transaction with more than 8,000,000 gwei, this is imposed by Ethereum
+        - you can go above this, but you won't see anything like 25,000,000 (can't send unlimited, we will leave it at that!)
+        - need to optimize smart contracts for gas usage, and consider that user's should not have to send $1,000's in fees just for a transaction to go through
+
+That is it for the theoretical aspect of this video!
+
+##### Gas Cost Demo
+
+We will start looking at examples, and eventually learn how to split large transactions up into smaller ones.
+
+Example 1:
+
+```
+contract HelloWorld {
+    uint public sum;
+    uint constant sumTo = 1000000;
+
+    function addIntegers() public {
+        for (uint i = 1; i <= sumTo; i++) {
+            sum += i;
+        }
+    }
+}
+
+```
+
+When you submit, before clicking confirm in MetaMask, you can edit priority and adjust the gas fee:
+- speed: low/medium/high
+- gas limit
+- max priority fee
+- max fee
+
+*I will just go with the suggested gas, which is the recommendation typically*
+
+What happens with this code:
+- Click addIntegers()
+    - Gas estimation failed: Based on static analysis, we will run out of gas if we send the transaction
+        - If we send and it fails: We will waste gas (don't do this! take heed of the warning)
+
+How do we fix this?
+
+##### Splitting Transactions/Computations
+
+By Splitting Transactions/Computations, we can have enough gas for each transaction to perform the sub-computation, which at the end has the entire computation
+- We can decide how many transactions to split the work into
+    - Starting value: 10 steps
+
+This makes our code more difficult, but let's dive in:
+
+```
+contract HelloWorld {
+    uint public sum;
+    uint constant sumTo = 1000;
+    uint public start = 1;
+    uint public end = 100;
+
+    function addIntegers() public {
+        require(end <= sumTo); // this will cause the function to stop running once we get to 901-1000.
+
+        uint increment = 100; // 100 addition operations, per function call
+        for (uint i = start; i <= end; i++) {
+            sum += i;
+        }
+        // this code will make sure that after doing 1-100, we will do 101-200, 201-300, etc.
+        start = end + 1;
+        end = end + increment;
+    }
+}
+
+```
+
+What happens here:
+- Sum starts at 0
+- When start = 1 and end = 100, press addIntegers() and turn the sum into 5050
+- When start = 101 and end = 200, press addIntegers() and turn the sum into 20100
+- ...
+- When start = 901 and end = 1000, press addIntegers() and turn the sum into 500500
+- Sum ends at 500500 (Pressing addIntegers() when start == 1001 && end == 1100 is a failed transaction due to requirements)
+
+This way shows how to batch our transactions and perform part on each transaction, so we have sufficient gas for each sub-transaction.
+
+##### gasleft()
+
+gasleft(): Tells you how much gas we have remaining during a computation/transaction
+- Can use this function to determine when you need to stop doing a computation, and can then resume it in the next transaction
+
+Example:
+
+```
+pragma solidity >=0.7.0 <0.9.0;
+
+contract HelloWorld {
+    uint public sum = 0;
+    uint public gasLeft;
+    
+    function test() public {
+        uint startGas = gasleft();
+        
+        for (uint i; i < 100; i++) {
+            sum += i;
+        }
+        gasLeft = startGas - gasleft();
+    }
+}
+
+```
+
+What is going on here:
+- Before 1st iteration of test():
+    - sum: 0
+    - gasLeft: 0
+- After 1st iteration of test():
+    - sum: 4950
+    - gasLeft: 81039
+- After 2nd iteration of test():
+    - sum: 9900
+    - gasLeft: 63939
+- After 3rd iteration of test():
+    - sum: 14850
+    - gasLeft: 63939 (?)
