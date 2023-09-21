@@ -6705,3 +6705,175 @@ How to create a dynamically-allocated bytes array:
 ```
 bytes memory z = new bytes(10);
 ```
+
+##### Practice Questions
+
+1. What are the differences between the string and bytes type in Solidity?
+- bytes types provide index access and have a .length property.
+
+2. Any value of type string can be converted to type bytes, but not the other way around.
+- False
+
+3. String Generator
+- Write a smart contract named `StringGenerator` that allow users to collaboratively generate a string. The smart contract should implement the functions defined below such that each user may submit a single character to add to the string. Once the string reaches a length of `5` it should not allow any new character to be added.
+- `addCharacter(string character)`: a function that accepts a single character and adds it to the existing `string`/`bytes` type stored in the contract. This function should raise an error/exception if a user submits a string that is not a single character, if the current string length is `5`, or if the user has already added a character. 
+- `getString()`: a public function that returns the current string stored in the contract. This function must return a `string`.
+
+To implement these functions you will have to use a combination of both `string` and `bytes` types.
+
+You may add as many state variables as necessary but do not add any functions.
+
+My answer:
+
+```
+pragma solidity >=0.4.22 <=0.8.17;
+
+contract StringGenerator {
+    mapping(address => bool) hasAddedCharacter;
+    string currentString;
+    function addCharacter(string memory character) public {
+        // Write your code here
+        require(bytes(currentString).length < 5, "cannot have length of 5.");
+        require(bytes(character).length == 1, "must be single char.");
+        require(!hasAddedCharacter[msg.sender], "address/user can only add 1 char!");
+        hasAddedCharacter[msg.sender] = true;
+        currentString = string.concat(currentString, character);
+
+    }
+
+    function getString() public view returns (string memory) {
+        // Write your code here
+        return currentString;
+    }
+}
+
+```
+
+### 19 - Loops
+
+Be mindful of loops in Solidity! Unlike their counterparts in other programming languages, Solidity loops can easily run out of gas...literally.
+
+#### Key Terms
+
+n/a
+
+#### Notes from the video
+
+Seems pretty basic, but it can be very expensive in gas, so it is important that we understood that before diving in.
+
+##### While Loops
+
+Let's start with the while loop:
+
+```
+contract HelloWorld {
+    function test() public pure {
+        while (true) {
+            continue;
+            break;
+        }
+    }
+}
+
+```
+
+##### For Loops
+
+Syntax is similar to Java/JavaScript:
+
+```
+contract HelloWorld {
+    function test() public pure {
+        for (uint8 i; i < 276, i++) {
+            continue;
+            break;
+        }
+    }
+}
+
+```
+
+Note: Be careful with the type for `i`, as an infinite loop can be created due to integer overflow.
+
+Here is another example:
+
+```
+contract HelloWorld {
+    function test(uint maxLoops) public pure returns (uint) {
+        uint sum = 0;
+        for (uint i = 0; i < maxLoops; i++) {
+            sum += i;
+        }
+        return sum;
+    }
+}
+
+```
+
+Note: Once you use a number past ~10,000, you will run out of gas!
+
+Now what?
+
+##### Running Out of Gas
+
+Error: "The transaction ran out of gas. Please increase the Gas Limit."
+- How to deal with it:
+    - Increase gas limit
+    - Decrease iterations
+
+When dealing with for-loops, you can never be sure that you will have enough gas (unless you do the math by hand for each operation - 1000's of iterations with simple operations will still use up a lot of gas quickly)
+
+How to avoid this issue? Batching your transactions! (We will go over batching code in the next video...)
+
+##### Looping Over Arrays
+
+Let's finish by looking how we loop over an array:
+
+Example: People can send a transaction to the smart contract, and when they do, we add their address to an array. Once they are in the array, they cannot send the transaction anymore.
+
+```
+contract HelloWorld {
+    address[] public addresses;
+
+    function addAddress() external {
+        // loop through array (there is not a .contains or .include method)
+        for (uint idx; idx < addresses.length; idx++) {
+            address currentAddress = addresses[idx];
+            if (currentAddress == msg.sender) {
+                revert("Sender is already in addresses array.");
+            }
+        }
+        addresses.push(msg.sender);
+    }
+}
+
+```
+
+About this piece of code:
+- This is not ideal:
+    - Looping through an array is O(n) and can cause you to run out of gas
+        - This can make it so that you cannot loop through each address, making the function never work, and the smart contract useless!
+
+A mapping type to a boolean would be a better approach!
+
+```
+contract HelloWorld {
+    address[] public addresses;
+    mapping(address => bool) addressesAdded;
+
+    function addAddress() external {
+        require(addressesAdded[msg.sender] == false, "address has already been added.");
+        addressesAdded[msg.sender] = true;
+        addresses.push(msg.sender);
+    }
+}
+
+```
+
+About this approach:
+- Pros:
+    - No need to loop through array (Lookups are faster in mappings)
+    - Less gas used
+- Cons:
+    - Need more gas in storage (We have an additional field)
+        - This is the constant battle of time vs. space!
