@@ -7232,7 +7232,7 @@ contract LargestHolder {
         if (processEndIdx > balances.length) {
             processEndIdx = balances.length;
         }
-        
+
         txRequired--;
     }
 
@@ -7250,3 +7250,481 @@ contract LargestHolder {
 }
 
 ```
+
+## Assessment
+
+1. Write a smart contract named `AdvancedCounter` that allows multiple users to keep track of their own independent counters. Each counter will be represented by a `string` id and will be specific to each user/account that interacts with the smart contract. Each user should have a limit of `3` counters. Each counter should store an `int` value.
+
+For example, account with the address `0xabc...` may have three counters with id's `a`/`b`/`c`. Each counter should be able to be manipulated independently of all other counters by using the functions below. To clarify, if another address, say `0xbbb...`, had a counter with id `a`, this would be a separate counter from the counter with id `a` that is controlled by `0xabc...`. Each address should only be able to control their own counters.
+
+To write this smart contract, implement thhe functions defined below.
+- `createCounter(string id, int value)`: this function should set the counter with the passed `id` to that passed `value` for the address that called this function. This function should fail if the user already has `3` counters (the maximum allowed) or if the passed counter `id` already exists for this user.
+- `deleteCounter(string id)`: this function should delete the counter with the passed `id` for the address that called this function. After the deletion the address should be able to create another counter with the same or a new id. This function should fail if called with an `id` for a counter that does not exist.
+- `incrementCounter(string id)`: this function should increment the counter with the passed `id` by `1` for the address that called this function. This function should fail if called with an `id` for a counter that does not exist. (ie. it has not been created yet OR it was deleted).
+- `decrementCounter(string id)`: this function should decrement the counter with the passed `id` by `1` for the address that called this function. This function should fail if called with an `id` for a counter that does not exist. (ie. it has not been created yet OR it was deleted).
+- `getCount(string id)`: this function should return the value of the counter with the passed `id` for the address that called this function. This function should fail if called with an `id` for a counter that does not exist. (ie. it has not been created yet OR it was deleted).
+
+You are welcome to create any additional functions and use as many storage variables as you deem necessary.
+
+My answer:
+
+```
+pragma solidity >=0.4.22 <=0.8.17;
+
+contract AdvancedCounter {
+    mapping(address => mapping(string => int256)) counters;
+    mapping(address => mapping(string => bool)) counterIdExists; // required to keep track of used ids
+    mapping(address => uint256) numCountersCreated; // required to keep track of number of counters
+
+    function counterExists(string memory id) internal view returns (bool) {
+        return counterIdExists[msg.sender][id];
+    }
+
+    function createCounter(string memory id, int256 value) public {
+        // Write your code here
+        require(
+            numCountersCreated[msg.sender] != 3,
+            "you have already created the maximum number of counters"
+        );
+        require(!counterExists(id), "a counter with this id already exists");
+        counters[msg.sender][id] = value;
+        numCountersCreated[msg.sender]++;
+        counterIdExists[msg.sender][id] = true;
+    }
+
+    function deleteCounter(string memory id) public {
+        // Write your code here
+        require(counterExists(id), "a counter with this id does not exist.");
+        delete counters[msg.sender][id];
+        numCountersCreated[msg.sender]--;
+        counterIdExists[msg.sender][id] = false;
+    }
+
+    function incrementCounter(string memory id) public {
+        // Write your code here
+        require(counterExists(id), "this counter does not exist");
+        counters[msg.sender][id]++;
+    }
+
+    function decrementCounter(string memory id) public {
+        // Write your code here
+        require(counterExists(id), "this counter does not exist");
+        counters[msg.sender][id]--;
+    }
+
+    function getCount(string memory id) public view returns (int256) {
+        // Write your code here
+        require(counterExists(id), "this counter does not exist");
+        return counters[msg.sender][id];
+    }
+}
+
+```
+
+2. Greedy Banker
+
+Write a smart contract named `GreedyBanker` that acts as a bank account for users. It should allow users to deposit funds by sending ether directly to the contract address via the `recieve` function and to withdraw their funds using a function you'll implement named `withdraw`. The catch is, the deployer of this smart contract is greedy and wants to collect a fee from users when they make a deposit.
+
+Each address that deposits to the smart contract should get exactly one free deposit, afters a fe of `1000 wei` should be charged for each deposit. The fees collected by this smart contract should be stored such that the owner can withdraw/collect them at their convenience. If a user has used up their free deposit and attempts to send less money than `1000 wei` (the fee) their deposit should fail. All of this logic should be handled in the `receive` function.
+
+If a user incorrectly sends funds (ie. the transaction triggers the `fallback` function), all the funds recieved should be added to the current fees collected and become withdrawable by the owner/deployer of the contract.
+
+As well as the functionality listed above, implement the following functions:
+- `withdraw(uint amount)`: a function that allows users to withdraw funds. Assuming the amount they requested to withdraw is valid they should be sent that amount. If the user attempts to withdraw more funds than they have available, this function should fail. Withdrawls are free (ie. they don't cost the user a gas fee).
+- `getBalance()`: a function that returns the callers current withdrawable balance.
+- `collectFees()`: a function that can only be called by the deployer/owner of the smart contract. This function should send the owner all received fees. Make sure this function is not exploitable.
+
+Recall, every deposit costs the user `1000 wei`, make sure to adjust the users balance correctly to handle these fees.
+
+Note: Make sure to protect against re-entrance attacks and other smart contract exploits.
+
+My answer:
+
+```
+pragma solidity >=0.4.22 <=0.8.17;
+
+contract GreedyBanker {
+    uint256 constant fee = 1000 wei;
+
+    mapping(address => uint256) balances;
+    mapping(address => uint256) depositCount;
+
+    uint256 feesCollected;
+
+    address owner;
+
+    constructor() {
+        owner = msg.sender;
+    }
+    receive() external payable {
+        // Write your code here
+        uint256 depositFee;
+        if (depositCount[msg.sender] >= 1) {
+            require(msg.value >= fee, "amount is not enough to cover the fee");
+            depositFee = fee;
+        }
+
+        balances[msg.sender] += msg.value - depositFee;
+        feesCollected += depositFee;
+        depositCount[msg.sender]++;
+    }
+
+    fallback() external payable {
+        // Write your code here
+        feesCollected += msg.value;
+    }
+
+    function withdraw(uint256 amount) external {
+        // Write your code here
+        require(balances[msg.sender] >= amount, "insufficient balance");
+        balances[msg.sender] -= amount;
+        (bool sent, ) = payable(msg.sender).call{value: amount}("");
+        require(sent, "withdraw failed");
+    }
+
+    function collectFees() external {
+        // Write your code here
+        require(msg.sender == owner, "only the owner can call this function");
+        uint256 totalFees = feesCollected;
+        feesCollected = 0;
+        (bool sent, ) = payable(owner).call{value: totalFees}("");
+        require(sent, "transfer failed");
+    }
+
+    function getBalance() public view returns (uint256) {
+        // Write your code here
+        return balances[msg.sender];
+    }
+}
+
+```
+
+3. Ether Election
+
+Write a smart contract named `EtherElection` that allows users to vote for the "Ether King". This smart contract will go through three main phases: candidate enrollment, voting, and rewards/payouts.
+
+During the first phase, users that wish to run for election will need to submit exactly `1` Ethereum. Once three users have enrolled as candidates the enrollment phase will end and the voting phase will start.
+
+During the voting phase, users will be able to submit a vote for one of the three candidates. Users that wish to vote will have to pay a fee of exactly `10,000 wei`. This fee will be non-refundable and held in the balance of the smart contract. Once any candidate receives exactly `5` votes they will be declared the winner and the voting phase will end.
+
+In the final phase (once the winner has been declared), the winner will be able to withdraw `3` Ethereum from the contract as their prize for winning. Once the winner has withdrawn their prize, the contract can be destroyed by the owner/deployer who should collect all of the fees paid by voters.
+
+To implement this functionality, write the following functions:
+
+- `enroll()`: a functions that allows exactly three users to enroll as candidates. If the caller of the function is not already a candidate and submits exactly `1` Ethereum, they should be added as a candidate. This function should fail if it is not sent exactly `1` Ethereum or if all candidates have already been chosen.
+
+- `vote(address candidate)`: this function should allow any users to vote for their favorite candidate by sending the correct fee of `10,000 wei`. Each user should only be allowed to vote one time. This function should fail if it does not receive `10,000 wei`, if the user has already voted, if the address the user votes for is not a candidate, or if the voting phase is done.
+
+- `getWinner()`: this function should return who the winner of the election was. If the winner has not yet been decided, this function should fail.
+
+- `claimReward()`: this function should only be callable by the winner of the election and should send the winner `3` Ethereum when called. This function should fail if the winner has not yet been decided, if the winner has already received their reward, or if it has been caleld by an address that is not the winner.
+
+- `collectFees()`: this function should destroy the smart contract, erasing its state. It should send the remaining smart contract balance to the deployer/owner of the contract. This function should fail if it is called before the winner has been declared or if the winner has not withdrew their reward. Only the owner/deployer of the contract should be able to call this.
+
+Note: candidates are allowed to vote and they may vote for themselves.
+
+My answer:
+
+```
+pragma solidity >=0.4.22 <=0.8.17;
+
+contract EtherElection {
+    address owner;
+
+    address[] candidates;
+    mapping(address => uint256) votes;
+    mapping(address => bool) voted; // store who has already voted
+
+    address winner;
+    bool winnerWithdrew;
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    function isCandidateInCandidates(address candidate)
+        internal
+        view
+        returns (bool)
+    {
+        for (uint256 idx; idx < candidates.length; idx++) {
+            address currentCandidate = candidates[idx];
+
+            if (currentCandidate == candidate) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    function enroll() public payable {
+        // Write your code here
+        require(candidates.length != 3, "3 candidates have already enrolled");
+        require(msg.value == 1 ether, "you must send exaclty one ether");
+        require(
+            !isCandidateInCandidates(msg.sender),
+            "you are already a candiate"
+        );
+
+        candidates.push(msg.sender);
+    }
+
+    function vote(address candidate) public payable {
+        // Write your code here
+        require(candidates.length == 3, "enrollment is not done");
+        require(isCandidateInCandidates(candidate), "invalid candidate");
+        require(winner == address(0), "voting has ended");
+        require(!voted[msg.sender], "you have already voted");
+        require(msg.value == 10000, "incorrect fee");
+        voted[msg.sender] = true;
+        votes[candidate]++;
+
+        if (votes[candidate] == 5) {
+            winner = candidate;
+        }
+    }
+
+    function getWinner() public view returns (address) {
+        // Write your code here
+        require(winner != address(0), "winner has not been declared");
+        return winner;
+    }
+
+    function claimReward() public {
+        // Write your code here
+        require(winner != address(0), "winner has not been declared");
+        require(msg.sender == winner, "you are not the winner");
+        require(!winnerWithdrew, "you have already withdrawn your reward");
+        winnerWithdrew = true;
+        (bool sent, ) = payable(winner).call{value: 3 ether}("");
+        require(sent, "transfer failed");
+    }
+
+    function collectFees() public {
+        // Write your code here
+        require(winnerWithdrew, "winner has not yet withdrawn reward");
+        require(msg.sender == owner, "only the owner can call this function");
+        selfdestruct(payable(owner));
+    }
+}
+
+```
+
+4. Ether Math
+
+Write a smart contract named `EtherMath` that provides mathematical challenges for users. If a user successfully solves the mathematical challenge they will receive the reward provided by the creator of the challenge.
+
+The owner/deployer of the contract will submit an array of integers and a single integer representing a desired sum. They will also send a non-zero amount of ether to provide as a reward. The goal for participants will be to determine which values from the array to use to create the sum (this is the challenge). You may assume all challenges submitted will always have at least one valid solution.
+
+Once the array of integers, sum and reward have been submitted, any participant may attempt to solve the challenge by submitting their solution. Their solution will simply be an array containing integers found in the original array that sum to the target sum. They may reuse integers from the array. Each user should only receive one guess/submission per challenge.
+
+If a user submits the correct solution they should be able to withdraw the provided reward and the contract should reset, allowing the owner to submit another challenge and users to guess the answer for this new challenge. Only one user can recieve the reward for submitting the correct answer and users can only submit answers if a challenge has been set.
+
+To write this smart contract implementing the following functions. These function should adhere to the behavior defined:
+
+- `submitChallenge(int[] memory array, int targetSum)`: a function that allows the owner to set a challenge. This function can only be called when no challenge has been set or the previous challenge has been solved. This function should fail if it is called by someone who is not the owner, or if the owner fails to send a non-zero ether reward.
+
+- `submitSolution(int[] memory solution)`: this function should allow each user to submit exactly one solution for the current challenge. If a user submits the correct solution, the challenge should reset and they should be able to withdraw the reward for this challenge. This function should fail if called by a user that has already submitted a solution for the current challenge of it no challenge is set.
+
+- `claimRewards()`: this function should allow users to claim any rewards they have received (from one or multiple challenges) by sending them the reward ether amount.
+
+My answer:
+
+```
+pragma solidity >=0.4.22 <=0.8.17;
+
+contract EtherMath {
+    int256[] usableNumbers;
+    int256 sum;
+    uint256 reward;
+
+    address owner;
+
+    mapping(address => uint256) unclaimedRewards;
+
+    address[] submittedSolution;
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    function verifySolution(int256[] memory solution)
+        internal
+        view
+        returns (bool)
+    {
+        int256 solutionSum;
+
+        for (uint256 idx; idx < solution.length; idx++) {
+            bool numberExists;
+            for (uint256 j; j < usableNumbers.length; j++) {
+                // check if the number the solution used is in usableNumbers
+                if (usableNumbers[j] == solution[idx]) {
+                    numberExists = true;
+                }
+            }
+
+            if (!numberExists) {
+                return false;
+            }
+            solutionSum += solution[idx];
+        }
+
+        return solutionSum == sum;
+    }
+
+    function userSubmittedSolution(address user) internal view returns (bool) {
+        for (uint256 idx; idx < submittedSolution.length; idx++) {
+            address currentUser = submittedSolution[idx];
+            if (currentUser == user) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function submitChallenge(int256[] memory array, int256 targetSum)
+        public
+        payable
+    {
+        require(msg.sender == owner, "only the owner can call this function");
+        require(reward == 0, "a challenge is already active");
+        require(msg.value > 0, "you must send a non-zero value for the reward");
+        reward = msg.value;
+        usableNumbers = array;
+        sum = targetSum;
+    }
+
+    function submitSolution(int256[] memory solution) public {
+        require(reward != 0, "no challenge is currently active");
+        require(
+            !userSubmittedSolution(msg.sender),
+            "you have already submitted a solution"
+        );
+
+        submittedSolution.push(msg.sender);
+        if (verifySolution(solution)) {
+            unclaimedRewards[msg.sender] += reward;
+            reward = 0;
+            sum = 0;
+            delete submittedSolution;
+            delete usableNumbers;
+        }
+    }
+
+    function claimRewards() public {
+        uint256 userReward = unclaimedRewards[msg.sender];
+        unclaimedRewards[msg.sender] = 0;
+        (bool sent, ) = payable(msg.sender).call{value: userReward}("");
+        require(sent, "transfer failed");
+    }
+}
+
+```
+
+5. Fizz Buzz
+
+Write a smart contract named `FizzBuzz` that implements the famous Fizz Buzz algorithm, but with a twist. Rather than returning strings "Fizz" and "Buzz" you'll emit events.
+
+The FizzBuzz problems is a famous algorithm style coding questions where you are tasked to iterate through a sequence of integers and print "Fizz" if the integer is divisible by 3, "Buzz" if divisible by 5, and "FizzBuzz" if the integer is divisible by both 3 and 5.
+
+For this question your contract will need to keep track of a count and emit custom events each time the count has changed. The events will be as follows:
+
+- `Fizz(address sender, uint indexed count)`
+
+- `Buzz(address sender, uint indexed count)`
+
+- `FizzAndBuzz(address sender, uint indexed count)`
+
+To implement this functionality, define the events specified above and emit the correct one each time the count of the contract is changed. The count will be changed by calling the function defined below. Your function should emit a maximum of 1 event per call.
+
+- `increment()`: this function should simply increment the internal count of the contract by one and emit the correct event based on the new value of the count. For example, if the count before calling the function is 2 then the function would change the count to 3 and emit Fizz. If the new count is not divisible by 3 or 5, no event should be emitted.
+
+Note: the count should start at 0.
+
+My answer:
+
+```
+pragma solidity >=0.4.22 <=0.8.17;
+
+contract FizzBuzz {
+        // Write your code here
+        uint count = 0;
+        event Fizz(address sender, uint indexed count);
+        event Buzz(address sender, uint indexed count);
+        event FizzAndBuzz(address sender, uint indexed count);
+
+        function increment() public {
+            // increment
+            count += 1;
+            // emit events, based on count
+            if (count % 3 == 0 && count % 5 == 0) {
+                emit FizzAndBuzz(msg.sender, count);
+            }
+            else if (count % 3 == 0) {
+                emit Fizz(msg.sender, count);
+            }
+            else if (count % 5 == 0) {
+                emit Buzz(msg.sender, count);
+            }
+            // else {
+            //     continue;
+            // }
+    }
+}
+
+```
+
+---
+
+# 5 - Advanced Solidity
+
+This is where we get deeper into the technical weeds of the Solidity programming language, examining some of its more advanced features and peculiarities.
+
+## Lessons
+
+### 1 - Math and Arithmetic
+
+Everyone knows how dangerous math can be! Thankfully, though, Solidity provides us with a library named SafeMath so that we can practice safe math.
+
+#### Key Terms
+
+n/a
+
+#### Notes from the video
+
+##### Fixed/Floating Point Values
+
+You cannot implement floating point values in Solidity! (No decimals)
+
+```
+contract HelloWorld {
+    fixed x = 21.55; // error: 
+}
+```
+
+How to use decimals in Solidity:
+- Use existing types in Solidity to represent this:
+    - Take your value (21.55)
+    - Multiply by level of precision ie. 100
+    - Split apart integer and decimal components:
+        - integer: 21
+        - decimal: 55
+
+##### Overflow and Underflows
+
+
+
+##### 
+
+
+
+##### 
+
+
+
+##### 
+
+
+
