@@ -7714,17 +7714,217 @@ How to use decimals in Solidity:
 
 ##### Overflow and Underflows
 
+We have previously looked at Overflow and Underflows, but let's go into further depth:
 
+```
+contract HelloWorld {
+    function testMath(uint8 x, uint8 y) public pure returns (uint8) {
+        return x + y;
+    }
+}
+```
 
-##### 
+What is going on here:
+- uint8 can store a max value of 255
+    - if we sum 2 uint8's that add to above 255, then we don't have enough bits to store it in the uint8 type
 
+- In the new Solidity 0.8.0 and up, Overflows/Underflows are automatically handled during runtime. If they occur, the contract reverts.
+    - This is as opposed to getting a weird value back
 
+This 2nd example is the same, but for subtraction:
 
-##### 
+```
+contract HelloWorld {
+    function testMath(uint8 x, uint8 y) public pure returns (uint8) {
+        return x - y;
+    }
+}
 
+```
 
+What is going on here:
+- uint8 can store a min value of 0
+    - if the sum is less than 0, the value is too small to store in the space
+        - there is an underflow + the contract reverts
 
-##### 
+##### SafeMath Library
 
+In older versions of Solidity: You do not automatically handle Overflows/Underflows.
 
+You can try this out by going into Remix IDE and using a compiler such as 0.7.6.
+- For the underflow example, you will see a random number returned
 
+We can handle these overflows and underflows with these methods:
+- assert() statements
+- SafeMath library
+
+Examples:
+
+```
+// assert() example
+contract HelloWorld {
+    function testMath(uint8 x, uint8 y) public pure returns (uint8) {
+        assert(y <= x); // prevent the underflow
+        assert(y + x <= 255); // prevent the overflow
+        return x - y;
+    }
+}
+
+```
+
+We will look at this SafeMath library to see another way to handle overflows/underflows
+- We won't use it in newer Solidity, but it is still good to learn how these libraries work.
+
+How to call functions from the SafeMath library:
+
+```
+pragma solidity >=0.7.0 <0.9.0;
+
+import"https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/math/Math.sol";
+
+contract HelloWorld {
+    function testMath(uint x, uint y) public pure returns (uint8) {
+        return SafeMath.add(x, y);
+        // return SafeMath.sub(x, y);
+        // return SafeMath.div(x, y);
+    }
+}
+
+```
+
+How this would work:
+- The functions would revert the contract if an overflow/underflow occurred
+
+Another way to use SafeMath:
+
+```
+pragma solidity >=0.7.0 <0.9.0;
+
+import"https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/math/Math.sol";
+
+contract HelloWorld {
+    using SafeMath for uint;
+    function testMath(uint x, uint y) public pure returns (uint8) {
+        x.mod(y); 
+    }
+}
+
+```
+
+What this does: You have direct access to call SafeMath functions on uint types!
+
+##### Scientific Notation
+
+Scientific Notation: A cool way to define very large values!
+
+```
+pragma solidity >=0.7.0 <0.9.0;
+
+import"https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/math/Math.sol";
+
+contract HelloWorld {
+    function testMath(uint x, uint y) public pure returns (uint8) {
+        uint x = 2.999873e10;
+    }
+}
+
+```
+
+##### Practice Questions
+
+1. Solidity compiler version 0.8.17 suppors the usage of fixed point (a.k.a. floating point) numbers?
+- False
+
+Explanation: As of Solidity compiler version 0.8.17 fixed point numbers are not currently supported. The fixed type does exist in the language but it is not implemented and no values can be assigned to a variable of type fixed.
+
+2. Examine the following code.
+
+```
+pragma solidity >=0.7.0 <0.7.6;
+  
+contract Math {
+  function subtractNumbers(uint8 num1, uint8 num2) public pure returns (uint8) {
+    uint8 z = num1 - num2;
+    return z;
+  }  
+}
+```
+
+If the function subtractNumbers is called in the following way subtractNumbers(243, 255) what the result be?
+
+My answer: The function will return 244.
+
+Explanation: Pay special attention to the pragma line. It states that the compiler version is between 0.7.0 and 0.7.6. This means that Solidity will not handle overflows and underflows by default, meaning the contract will not revert and instead use integer wrapping, resulting in a return value of 244.
+
+Note: in this situation an underflow occurred as the computed value was too small to fit in the uint8 type.
+
+3. Examine the following code.
+
+```
+pragma solidity >=0.8.0 <0.8.17;
+  
+contract Math {
+  function addNumbers(uint8 num1, uint8 num2) public pure returns (uint8) {
+    uint8 z = num1 + num2;
+    return z;
+  }  
+}
+```
+
+My answer: The contract will revert due to an overflow.
+
+Explanation: Pay special attention to the pragma line. It states that the compiler version is between 0.8.0 and 0.8.17. This means that Solidity will handle overflows and underflows by default, meaning the contract will revert when an overflow occurs.
+
+Note: in this situation an overflow occurred as the computed value was too large to fit in the uint8 type.
+
+4. Write a smart contract named `MathUtils` that contains the following functions:
+
+- `floor(int value)`: returns the `value` rounded down to the nearest ten. Positive and negative values should both round towards 0. For example, -97 should round to -90 and 101 should round to 100.
+
+- `ceil(int value)`: returns the value rounded up to the nearest ten. Positive and negative values should both round towards 0. For example, -97 should round to -100 and 101 should round to 110.
+
+- `average(int[] memory values, bool down)`: returns the average of a sequence of numbers. if `down` is `true`, return the average rounded down to the nearest ten; otherwise, return the average rounded up to the nearest ten. The average of an empty array is zero.
+
+My answer:
+
+```
+pragma solidity >=0.4.22 <=0.8.17;
+
+contract MathUtils {
+    function floor(int256 value) public pure returns (int256) {
+        // Write your code here
+        int256 remainder = value % 10;
+        return value - remainder;
+    }
+
+    function ceil(int256 value) public pure returns (int256) {
+        // Write your code here
+        int256 remainder = value % 10;
+        if (remainder > 0) {
+            return value + (10 - remainder);
+        } else if (remainder == 0) {
+            return value;
+        }
+        return value - 10 - remainder;
+    }
+
+    function average(int256[] memory values, bool down)
+        public
+        pure
+        returns (int256)
+    {
+        // Write your code here
+        if (values.length == 0) {
+            return 0;
+        }
+
+        int256 sum;
+        for (uint256 idx; idx < values.length; idx++) {
+            sum += values[idx];
+        }
+        int256 avg = sum / int256(values.length);
+        return down ? floor(avg) : ceil(avg);
+    }
+}
+
+```
