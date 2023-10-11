@@ -8325,3 +8325,373 @@ contract ShoppingList {
 }
 
 ```
+
+### 4 - Modifiers
+
+Modifiers serve to modify the behaviour of a function. Shocking, we know.
+
+#### Key Term
+
+##### Modifier
+
+In Solidity, a modifier is used to modify the behavior of a function.
+- Typically: to check the repetitive preconditions
+- Modifiers must include at least one `_`, which represents a call to the modified function.
+
+Example:
+
+```
+modifier onlyOwner {
+    require(msg.sender == owner);
+    _;
+}
+```
+
+#### Notes from the video
+
+Initial Thoughts:
+
+Modifiers: Similar to Decorators
+- Decorators: a function that takes another function and extends the behavior of the latter function without explicitly modifying it.
+- Modifiers: used to modify the behaviour of a function
+    - For example to add a prerequisite to a function
+
+Both avoid us to write repetitive code!
+
+##### Pre-Conditions Without Modifiers
+
+```
+contract HelloWorld {
+    address owner;
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    function test1() public {
+        require(msg.sender == owner);
+        ...
+    }
+
+    function test1() public {
+        require(msg.sender == owner);
+        ...
+    }
+}
+
+```
+
+Notice how the same require statement is in each function:
+- It can be annoying having to copy and paste all of this code!
+    - Plus, if you have a mistake/bug, you have to change all of them by hand.
+
+##### Making Modifiers
+
+How to make a modifier:
+1. Specify modifier (rather than function)
+2. Add parameters (optional)
+3. Add require statements
+4. Finish with an _;
+
+Tack this onto the end of function declarations (before return statements), and this will be called before the function is!
+
+Example:
+
+```
+contract HelloWorld {
+    address owner;
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    modifier onlyOwner {
+        require(msg.sender == owner);
+        _;
+    }
+
+    function test1() public view onlyOwner returns (uint) {
+        return 1;
+    }
+
+    function test2() public view onlyOwner returns (uint) {
+        return 2;
+    }
+}
+
+```
+
+What will happen now when we call these functions:
+- We will look into the modifier
+    - Require statements are checked
+    - _; is executed to execute the function
+        - Without this, nothing will happen (_ basically means "execute the function")
+
+Here is another example that can help explain what is going on:
+
+```
+pragma solidity >=0.4.22 <=0.8.17;
+
+contract HelloWorld {
+    address owner;
+    uint public modifierCount;
+    uint public value;
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    modifier onlyOwner {
+        require(msg.sender == owner);
+        modifierCount++;
+        _;
+    }
+
+    function test1(uint x) public onlyOwner {
+        value = x;
+    }
+}
+
+```
+
+What is going on here when we deploy:
+1. modifierCount
+- 0, that is the default value for uint
+2. test1()
+- This sets the value of 6
+3. value
+- This returns the value we set of 6
+4. modifierCount
+- We get 1, because calling test1() incremented the public state value
+5. Switch to a different account and try running test1()
+- Fails, because the modifier onlyOwner is ran, and the require statement fails
+
+See how we can make our code more readable by naming our pre-conditions!
+
+##### Modifier Parameters
+
+Let's write another re-usable modifier:
+- This one is passing parameters to the modifier
+    - ie. 1 ether/2 ether/3 ether are `value`
+
+```
+contract HelloWorld {
+    uint x;
+    uint y;
+    uint z;
+
+    modifier costs(uint value) {
+        require(msg.value >= value);
+        _;
+    }
+
+    function setX(uint num) public payable costs(1 ether) {
+        x = num;
+    }
+
+    function setY(uint num) public payable costs(2 ether) {
+        y = num;
+    }
+
+    function setZ(uint num) public payable costs(3 ether) {
+        z = num;
+    }
+    
+}
+
+```
+
+What is going on here when we deploy:
+1. setX()
+- If we do less than 1 ether, contract fails
+- if we do 1 ether or more, contract goes through
+
+2. setY() and setZ() work the same exact way!
+
+##### Modifier With Function Parameters / Multiple Modifiers
+
+Can we pass the parameters from a function to our modifier?
+- Yes! Look at this extended example with 2 modifiers
+
+```
+contract HelloWorld {
+    uint x;
+    uint y;
+    uint z;
+
+    modifier costs(uint value) {
+        require(msg.value >= value);
+        _;
+    }
+
+    modifier greaterThan(uint value, uint min) {
+        require(value > min);
+        _;
+    }
+
+    function setX(uint num) public payable costs(1 ether) greaterThan(num, 10) {
+        x = num;
+    }
+
+    function setY(uint num) public payable costs(2 ether) greaterThan(num, 10) {
+        y = num;
+    }
+
+    function setZ(uint num) public payable costs(3 ether) greaterThan(num, 10) {
+        z = num;
+    }
+    
+}
+
+```
+
+##### Modifier Order
+
+Now that we know how Modifiers work, let's see how they work at a lower level and see what is actually happening ie. how many times our function is being called when we call a modifier.
+
+Take a look at this example:
+
+```
+contract HelloWorld {
+    uint public x;
+    uint public count;
+
+    modifier costs(uint value) {
+        require(msg.value >= value, "costs");
+        _;
+    }
+
+    modifier greaterThan(uint value, uint min) {
+        require(value >= min, "greater than");
+        _;
+    }
+
+    function setX(uint num) public payable costs(1 ether) greaterThan(num, 10) {
+        x = num;
+        count++;
+    } 
+}
+
+```
+
+Takeaways:
+- Even if you have multiple modifiers, your function is only called one time
+- The modifiers are called in the order they are placed in the function declaration.
+    - The 1st modifier is called, and when it gets to _;, it calls the 2nd modifier
+        - Then the 2nd modifier is called, it gets to _;, and the function is called
+
+##### Multiple _'s
+
+The point of multiple _'s: Call the next thing that many times!
+- Not sure why you would want to do this, but you can
+    - Might be applicable if you are using if-statements
+
+Let's look at the above example, but slightly changed:
+
+```
+contract HelloWorld {
+    uint public x;
+    uint public count;
+
+    modifier costs(uint value) {
+        require(msg.value >= value, "costs");
+        _;
+    }
+
+    modifier greaterThan(uint value, uint min) {
+        require(value >= min, "greater than");
+        if (true) {
+            _;
+        }
+        setX(1);
+    }
+
+    function setX(uint num) public payable costs(1 ether) greaterThan(num, 10) {
+        x = num;
+        count++;
+    } 
+}
+
+```
+
+What happens here:
+- setX() will increment count 3x, due to the fact that greaterThan() has 3 _'s
+
+##### Practice Questions
+
+1. In Solidity, it is valid to use multiple modifiers for a function.
+- True
+
+2. In Solidity, modifiers must contain exactly one _.
+- False
+
+3. Examine the modified function below.
+
+```
+function func() public a b c pure returns (uint8) {
+    return 1;
+}
+```
+
+Which modifier will be executed first?
+
+My answer: a
+
+Explanation: The modifier a will be called first, because Modifiers are called in the order in which they are written.
+
+4. Restricted Count
+
+Write a smart contract named `RestrictedCount` that allows the owner/deployer of a smart contract to manipulate the value of a count variable. This contract should simply keep track of a count. The count should start at zero and have a maximum value of 100 and a minimum value of -100. Use modifiers to check all preconditions on the functions listed below.
+
+To complete this smart contract, implement the following functions. Ensure each function you write is `public`, has the same name, same parameters, and same return values as what is specified below. Recall, these functions should only be callable by the owner/deployer of the contract.
+
+- `getCount()`: a function that returns an `int` representing the current count.
+- `add(int value)`: a function that adds the passed `value` to the count. This function should fail if adding the `value` causes the count to be greater than the maximum or less than the minimum value.
+- `subtract(int value)`: a function that subtracts the passed `value` from the count. This function should fail if adding the `value` causes the count to be greater than the maximum or less than the minimum value.
+
+My answer:
+
+```
+pragma solidity >=0.4.22 <=0.8.17;
+
+contract RestrictedCount {
+    // Write your code here
+    address owner;
+    int256 count;
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    modifier onlyOwner {
+        require(msg.sender == owner);
+        // modifierCount++;
+        _;
+    }
+
+    modifier checkCountAddition(int value) {
+        require(count + value > -101);
+        require(count + value < 101);
+        _;
+    }
+
+    modifier checkCountSubtraction(int value) {
+        require(count - value > -101);
+        require(count - value < 101);
+        _;
+    }
+
+    function getCount() public view onlyOwner returns (int) {
+        return int(count);
+    }
+
+    function add(int value) public onlyOwner checkCountAddition(value) returns (int) {
+        count += value;
+    }
+
+    function subtract(int value) public onlyOwner checkCountSubtraction(value) returns (int) {
+        count -= value;
+    }   
+}
+
+```
