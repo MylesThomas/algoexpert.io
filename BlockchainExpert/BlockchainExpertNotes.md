@@ -7928,3 +7928,212 @@ contract MathUtils {
 }
 
 ```
+
+### 2 - Time and Time Units
+
+Time is one of the most common inputs for a smart contract to react to as part of its execution. So grab a snack or a beverage and make some time for this lesson!
+
+#### Key Terms
+
+##### Time Units
+
+In Solidity, there are various built in time units. These units make it easier to work with time and timestamps. The following are valid time units in Solidity:
+- `seconds`
+- `minutes`
+- `hours`
+- `days`
+- `weeks`
+
+##### Unix Epoch
+
+The Unix Epoch is the time 00:00:00 UTC on 1 January 1970.
+
+#### Notes from the video
+
+Remember: Contracts are passive - they can only do something when they are called or a transaction is sent to them
+- Not really a way to do something at a specific time
+    - We can only check what the time is, and respond to whatever is given to use
+        - respond to transaction/call (using time)
+
+##### block.timestamp
+
+How to get the time
+- block (variable)
+- .timestamp (timestamp when block was added to the blockchain ie. when it was mined)
+    - note: multiple transactions will have the same timestamp, if they are part of the same block on the chain
+        - keep this in mind, in case you ever tried to rely on the ordering of when contracts came in!
+
+```
+contract HelloWorld {
+    function getTime() public view returns (uint) {
+        return block.timestamp;
+    }
+}
+```
+
+What do we get here:
+- uint 256: 1663602457
+    - This is a Unix timestamp
+        - In other words: An integer that tells how many seconds have passed since the Unix Epoch
+            - This Unix Epoch date (January 1st 1970) is used all across Computer Science
+
+##### Unix Epoch
+
+Unix Epoch: January 1st 1970
+
+##### Time Units
+
+Time Units Arithmetic:
+
+```
+contract HelloWorld {
+    function getTime() public view returns (uint) {
+        return block.timestamp + 1 minutes;
+        return block.timestamp - 1 days;
+        return block.timestamp - 7 days;
+        
+    }
+}
+```
+
+##### Smart Contract Examples
+
+Next, let's utilize time as part of the logic for our smart contract:
+
+```
+contract HelloWorld {
+    uint expiry;
+    uint count;
+
+    constructor() {
+        expiry = block.timestamp + 1 minutes;
+    }
+
+    function addOne() public (uint) {
+        require(block.timestamp < expiry);
+        count++;
+    }
+}
+
+```
+
+What is going on here:
+- You can only use this contract for 1 minute
+    - After that 1 minute, the contract is useless/obsolete
+
+Next Example: Let's get the number of minutes since the last call
+
+```
+contract HelloWorld {
+    uint public lastTime;
+
+    constructor() {
+        lastTime = block.timestamp;
+    }
+
+    function increment() public {
+        count++;
+        lastTime = block.timestamp;
+    }
+
+    function getMinutesSinceLastCall() public view returns (uint) {
+        return (block.timestamp - lastTime); // this returns in seconds
+        return (block.timestamp - lastTime) / 1 minutes; // this returns in minutes
+    }
+}
+
+```
+
+What is going on here:
+- if we just clicked it, it returns 0 minutes
+- if 1 minute has elapsed, so it returns 1 minute
+
+##### Practice Questions
+
+1. What date is the UNIX epoch?
+- Jan 1, 1970
+
+2. Which of the following are valid time units in Solidity? Select all that apply.
+- seconds
+- minutes
+- hours
+- days
+- weeks
+
+3. Write a contract named `TimedAuction` that runs an auction for exactly 5 minutes. Once the 5 minutes has passed, the winner of the auction can be determined and the owner/deployer of the contract can claim the winning bid. The 5 minute "timer" should start immediately after the contract is deployed. To complete this smart contract, write the following functions and emit the following events.
+
+Functions:
+- `bid()`: a payable function that accepts a bid from a user. This function should fail if the bid is less than or equal to the current bid OR if the auction is over. If a bid is valid, it should emit the `Bid` event. Note: that since each bid is unique, a user could outbid themselves by sending a larger amount, in that case they should be able to withdraw their previous bid amount(s).
+- `withdraw()`: allows a user to withdraw any bid amounts they have sent that is not currently the highest bid.
+- `withdraw()`: this function should destroy the contract and send the winning bid amount to the owner/deployer of the contract. This function should fail if called by anyone other than the owner/deployer or if the auction has not yet ended. This function should also fail if all users have not yet withdrawn their previous bids.
+- `getHighestBidder()`: this function should return the address of the current highest bidder.
+
+Events:
+- `Bid(address index sender, uint256 amount, uint256 timestamp)`;
+
+My answer:
+
+```
+// Copyright © 2023 AlgoExpert LLC. All rights reserved.
+
+pragma solidity >=0.4.22 <=0.8.17;
+
+contract TimedAuction {
+    address highestBidder;
+    uint256 highestBid;
+
+    mapping(address => uint256) oldBids;
+    uint256 totalWithdrableBids;
+    // need this in case users try to tamper with the contract
+    // by sending funds without using the bid() function
+
+    address owner;
+    uint256 startTime;
+
+    event Bid(address indexed sender, uint256 amount, uint256 timestamp);
+
+    constructor() {
+        owner = msg.sender;
+        startTime = block.timestamp;
+    }
+
+    function bid() external payable {
+        require(block.timestamp - startTime < 5 minutes, "auction is over");
+        require(msg.value > highestBid, "bid is too low");
+
+        oldBids[highestBidder] += highestBid;
+        totalWithdrableBids += highestBid;
+
+        highestBidder = msg.sender;
+        highestBid = msg.value;
+        emit Bid(msg.sender, msg.value, block.timestamp);
+    }
+
+    function withdraw() public {
+        uint256 amount = oldBids[msg.sender];
+        oldBids[msg.sender] = 0;
+        totalWithdrableBids -= amount;
+
+        (bool sent, ) = payable(msg.sender).call{value: amount}("");
+        require(sent, "transfer failed");
+    }
+
+    function claim() public {
+        require(msg.sender == owner);
+        require(
+            block.timestamp - startTime >= 5 minutes,
+            "auction has not completed yet"
+        );
+        require(
+            totalWithdrableBids == 0,
+            "not all users have claimed their bids yet"
+        );
+        selfdestruct(payable(owner));
+    }
+
+    function getHighestBidder() public view returns (address) {
+        return highestBidder;
+    }
+}
+
+```
