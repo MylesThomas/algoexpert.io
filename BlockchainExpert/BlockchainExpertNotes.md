@@ -8074,8 +8074,6 @@ Events:
 My answer:
 
 ```
-// Copyright © 2023 AlgoExpert LLC. All rights reserved.
-
 pragma solidity >=0.4.22 <=0.8.17;
 
 contract TimedAuction {
@@ -8133,6 +8131,196 @@ contract TimedAuction {
 
     function getHighestBidder() public view returns (address) {
         return highestBidder;
+    }
+}
+
+```
+
+### 3 - Structs
+
+This lesson will in-struct—pun intended—you on the topic of structs.
+
+#### Key Term
+
+##### Struct
+
+In Solidity, a `struct` is a typed collection of fields that can be treated like a custom type.
+- Structs are useful for grouping data together
+
+```
+struct Book {
+    string title;
+    string author;
+    uint book_id;
+}
+```
+
+#### Notes from the video
+
+##### Creating Structs / Struct Member Access
+
+Structs:
+- Can have different types of fields
+    - At init, the values are the default for that dtype
+        - Unless you define with a key-value pair syntax
+- We must "store our structs"
+    - 
+- You can have the following:
+    - dynamically sized arrays
+    - structs within structs
+
+```
+contract HelloWorld {
+    mapping(address => Person) people;
+
+    struct Person {
+        string name;
+        address addr;
+        uint balance;
+    }
+
+    function createPerson(string memory name) public payable {
+        // Either of these work
+        Person memory p; // this creates a Struct with default values
+        Person memory p = Person({name: name, balance: msg.value, addr: msg.sender}); // define the values w/ key-value pair syntax
+
+        people[msg.sender] = p;
+
+        function getName() public view returns (string memory) {
+            return people[msg.sender].name;
+        }
+
+        function setName(string memory newName) public {
+            people[msg.sender].name = newName;
+        }
+    }
+}
+
+```
+
+##### Struct Examples
+
+How to do some more advanced stuff!
+
+```
+contract HelloWorld {
+    mapping(address => Person) people;
+
+    struct Person {
+        string name;
+        address addr;
+        Person[] friends;
+    }
+        function setName(string memory name) public {
+            people[msg.sender].addr = msg.sender;
+            people[msg.sender].name = name;   
+        }
+
+        function addFriend(address friend) public {
+            require(people[friend].addr != address(0), "friend has not set name");
+            people[msg.sender].friends.push(people[friend]);
+        }
+
+        function getFriendNames() public view returns (string[] memory) {
+            uint numNames = people[msg.sender].friends.length;
+            string[] memory names = new string[](numNames);
+            for (uint idx; idx < numNames; idx++) {
+                names[idx] = people[msg.sender].friends[idx].name;
+            }
+            return names;
+        }
+    }
+
+```
+
+How this works: Start by Deploying to Remix VM (Shanghai)
+1. setName: Myles
+- getFriendNames(), return value is "0": "string[]: "
+
+2. Switch Account to 2nd option
+
+3. setName: Chris
+- getFriendNames(), return value is "0": "string[]: "
+- Copy address for Chris before moving on
+
+4. Swtich Account back to 1st option
+- addFriend() with address we copied
+- getFriendNames(), return value is "0": "string[]: Chris"
+
+##### Practice Questions
+
+1. Shopping List
+- Write a smart contract named `ShoppingList` that allows users to create and keep track of their shopping list. To complete this smart contract, create multiple structs (as you deem necessary) and implement the following solutions.
+
+Each user that interacts with the `ShoppingList` contract should be able to have multiple shopping lists. Each shopping list should be accessible using a `string` name. Each shopping list should be able to store multiple items. Each item will have a name and a quantity.
+- `createList(string memory name)`: creates a new shopping list for the user calling the function. If the list name passed is empty or it already exists, this function should fail.
+- `getListNames()`: returns a `string` array containing the names of all the lists the calling user has.
+- `addItem(string memory listName, string memory itemName, uint itemQuantity)`: adds an item with the specified name and quantity to the specified list. This function should fail if the given `listName` does not exist.
+- `getItemNames(string memory listName)`: returns a `string` array containing the names of all of the items in the specified list. This function should fail if the list with the given name does not exist. 
+
+Hint: converting string to bytes and checking if the length of the bytes object is 0 can be a good way to determine if a string is empty.
+
+My answer:
+
+```
+pragma solidity >=0.4.22 <=0.8.17;
+
+contract ShoppingList {
+    mapping(address => User) users;
+
+    struct User {
+        mapping(string => List) lists;
+        string[] listNames;
+    }
+
+    struct Item {
+        string name;
+        uint256 quantity;
+    }
+
+    struct List {
+        string name;
+        Item[] items;
+    }
+
+    function listExists(string memory name) internal view returns (bool) {
+        // if name of accessed list is empty than list has not been created
+        return bytes(users[msg.sender].lists[name].name).length != 0;
+    }
+
+    function createList(string memory name) public {
+        require(!listExists(name), "a list with this name already exists");
+        require(bytes(name).length > 0, "name cannot be empty");
+        users[msg.sender].listNames.push(name);
+        users[msg.sender].lists[name].name = name;
+    }
+
+    function getListNames() public view returns (string[] memory) {
+        return users[msg.sender].listNames;
+    }
+
+    function getItemNames(string memory listName)
+        public
+        view
+        returns (string[] memory)
+    {
+        require(listExists(listName), "no list with this name exists");
+        string[] memory names = new string[](
+            users[msg.sender].lists[listName].items.length
+        );
+        for (uint256 idx; idx < names.length; idx++) {
+            names[idx] = users[msg.sender].lists[listName].items[idx].name;
+        }
+        return names;
+    }
+
+    function addItem(
+        string memory listName,
+        string memory itemName,
+        uint256 quantity
+    ) public {
+        require(listExists(listName), "no list with this name exists");
+        users[msg.sender].lists[listName].items.push(Item(itemName, quantity));
     }
 }
 
