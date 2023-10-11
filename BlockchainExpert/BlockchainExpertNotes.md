@@ -8695,3 +8695,177 @@ contract RestrictedCount {
 }
 
 ```
+
+### 5 - Enums
+
+In this lesson, we'll enumerate all the problems that enums solve. See what we did there?
+
+#### Key Term
+
+##### Enum
+
+In Solidity, `enum`'s are a type that allow you to restrict a variable to a predefinedd list of values. `enum` stands for enumeration and can be defined as follow:
+
+```
+enum Sizes {
+    SMALL,      // 0
+    MEDIUM,     // 1
+    LARGE       // 2
+}
+```
+
+Each value in an `enum` is encoded with a `uint` value starting from `0`.
+
+#### Notes from the video
+
+##### Problems Enums Solve
+
+Let's say we are writing a contract and we 3 status states:
+- Pending
+- Shipped
+- Delivered
+
+We need a way to code this categorically!
+- Compared strings is more expensive and harder to implement.
+- Why we use Enums:
+    - Lets us declare our own customs types
+
+##### Creating Enums / Resetting Enums
+
+```
+contract HelloWorld {
+    uint status = 1; // this is SUPER VAGUE (DO NOT DO THIS)
+
+    enum Status {
+        Pending,    // 0
+        Shipped,    // 1
+        Delivered   // 2
+    }
+
+    Status public status; // Store it (default value: Pending ie. 0)
+
+    function setShipped() public {
+        status = Status.Shipped; // update our status
+    }
+
+    function isDelivered() public view returns (bool) {
+        return status == Status.Delivered;
+        return status == 2; // essentially the same
+    }
+
+    // This will reset the value back to its default, in this case 0 ie. Pending
+    function reset() public {
+        delete status;
+    }
+}
+```
+
+##### Practice Questions
+
+1. Examine the `enum` below:
+
+```
+enum Size {
+  SMALL,
+  MEDIUM,
+  LARGE,
+  EXTRA_LARGE    
+}
+```
+
+What is the numeric value of Size.LARGE?
+- 2
+
+2. Fancy Shirts
+
+Write a smart contract named `FancyShirts` that allows users to purchase different types of shirts. When purchasing shirts, users will enter their preferred color and size and must send the exact amount of ether (according to the price of their selection). If a purchase is successful, then the user's shirt will be added to their closet, which will be stored in the smart contract.
+
+The valid sizes of shirt are Small, Medium, and Large, while the valid colors are Red, Green, and Blue. Small shirts cost 10 wei, Medium cost 15 wei and Large cost 20 wei. The standard shirt color is Red which comes at no additional cost, selecting either Green or Blue adds an additional 5 wei to the price. To represent the options above, create a `Size` and `Color` enum that contain the options in the order they were listed (ie. use the order Small, Medium, Large AND Red, Green, Blue). Make sure the order of your options are correct, otherwise your contract will fail the automated tests.
+
+To complete this contract, write the following public functions:
+- `getShirtPrice(Size size, Color color)`: a function that returns the price of buying a shirt (in wei) with the given `size` and `color`.
+- `buyShirt(Size size, Color color)`: a payable function that allows a user to purchase a shirt with the given `size` and `color`. This function should fail if the user does not send exactly the correct amount of ether corresponding to the price of the shirt.
+- `getShirts(Size size, Color color)`: a function that returns the number of shirts the calling user has purchased that match the passed `size` and `color`.
+
+Hint: It may be helpful to use a struct to keep track of shirts users have purchased.
+
+My answer:
+
+```
+pragma solidity >=0.4.22 <=0.8.17;
+
+contract FancyShirts {
+    // Write your code here
+    enum Size {
+        Small,
+        Medium,
+        Large
+    }
+
+    enum Color {
+        Red,
+        Green,
+        Blue
+    }
+
+    struct Shirt {
+        Size size;
+        Color color;
+    }
+
+    mapping(address => Shirt[]) shirts;
+
+    modifier correctAmount(Size size, Color color) {
+        require(
+            getShirtPrice(size, color) == msg.value,
+            "incorrect amount of ether sent!"
+        );
+        _;
+    }
+
+    function getShirtPrice(Size size, Color color)
+        public
+        pure
+        returns (uint256)
+    {
+        uint256 price;
+        if (size == Size.Small) {
+            price += 10;
+        } else if (size == Size.Medium) {
+            price += 15;
+        } else {
+            price += 20;
+        }
+
+        if (color != Color.Red) {
+            price += 5;
+        }
+
+        return price;
+    }
+
+    function buyShirt(Size size, Color color)
+        public
+        payable
+        correctAmount(size, color)
+    {
+        Shirt memory shirt = Shirt(size, color);
+        shirts[msg.sender].push(shirt);
+    }
+
+    function getShirts(Size size, Color color) public view returns (uint256) {
+        uint256 count;
+        for (uint256 idx; idx < shirts[msg.sender].length; idx++) {
+            if (
+                shirts[msg.sender][idx].size == size &&
+                shirts[msg.sender][idx].color == color
+            ) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+}
+
+```
