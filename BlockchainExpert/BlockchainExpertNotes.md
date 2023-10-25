@@ -9399,3 +9399,238 @@ contract TaxedItem is Item {
 }
 
 ```
+
+### 7 - Abstract Contracts
+
+Warning: this is a tricky topic! Abstract contracts are—both ironically and unsurprisingly—fairly abstract.
+
+#### Key Term
+
+##### Abstract Contract
+
+An abstract contract is only used as a base/parent contract and cannot be instantiated. It typically contains at least one abstract function (i.e., a function marked as `virtual`)
+
+#### Notes from the video
+
+##### Abstract Contracts
+
+Abstract contract: A contract that contains 1 or more functions that don't have any implementation
+- They cannot be instantiated
+- Purpose: Be a base contract for another contract
+    - It is different that base/parent contract, because those can be used/instantiated
+
+- More traits of Abstract contract:
+    - You can have the same state, variables, etc.
+    - You can define abstract functions ie. a function without an implementation
+        - These are only valid in abstract contracts
+        - If you don't put `virtual` in the function definition, you will get an error
+
+```
+abstract contract AbstractMath {
+    function return1() public pure returns (uint) {
+        return 1;
+    }
+
+    // abstract function
+    function getValue() public virtual view returns (uint);
+
+    // relies on the abstract function
+    function add5() public view returns (uint) {
+        return getValue() + 5;
+    }
+}
+```
+
+What happened here:
+- 
+
+##### Implementing Abstract Contracts
+
+Let's look at a concrete class/contract that implements this:
+
+```
+abstract contract AbstractMath {
+    ...
+}
+
+contract Math is AbstractMath {
+
+}
+```
+
+What happens before we even start writing our function:
+- The error says "Contract Math should be marked as abstract, UNLESS you implement the function `getValue()`"
+    - ie. you need to declare another getValue(), using the inheritance/override capability
+
+Let's look at it in action:
+
+```
+abstract contract AbstractMath {
+    ...
+}
+
+contract Math is AbstractMath {
+    uint x;
+
+    function setX(uint _x) public {
+        x = _x;
+    }
+
+    // override function
+    function getValue() public override view returns (uint) {
+        return x;
+    }
+
+}
+
+```
+
+What is going on here:
+1. `Math` (A concrete contract) inherits from `AbstractMath` (A base contract)
+2. `Math` declares an implementation/overrides `getValue()`
+- It must do this, or it has to be an abstract class/contract itself (not what we want!)
+
+We will now have all functionality from `AbstractMath`, including `add5()`!
+
+Note: We must deploy `Math` in Remix IDE (You cannot deploy an abstract contract)
+
+After deploying `Math`, this is what happens:
+1. setX: 10
+2. getValue: Returns a 10
+3. return1: Returns a 1
+4. add5
+5. getValue: Returns a 15
+6. setX: 15
+7. getValue: Returns a 20
+
+Point of an abstract contract: You are going to have some functions that are not yet implemented, but their implementation is relied on (with the functionality in the abstract contract)
+- Example: `add5()` only works if `getValue()` is implemented
+    - We force anything that inherits from `AbstractMath` to have a `getValue()` function
+    - Useful, because we can know whether a function has implementation of `getValue()`
+
+
+Key things to remember:
+- You cannot instantiate an abstract contract
+    - It is supposed to be a base/parent for some other contract
+- Inside of an abstract contract, you can define abstract functions
+    - mark them as `virtual`
+    - they must be overriden by any contract that inherits from this abstract contract
+
+Notes:
+- You can do a similar thing that we did in the previous contract with the `Item` contract for Milk/Item/Shirt
+    - Item could be an abstract contract, and force that getPrice() be implemented in each inheriting contract
+    - Good example: We never instantiated item, but we sure wanted to/needed to use it for the others!
+
+##### Abstract Constructors
+
+Last thing: How contructors can force a contract to be Abstract
+
+Let's take a look at this example:
+
+```
+abstract contract Test {
+    uint x;
+
+    contructor(uint _x) internal {
+        x = _x;
+    }
+}
+
+contract A is Test(2) {
+    ...
+}
+
+```
+
+What happened here:
+- Constructors by default are `public`
+    - When we mark it as `internal`, we get an error because a non-abstract contract cannot have internal constructors
+        - Why? Because we cannot create an instance of this contract 
+        - Remember: Internal means we can only call the constructor from a derived/child contract OR from inside the contract itself
+
+- Fix: Make `Test` an abstract conctract
+    - Now, the interal constructor is abstract and contract `A` is able to inherit from Test()
+
+Notes:
+- Once we made `Test` abstract, We did not need to mark the constructor as internal
+    - Marking it as internal is good practice for us to understand what is going on.
+
+##### Practice Questions
+
+1. An abstract contract can only contain abstract functions.
+- False
+
+2. Any contract that inherits from an abstract contract must implement all of it's abstract functions?
+- True
+
+Explanation: Any child contract that inherits from an abstract contract must override/implement all of it's abstract functions.
+
+3. A constructor defined in an abstract contract must have which visibility modifier?
+- internal
+
+4. Sign Up Bonus
+
+Write an abstract contract named `SignUpBonus` that acts like a bank account, allowing users to deposit and withdraw funds. It should keep track of the balances of each depositor and incentivize users to deposit funds by providing a sign up bonus. This contract should implement the following functions:
+
+- `getBonusAmount()`: an internal abstract function that returns a `uint` representing the sign up bonuses users should receive. This function must be implemented by any child/derived contracts.
+
+- `getBonusRequirements()`: an internal abstract function that returns a `uint` representing the minimum deposit amount required to recieve a sign up bonus. This function must be implemented by any child/derived contracts.
+
+- `deposit()`: a public payable function that allows a user to deposit any amount of ether. If this is the user's first deposit and they deposit an amount greater than or equal to the requirement from `getBonusRequirement()`, they should receive a sign up bonus equivalent to that returned by `getBonusAmount()`. This sign up bonus should simply be added to their account balance that is tracked by the smart contract.
+
+- `withdraw(uint amount)`: a public function that allows a user to withdraw the specified `amount`. This function should fail if the user attempts to withdraw more funds than they have available. If the users passes a valid `amount`, their balance should be adjusted accordingly and they should be sent the specified funds.
+
+- `getBalance()`: a public function that returns the balance of the caller as a `uint`.
+
+You may assume that this contract will always have a sufficient balance to handle sign up bonuses. You do not need to write a `receive` of `fallback` function.
+
+After writing the SignUpBonus contract, write a contract named `Bank` that inherits from `SignUpBonus` and implements the abstract functions. This contract should give a sign up bonus of `150 wei` if the user's first deposit is at least `100 wei`.
+
+Note: Ensure that all your function names, visibility modifiers, parameters, and return types are the same as specified above otherwise your code will not pass our automated tests.
+
+My answer:
+
+```
+// Copyright © 2023 AlgoExpert LLC. All rights reserved.
+
+pragma solidity >=0.4.22 <=0.8.17;
+
+abstract contract SignUpBonus {
+    mapping(address => uint256) balances;
+    mapping(address => bool) deposited;
+
+    function getBonusAmount() internal pure virtual returns (uint256);
+
+    function getBonusRequirement() internal pure virtual returns (uint256);
+
+    function deposit() public payable {
+        if (!deposited[msg.sender] && msg.value > getBonusRequirement()) {
+            balances[msg.sender] += getBonusAmount();
+        }
+        deposited[msg.sender] = true;
+        balances[msg.sender] += msg.value;
+    }
+
+    function withdraw(uint256 amount) public {
+        require(balances[msg.sender] >= amount, "invalid amount");
+        balances[msg.sender] -= amount;
+        (bool sent, ) = payable(msg.sender).call{value: amount}("");
+        require(sent, "failed to send");
+    }
+
+    function getBalance() public view returns (uint256) {
+        return balances[msg.sender];
+    }
+}
+
+contract Bank is SignUpBonus {
+    function getBonusAmount() internal pure override returns (uint256) {
+        return 150 wei;
+    }
+
+    function getBonusRequirement() internal pure override returns (uint256) {
+        return 1000 wei;
+    }
+}
+
+```
