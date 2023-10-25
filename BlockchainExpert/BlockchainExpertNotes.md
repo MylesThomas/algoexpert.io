@@ -8869,3 +8869,533 @@ contract FancyShirts {
 }
 
 ```
+
+
+### 6 - Inheritance
+
+Much like biological organisms pass down traits from parent to offspring through the process of heredity, smart contracts pass down properties from parent to child through the process of inheritance.
+
+#### Key Term
+
+##### Inheritance
+
+In Solidity, inheritance refers to when a contract derives/uses the functionality from another contract.
+- Inheritance is a way of reusing/extending functionality
+
+#### Notes from the video
+
+So far we have been using 1 contract - it is time to use contracts that use OTHER contracts!
+
+##### Instantiating Contracts
+
+```
+pragma solidity >=0.4.22 <=0.8.17;
+
+contract Storage {
+    uint public x;
+
+    function setX(uint newX) public {
+        x = newX;
+    }
+}
+
+contract Caller {
+    Storage store; // storage is a type, so we use store to take the other contract
+
+    constructor() {
+        store = new Storage();
+    }
+
+    function setX(uint x) public {
+        store.setX()
+    }
+
+    function getX() public view returns {
+        return store.x(); // returns the value of x, since a getter is created
+    }
+}
+
+```
+
+Note: When you Inherit from another contract, a getter function is automatically created for each public variable, ie. `public x` becomes `x()`
+
+What is going on here:
+- Contract 1: Storage
+    - Stores the value in `public x`
+- Contract 2: Caller
+    - Accesses the value `public x` from Contract `Storage`
+
+What happens when we deploy the Contract `Caller`:
+1. setX(100)
+2. getX
+- Returns 100
+3. setX(1001)
+4. getX
+- Returns 1001
+
+It works as expected!
+
+We can add multiple instances of `Storage` into our `Caller` contract, if we'd like:
+
+```
+pragma solidity >=0.4.22 <=0.8.17;
+
+contract Storage {
+    uint public x;
+
+    function setX(uint newX) public {
+        x = newX;
+    }
+}
+
+contract Caller {
+    Storage store;
+    Storage store2;
+
+    constructor() {
+        store = new Storage();
+        store2 = new Storage();
+    }
+
+    function setX(uint x) public {
+        store.setX()
+    }
+
+    function getX() public view returns {
+        return store.x(); // returns the value of x, since a getter is created
+    }
+
+    function setX2(uint x) public {
+        store2.setX()
+    }
+
+    function getX2() public view returns {
+        return store2.x(); // returns the value of x, since a getter is created
+    }
+    
+}
+
+```
+
+##### Inheritance
+
+Things to know about Inheritance:
+- Base/parent contract: The contract you inherit from
+- Derived/child contract: The contract that is deriving from another
+
+```
+contract Storage {
+    uint public x;
+
+    function setX(uint newX) public {
+        x = newX;
+    }
+}
+
+// Child is inheriting from Storage
+// You can inherit from more than 1 contract with this syntax: contract Child is Storage, Storage2
+contract Child is Storage {
+    // NO setX(), but if you deploy it, you will have setX() via inheritance
+
+    function getX() public view returns (uint) {
+        return x;
+    }
+}
+
+```
+
+Now, remember:
+- public vs. private:
+    - public: anyone can view it, even if not on the blockchain
+    - private: only this contract, no derived/children
+- internal vs. external:
+    - internal: only this contract, or child contracts
+    - external: only those outside (no children)
+
+##### Function Overriding
+
+Why we want to inherit: We do not want to re-write code
+
+What happens if the Parent function also has the same function?
+- Other programming languages: Child class trumpts Parent class
+- Solidity: You MUST mark functions in the Parent/Child classes with a special keyword
+    - This is done via `virtual` in the Parent, and `override` in the Child
+
+Example:
+
+```
+contract Storage {
+    uint x;
+
+    function setX(uint newX) public {
+        x = newX;
+    }
+
+    function getX() public virtual view returns (uint) {
+        return x + 10;
+    }
+}
+
+contract Child is Storage {
+    function getX() public override view returns (uint) {
+        return x + 10;
+    }
+}
+
+```
+
+##### Function Overloading
+
+Overriding vs. Overloading:
+- Overriding: Changing Implementation of an existing function
+- Overloading: Providing a function that has the same name, but different parameters
+
+In the following example, you will get able to use BOTH getX() functions!
+
+```
+contract Storage {
+    uint x;
+
+    function setX(uint newX) public {
+        x = newX;
+    }
+
+    function getX() public virtual view returns (uint) {
+        return x + 10;
+    }
+}
+
+contract Child is Storage {
+    function getX(uint add) public view returns (uint) {
+        return x + add;
+    }
+}
+
+```
+
+##### super Keyword
+
+super: References methods/variable/etc. from the Base/Parent contract
+- In the examples above with overriding, this is how you'd would access the first getX() from the Parent.
+
+##### Inheritance with Constraints
+
+What happens if you have a constructor in the Parent, and then you want to inherit from the Parent?
+- You need to pass the value in.
+
+In the following code chunk, we will assume that the parent has the following constructor:
+
+```
+constructor(uint startingValue) {
+    x = startingValue;
+}
+```
+
+This can be done a number of ways, such as:
+
+```
+// 1. Pass into Inheritance line
+contract Child is Storage(4) {
+    ...
+}
+
+// 2. Pass name of Contract into 2nd constructor
+contract Child is Storage {
+    constructor(uint startingValue) Storage(startingValue) {
+        // leave this empty, as it inherits
+    }
+}
+```
+
+This is it for single inheritance!
+
+##### Multiple Inheritance
+
+Multiple Inheritance: 
+- 
+
+Note: In other programming languages, you cannot inherit from 2 classes!
+
+Let's start with an example where we have contracts `A` and `B`, and then having contract `Child` inherit from them both:
+
+```
+pragma solidity >=0.7.0 <0.9.0;
+
+contract A {
+    uint x;
+
+    function setX(uint newX) public {
+        x = newX;
+    }
+
+    function getX() public virtual view returns (uint) {
+        return x;
+    }
+}
+
+contract B {
+    uint y;
+
+    function setY(uint newY) public {
+        y = newy;
+    }
+
+    function getY() public virtual view returns (uint) {
+        return Y;
+    }
+}
+
+contract Child is A, B {
+    function test() public view returns (uint) {
+        return super.getX() + super.getY();
+    }
+}
+
+```
+
+Note: `super` works here because the contract do not share any of the same method/variable names.
+
+Let's look at an example where they do share!
+
+```
+pragma solidity >=0.7.0 <0.9.0;
+
+contract A {
+    uint x;
+
+    function setX(uint newX) public {
+        x = newX;
+    }
+
+    function getX() public virtual view returns (uint) {
+        return x;
+    }
+}
+
+contract B {
+    uint y;
+
+    function setX(uint newY) public {
+        y = newy;
+    }
+
+    function getX() public virtual view returns (uint) {
+        return Y;
+    }
+}
+
+contract Child is A, B {
+    function getX() public override(A, B) view returns (uint) {
+        return super.getX();
+    }
+
+    function setX(uint newX) public override(A, B) (uint) {
+        super.setX(newX);
+    }
+}
+
+```
+
+Note: This cleans up errors and lets us run the code, but still doesn't help use figure out the ordering of super.getX(), ie. the Method Resolution Order
+
+##### Method Resolution Order
+
+Method Resolution Order: Take the most previously inherited Class
+- Looks left to right
+
+Note: override(A, B) would inherit A, then inherit B, so B would win over
+
+##### Inheritance Example
+
+Why would we actually use Inheritance/How do we make it useful?
+
+```
+pragma solidity >=0.7.0 <0.9.0;
+
+// Set enums in global namespace, so all Contracts can use them
+enum Size {
+    Small,
+    Medium,
+    Large
+}
+
+enum Type {
+    OnePercent,
+    TwoPercent
+}
+
+// 1.
+contract Item {
+    uint price;
+
+    constructor(uint _price) {
+        price = _price; // _price == 
+    }
+
+    function getPrice() public view returns (uint) {
+        return price;
+    }
+}
+
+// 2.
+contract Milk is Item(5) { // price == 5
+    Type milkType;
+    uint litres;
+
+    constructor(Type _milkType, uint _litres) {
+        milkType = _milkType;
+        litres = _litres;
+    }
+}
+
+// 3.
+contract Shirt is Item(10) { // price == 10
+    Size size;
+
+    constructor(Size _size) {
+        size = _size;
+    }
+}
+
+// 4. Way to keep track of all items
+contract Shopping {
+    Item[] items;
+
+    function addMilk(Type _type, uint litres) public {
+        Milk milk = new Milk(_type, litres);
+        items.push(milk);
+    }
+
+    function addShirt(Size size) public {
+        Shirt shirt = new Shirt(size);
+        items.push(shirt);
+    }
+
+    function getTotalPrice() public view returns (uint) {
+        uint price;
+        for (uint idx; idx < items.length; idx++) {
+            price += items[idx].getPrice();
+        }
+        return price;
+    }
+}
+
+```
+
+Note: All of these contract has getPrice(), so once they are in the items array, we can call getPrice() !
+
+What happens here:
+1. getTotalPrice(): 0
+2. addShirt(): 1 ie. Medium
+3. getTotalPrice(): 10
+4. addShirt(): 1 ie. Medium
+5. getTotalPrice(): 20
+6. addMilk(): 0, 2
+7. getTotalPrice(): 25
+
+##### Practice Questions
+
+1. Examine the base contract below:
+
+```
+contract Base {
+  function question(uint a) public virtual view returns (uint) {
+    ...
+  }
+}
+```
+
+Which of the below functions correctly overrides the `question` function? Imagine these functions are in a contract that inherits from `Base`.
+
+My answer:
+
+```
+function question(uint a) public override view returns (uint) {
+    ...
+}
+```
+
+Explanation:
+- In Solidity, any function marked as virtual can be overridden by a child contract that contains a function with the same signature.
+    - The function in the child class must be marked as override and the override should appear after the visibility modifer.
+
+2. Select all of the true statements as they relate to overridden and overloaded functions.
+- Overridden functions contain the same parameters and return values.
+- Overloaded functions contain the same name but different parameters or return values.
+- Functions that can be overridden must be marked as virtual.
+- Functions that can override another function must use the override keyword.
+
+Explanation:
+- In Solidity, an overridden function is one that is replaced by an identical function in a derived/child contract. Functions that can be overridden must be marked as virtual and functions that override these functions must use the override keyword.
+    - Overloading is when functions have the same names but different parameters or returns values. To overload a function no special syntax is needed, you simply write your new version of the function with different parameters and/or return values.
+
+3. Multiple inheritance supported in Solidity.
+- True
+
+4. A contract that inherits from another contract is referred to as what? Select all that apply.
+- Child
+- Derived 
+
+5. Examine the code below:
+
+```
+
+```
+
+What will the result function return when called from the D contract?
+- 3
+
+Explanation: In Solidity, the method/function resolution order is to use the most recently inherited contract. This means we start by looking in contract D for the func() function, resulting in 3 being returned by result(). If func() was not present in C then the code would look in contract B, followed by A.
+
+6. Write a base contract named `Item` and a child contract named `TaxedItem` that inherits from `Item`. The `Item` contract should represent a standard item and contain a constructor that requires a `string name` and a `uint price` be passed. This contract should store these values and implement the following functions:
+
+Functions for the `Item` contract:
+- `getName()`: a public function that returns the string name of the item.
+- `getPrice()`: a public function that returns the `uint` price of the item. This function should be able to be overrideen.
+
+The `TaxedItem` contract should inherit from `Item` and contain a constructor that requires a `string name`, `uint price` and `uint tax`. It should properly call the parent constructor and override the `getPrice()` function to account for the fixed tax amount provided by the `tax` parameter passed to the constructor. To clarify, the price of a taxed item is simply the price plus the tax, both values will be passed through the constructor.
+
+Note: make sure you use the exact names and types specified above; otherwise, your code will not pass our automated tests.
+
+My answer:
+
+```
+// Copyright © 2023 AlgoExpert LLC. All rights reserved.
+
+pragma solidity >=0.4.22 <=0.8.17;
+
+contract Item {
+    string name;
+    uint256 price;
+
+    constructor(string memory _name, uint256 _price) {
+        name = _name;
+        price = _price;
+    }
+
+    function getName() public view returns (string memory) {
+        return name;
+    }
+
+    function getPrice() public view virtual returns (uint256) {
+        return price;
+    }
+}
+
+contract TaxedItem is Item {
+    uint256 tax;
+
+    constructor(
+        string memory name,
+        uint256 price,
+        uint256 _tax
+    ) Item(name, price) {
+        tax = _tax;
+    }
+
+    function getPrice() public view override returns (uint256) {
+        return price + tax;
+    }
+}
+
+```
