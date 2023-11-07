@@ -9634,3 +9634,263 @@ contract Bank is SignUpBonus {
 }
 
 ```
+
+### 8 - Interfaces
+
+The only thing more abstract than an abstract contract.
+
+#### Key Term
+
+##### Interface
+
+In Solidity, interfaces are used to declare the functionality that deriving/implementing contracts must override. Interfaces are used to view different contracts through the same type. They have the following properties:
+- May not have any function with implementation
+- All defined functions must be marked as `external`
+- May not have a constructor
+- May not have state variables
+- May define enums and structs
+
+```interface Numeric {
+    function add(uint x) external returns (uint);
+    function subtract(uint x) external returns (uint);
+}
+```
+
+#### Notes from the video
+
+##### Interfaces
+
+Interfaces: Similar to abstract contract, but cannot contain ANY implemented functions (No concrete implementations)
+- Point of an interface: Be able to view specific contracts/functions via a specific type
+    - Essentially: Restricts access to specific functions
+        - Lets you know "this child contract/this contract has some pre-implemented function"
+
+- Rules:
+    - Visibility must be `external`
+        - Why: 
+
+    - Implicitly, these are all `virtual`
+        - Why: It will be over-written later
+
+    - Cannot define state variables
+
+Example to help explain:
+
+```
+interface ReturnsValue {
+    // define abstract functions
+    // - any contract that inherits from the interface MUST define the abstract function
+    function getValue() external view returns (string memory);
+}
+
+contract A is ReturnsValue {
+    string str;
+
+    function getValue() external override view returns (string memory) {
+        return "str;
+    }
+}
+
+```
+
+What happens here:
+- We write the interface
+- The contract inherits from/implements the interface
+
+Notes on Solidity:
+- interface: is == implements
+    - 
+- inheriting == inherit
+    - you are taking from existing functionality
+
+##### Interface as Type
+
+Let's look at another example where ...:
+
+```
+interface ReturnsValue {
+    function getValue() external view returns (string memory);
+}
+
+contract A is ReturnsValue {
+    string str = "hello world";
+
+    function getValue() external override view returns (string memory) {
+        return str;
+    }
+}
+
+contract B is ReturnsValue {
+    string str = "yes";
+
+    function getValue() external override view returns (string memory) {
+        return str;
+    }
+}
+
+contract Test {
+    ReturnsValue[] values = [ReturnsValue(new A()), ReturnsValue(new B())];
+
+    function getValues() public view returns (string[] memory) {
+        string[] memory strings = new string[](values.length); // create an array of correct size
+        for (uint idx, idx < values.length; idx++) {
+            strings[idx] = values[idx].getValue(); // all contracts have `getValue` implemented!
+        }
+        return strings;
+    }
+}
+
+```
+
+What do we get: An array of "hello world" and "yes"
+
+Notes:
+- If we were to use a function called `getValue2` and it was only in the contracts (and not in the interface ReturnsValue), it would not work.
+    - This restricts access to certain functions
+
+
+##### Abstract Contract vs Interface
+
+Interfaces: Cannot define state variables
+- Contracts can!
+
+##### Interface Rules
+
+As a reminder, here are the rules:
+1. All functions must be abstract
+- You cannot define an implementation
+
+2. Visibility must be `external` 
+
+3. Cannot have a constructor
+- This would count as an implementation
+
+4. Cannot define state variables
+
+5. You CAN define enums/structs
+
+Example:
+
+```interface ReturnsValue {
+    enum Type {
+        One,
+        Two
+    }
+
+    struct Test {
+        string name;
+    }
+
+}
+
+contract Test {
+    ...
+
+    ReturnsValue.Test // dot notation to access
+}
+
+```
+
+Why we can do this:
+- We may use enums as a type for a parameter of the return values
+- We may use structs
+
+Notes:
+- How to access enums/structs outside: Dot notation
+
+##### Takeaways on Interfaces
+
+Takeaways:
+- Only abstract functions
+
+- The point: View different types/contract through the same lense
+    - Access shared behavior on those different contracts
+
+- Used when there is no shared implementation between use-cases
+    - You can do this with abstract contracts
+        - When you do that, you are already providing implementation
+
+- When to use regular/abstract/interfaces:
+    - regular: if you need concrete implementation AND don't need anything for child contracts
+    - abstract: if you need concrete implementation
+    - interfaces: if you DO NOT need concrete implementation
+
+##### Practice Questions
+
+1. Which of the following statements are true as they relate to Solidity interfaces? Select all that apply.
+- Interfaces cannot have a constructor.
+- Interfaces cannot have state variables.
+
+Explanation: The rules for Solidity interfaces are the following.
+- Interfaces can not have any function with an implementation (i.e., they must all be abstract).
+- Functions of an interface can only be marked as external (visibility modifier).
+- Interfaces can not have a constructor.
+- Interfaces can not have state variables.
+- Interfaces may have structs and enums.
+
+2. If you were designing a decentralized app and needed to ensure a group of contracts all implemented the same functionality, but didn't necessarily share any logic, would you use an interface or an abstract contract?
+- Interface
+
+Explanation: You would use an interface. An interface is useful when you want to ensure contracts have the same functionality (function names/signatures) but don't need to re-use or share any specific logic. If you needed to ensure contracts had the same functionality and you wanted to re-use logic within multiple contracts then you would use an abstract contract.
+
+3. Write an interface named `Comparable` that declares the following abstract functions: 
+- greaterThan(Comparable other): a function that returns a bool representing whether the calling contract is greater than the other contract.
+- lessThan(Comparable other): a function that returns a bool representing whether the calling contract is less than the other contract.
+- equalTo(Comparable other): a function that returns a bool representing whether the calling contract is equal to the other contract.
+- getValue(): a function that returns an int value.
+
+After writing this contract, modify the `Vector` contract such that it implements the interface. Use the already provided getValue() function to determine the value of a vector when comparing them. For example, `A` is greater than Vector `B` if `A.getValue()` returns a larger value than `B.getValue()`.
+
+Note: You can override an external function with a public function.
+
+Note 2: there are no automated tests for this question. Please check your answer against the provided solution.
+
+My answer:
+
+```
+// Copyright © 2023 AlgoExpert LLC. All rights reserved.
+
+pragma solidity >=0.4.22 <=0.8.17;
+
+interface Comparable {
+    function greaterThan(Comparable other) external view returns (bool);
+
+    function lessThan(Comparable other) external view returns (bool);
+
+    function equalTo(Comparable other) external view returns (bool);
+
+    function getValue() external view returns (int256);
+}
+
+contract Vector is Comparable {
+    int256 a;
+    int256 b;
+
+    constructor(int256 _a, int256 _b) {
+        a = _a;
+        b = _b;
+    }
+
+    function getValue() public view override returns (int256) {
+        return a + b;
+    }
+
+    function greaterThan(Comparable other)
+        external
+        view
+        override
+        returns (bool)
+    {
+        return getValue() > other.getValue();
+    }
+
+    function lessThan(Comparable other) external view override returns (bool) {
+        return getValue() < other.getValue();
+    }
+
+    function equalTo(Comparable other) external view override returns (bool) {
+        return getValue() == other.getValue();
+    }
+}
+
+```
