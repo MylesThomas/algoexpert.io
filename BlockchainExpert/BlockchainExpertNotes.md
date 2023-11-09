@@ -9894,3 +9894,291 @@ contract Vector is Comparable {
 }
 
 ```
+
+### 9 - Libraries
+
+Digital libraries are just as expansive and full of knowledge as their real-world counterparts, sans the aged leather and oak smell.
+
+#### Key Term
+
+##### Library
+
+In Solidity, a library is a collection of reusable utility functions. Libraries contain functions that are called by other contracts and can be deployed independently to save on gas and avoid repeated code.
+
+```
+library Math {
+    function pow(uint a, uint b) public view returns (uint) {
+        return a ** b;
+    }
+}
+```
+
+#### Notes from the video
+
+##### Writing Libraries / Using Libraries
+
+Libraries: Collection of utility/helper functions
+- Helps you write smart contracts
+
+Special rules to a library:
+1. Stateless ie. cannot have any state
+2. Cannot be destroyed ie. no self-desctruct keyword
+3. Cannot inherit from anything ie. another library/abstract contract
+4. Cannot be inherited from ie. another cannot have a child contract of a library
+
+More:
+- No abstract functions ie. functions must be implemented
+
+Let's make our first library!
+
+```
+// Math library
+
+library Math {
+    function max(int[] memory numbers) public view returns (int) {
+        if (numbers.length == 0) {
+            return 0;
+        }
+        int currentMax = numbers[0];
+        for (uint idx; idx < numbers.length; idx++) {
+            if (numbers[idx] > currentMax) {
+                currentMax = numbers[idx];
+            }
+        }
+        return currentMax;
+    }
+}
+
+contract Test {
+    int[] numbers;
+
+    function addNumbers(int number) public {
+        numbers.push(number);
+    }
+
+    function getMax() public view returns (int) {
+        return Math.max(numbers);
+    }
+}
+
+```
+
+What happens next:
+1. Deploy `Test` contract
+2. Add a few numbers with addNumbers
+3. Use the `getMax()` function
+
+
+##### Using Library for Type
+
+You can add syntax that allows a certain data type directly call the helper function!
+
+Here is an example:
+
+```
+contract Test {
+    int[] numbers;
+
+    function addNumber(int number) public {
+        numbers.push(number);
+    }
+
+    using Math for int[]; // allows you to use Math library for any `int[]`
+    function getMax() public view returns (int) {
+        return numbers.max();
+    }
+}
+
+```
+
+What happened here: numbers is an `int[]` type, so you can directly call the max function on it!
+
+What happens if you change the input parameter to `uint` to uint: Error
+
+Note: This is an interesting syntax, but it is helpful.
+
+
+Next, let's do this with multiple types!
+
+```
+library Math {
+    function max(int[] memory numbers) public view returns (int) {
+        if (numbers.length == 0) {
+            return 0;
+        }
+        int currentMax = numbers[0];
+        for (uint idx; idx < numbers.length; idx++) {
+            if (numbers[idx] > currentMax) {
+                currentMax = numbers[idx];
+            }
+        }
+        return currentMax;
+    }
+}
+
+contract Test {
+    int[] numbers;
+    uint[] uNumbers;
+
+    using Math for int[]; // allows you to use Math library for any `int[]`
+    using Math for uint[]; // allows you to use Math library for any `uint[]`
+    
+
+    function addNumbers(int number) public {
+        numbers.push(number);
+    }
+
+    function addUNumbers(uint number) public {
+        uNumbers.push(number);
+    }
+
+    function getMax() public view returns (int) {
+        return numbers.max();
+    }
+
+    function getUMax() public view returns (uint) {
+        return uNumbers.max();
+    }
+}
+
+```
+
+What happened here: 
+- We can use getMax() for int
+- We can use getUMax() for uint
+
+Let's do this again, but consolidating into only 1 function!
+
+```
+library Math {
+    function max(int[] memory numbers) public view returns (int) {
+        if (numbers.length == 0) {
+            return 0;
+        }
+        int currentMax = numbers[0];
+        for (uint idx; idx < numbers.length; idx++) {
+            if (numbers[idx] > currentMax) {
+                currentMax = numbers[idx];
+            }
+        }
+        return currentMax;
+    }
+}
+
+contract Test {
+        ...
+    
+
+    function getMax() public view returns (int, uint) {
+        return (numbers.max(), uNumbers.max());
+    }
+}
+
+```
+
+To use a function that takes 2+ parameters:
+
+```
+library Math {
+    function max(int[] memory numbers, uint max2) public pure returns (int) {
+        ...
+    }
+}
+
+contract Test {
+    ...
+
+    function getMax() public view returns (int, uint) {
+        return (numbers.max(1), uNumbers.max()); // first arg is numbers, 2nd is the 1
+    }
+}
+```
+
+What happened here:
+- first arg: numbers array ie. `numbers[]`
+- second arg: number passed ie. `1`
+
+Note: In some languages ie. Python, you will use the `self.` syntax for this
+
+
+##### Library Rules
+
+Rules:
+1. Libraries cannot have state
+- Must be view functions, because they return something to us
+    - Calling these functions is therefore free to deploy (it modifies no state)
+
+2. No fallback/payable/receive functions
+
+3. Inside of a library, you CAN define structs/enums
+
+##### Practice Questions
+
+1. Which of the following are true statements as they relate to libraries? Select all that apply.
+- A library cannot be destroyed using selfdestruct().
+- A library cannot have any state variables.
+
+Explanation: The rules for Solidity libraries are the following.
+- A library cannot have state variables.
+- A library cannot inherit any element.
+- A library cannot be inherited from.
+- A library cannot be destroyed using selfdestruct().
+
+2. Array Library
+
+Write a library named `Array` that provides some helpful array functions as defined below:
+
+- `indexOf(int[] numbers, int target)`: a function that returns an `int` representing the index of the first occurence of the passed `target` in the `numbers` array. This function should return `-1` if the `target` does not exist in the `numbers` array.
+- `count(int[] numbers, int target)`: a function that returns the count/frequency of the passed `target` in the `numbers` array. This function should return the count as a `uint`.
+- `sum(int[] numbers):` a function that returns the sum of the values in the `numbers` array. If the array is empty this function should return `0`.
+
+All of the above functions should be marked as public.
+
+My answer:
+
+```
+// Copyright © 2023 AlgoExpert LLC. All rights reserved.
+
+pragma solidity >=0.4.22 <=0.8.17;
+
+library Array {
+    function indexOf(int256[] memory numbers, int256 target)
+        public
+        pure
+        returns (int256)
+    {
+        for (uint256 idx; idx < numbers.length; idx++) {
+            if (numbers[idx] == target) {
+                return int256(idx);
+            }
+        }
+
+        return -1;
+    }
+
+    function count(int256[] memory numbers, int256 target)
+        public
+        pure
+        returns (uint256)
+    {
+        uint256 targetCount;
+        for (uint256 idx; idx < numbers.length; idx++) {
+            if (numbers[idx] == target) {
+                targetCount++;
+            }
+        }
+
+        return targetCount;
+    }
+
+    function sum(int256[] memory numbers) public pure returns (int256) {
+        int256 arraySum;
+        for (uint256 idx; idx < numbers.length; idx++) {
+            arraySum += numbers[idx];
+        }
+
+        return arraySum;
+    }
+}
+
+```
