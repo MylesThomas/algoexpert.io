@@ -10182,3 +10182,180 @@ library Array {
 }
 
 ```
+
+### 10 - Contract Storage
+
+Solidity offers multiple different storage locations. Your task: store the contents of this lesson into the best storage location of them all: your brain.
+
+#### Key Terms
+
+##### Calldata
+
+In Solidity, `calldata` is a read-only, non-persistent storage location that is used for function parameters.
+- behaves similarly to `memory`, but cannot be modified.
+
+##### Memory
+
+In Solidity, `memory` is a temporary, mutable storage location that is used for holding reference data types.
+- `memory` is a cheaper storage location than contract storage
+
+##### Storage
+
+In Solidity, `storage` is a persistent location where data associated with a smart contract is held.
+- Storage variable data is stored on the blockchain and is very expensive to read/write from
+
+##### Logs
+
+Ethereum smart contracts can emit events, these events are stored in transaction receipts in a special area known as logs. 
+- Logs give you information about what happened during smart contract execution
+
+##### Stack
+
+In the context of the EVM/Solidity, the stack is a temporary internal storage location where variables are stored in 32-byte slots.
+- Used for small local variables and the value types of functions ie. the type of parameters and return values
+
+#### Notes from the video
+
+A lot that is covered in this video, you will know already! (Made this video to make everything as clear as possible, and it is important to being a good blockchain developer)
+
+Old:
+- Storage
+- Memory
+- Calldata
+- Stack
+
+##### Storage
+
+Storage:
+- Duration of Storage: Permanent/Persistent
+- Location: On the blockchain
+- Cost to read/write to/from: Expensive
+- Mutable: No
+- Typically used for: 
+- Cleared: Is not (Permanent/Persistent)
+- Cost to read from externally: Free
+    - What this means: If you are outside of the blockchain ie. on Ethernet, you can read all values of this storage variable from a smart contract (Regardless of visibility ie. private, internal, etc. - everything on the blockchain is transparent)
+- Who can modify: The contract that holds the value
+    - What it means: Only the contract that defines a storage variable can manipulate the storage variable
+    - Cannot change the contract from outside
+- Maximum storage available: 2^256 slots
+- Storage per storage slot: 32 bytes
+- Multiple values/variable in same storage location: Yes
+    - Example: Combine 4 uint8 values together and use 1 single storage slot (instead of 4 individual ones)
+
+Note: Storage is allocated when the contract is deployed to the blockchain
+- Storage layout/architecture does NOT change during run-time
+- This is important because: A way to optimize gas is ordering of the storage variables (Packing them together)
+    - This may be abstract, but we will talk about "packing storage variables" later
+
+##### Memory
+
+Memory:
+- Duration of Storage: Temporary
+- Location: RAM
+- Cost to read/write to/from: Cheaper
+- Mutable: Yes
+- Typically used for: Reference types
+- Cleared: After function execution
+- Cost to read from externally: Free
+- Who can modify: The contract that holds the value
+- Maximum storage available: 2^256 slots
+- Storage per storage slot: 32 bytes
+- Multiple values/variable in same storage location: Yes
+
+##### Copy vs. Reference (Memory vs. Storage)
+
+Memory -> Memory = Reference:
+- Example: arr1 = arr2
+- Any change made to arr1 will affect arr2
+
+Memory -> Storage = Copy:
+- Example: arr1 = arr2
+- Any change made to arr1 will NOT affect
+
+Storage -> Memory = Copy:
+- Example: arr1 = arr2
+- Any change made to arr1 will NOT affect
+
+Storage -> Storage = Reference:
+- Example: arr1 = arr2
+- Any change made to arr1 will affect
+
+Note: This is a great reference for if you are ever stuck.
+
+##### Calldata
+
+Calldata: Only used for functional arguments
+- Temporary location
+- Only stores function arguments
+- Behaves similar to memory
+- Can be cheaper than memory
+- Immutable
+- Useful for ensuring no unintended copies are made
+    - Whenever you store something in calldata, you freeze that value (cannot change what it is)
+    - You can mark a parameter as calldata
+
+Next video: Using call data location to optimize gas costs
+
+##### Stack
+
+Stack: 
+- Temporary location
+- Internal location
+    - not directly accessible (requires assembly)
+- Used for small local variables
+- Stores values needed for immediate processing
+- Stores function value types (uint, int, string, etc.)
+- Can hold up to 1024 values
+
+##### Logs
+
+Logs: Associated with a transaction receipt
+- Associated with transactions
+- Cannot be accessed by smart contracts
+- Where event data is stored
+- Cheap data structure
+    - Much cheaper than ie. storage
+- Useful for returning information to the caller of a function
+- Accessed off the blockchain
+
+##### Code
+
+(Debatable whether this is a storage location, but here to clarify what happens to it)
+
+Steps:
+1. Code is compiled
+2. Code is stored on the blockchain
+- Name of contracts, functions, etc.
+
+Code:
+- The actual bytecode/compiled code of the contract
+- Stored on the blockchain
+- Constant variables stored here
+
+It is baked into the bytecode that is being submitted to the blockchain!
+
+##### Practice Questions
+
+1. Which of the following statements are true as they relate to the calldata storage location? Select all that apply.
+- Calldata is only used for function arguments.
+- Values in calldata cannot be modified.
+- Calldata is cheaper to use than storage.
+
+Explanation: Calldata is a temporary immutable storage location only used for function arguments. It is cheaper to use than storage and is useful to ensure no unintended copies of parameters are made.
+
+2. Smart contracts can access previous transaction logs.
+- False
+
+Explanation: Logs contain information about a transaction and store things like event data. Smart contracts cannot access this data.
+
+Note: although smart contracts cannot read transaction logs they can emit events that will result in an entry being added to the current transactions logs.
+
+3. The values of constant variables are stored in contract storage.
+- False
+
+Explanation: Constant variables actually have their values included in the compiled smart contract code that is stored on the blockchain.
+
+4. Which of the following storage location assignments result in a copy being made (when using reference types)? Select all that apply.
+- Memory -> Storage
+- Storage -> Memory
