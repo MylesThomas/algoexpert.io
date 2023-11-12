@@ -10359,3 +10359,415 @@ Explanation: Constant variables actually have their values included in the compi
 4. Which of the following storage location assignments result in a copy being made (when using reference types)? Select all that apply.
 - Memory -> Storage
 - Storage -> Memory
+
+### 11 - Optimizing Gas Costs
+
+Poorly optimized smart contracts can quickly become voracious gas consumers. In this lesson, we'll show you some tricks you can use to keep your smart contracts in check and make them less gassy.
+
+#### Key Terms
+
+n/a
+
+#### Notes from the video
+
+##### Calldata
+
+First, let's look at an example of using calldata, which can be cheaper than memory:
+
+```
+contract Test {
+    function func(uint[] calldata numbers) external pure returns (uint) {
+        return numbers[0];
+    }
+}
+
+```
+
+What is going on here:
+- using memory: 'infinite gas'
+    - the array could potentially be infinite data
+        - we can mutate it, so we have to load it into a mutable location
+
+- using calldata: 'infinite gas'
+    - calldata comes from a transaction from another smart contract OR from outside the blockchain
+        - we are just reading whatever calldata was originally passed to the function
+            - not copying, manipulating, etc.
+
+
+Examples of manipulating calldata around:
+
+```
+contract Test {
+    function func(uint[] calldata numbers) external pure returns (uint) {
+        numbers[0] = 1; // error! cannot change calldata (immutable)
+        return numbers[0];
+    }
+}
+
+```
+
+```
+contract Test {
+    function func(uint[] memory numbers) external pure returns (uint) {
+        numbers[0] = 1; // fine. you can change memory (mutable)
+        return numbers[0];
+    }
+}
+
+```
+
+Note: These 2 Examples are with external functions ie. outside of the contract has to fall this function (We cannot call it from within)
+- External is cheaper than public, usually (We will talk about this later)
+
+Next, let's work with public functions and calldata:
+
+```
+contract Test {
+    function func(uint[] calldata numbers) public pure returns (uint) {
+        numbers[0] = 1; // fine. you can change memory (mutable)
+        return numbers[0];
+    }
+}
+
+```
+
+Result: Estimated gas is 701
+
+When we deploy:
+- input: [1,2,3]
+- output: 1
+
+Takeaways:
+- Cheaper for reference types parameters
+    - calldata is cheaper than memory (You don't need to copy into memory)
+- Is limiting
+    - You cannot modify/mutate parameters in the function itself
+
+##### Pack Variables
+
+First tip for optimizing gas: Pack Variables
+- Something to understand about solidity storage: Structure for your contract storage is created as soon as you soon as you compile/deploy your smart contract
+    - Way variables are held/memory locations for them: Determined when you complie + deploy put the contract online
+        - This is different than other programming languages
+        - What this means: The order you define variables defines the structure of the storage
+            - ie. which data locations are holding which variables/values
+            - you can pack variables/values
+
+Let's look at an example to help understand this better:
+
+```
+contract Test {
+    uint8 x = 2; // 8 bits
+    uint8 y = 17; // 8 bits
+    uint256 z = 20; // 256 bits
+    int128 w = 30; // 128 bits
+}
+
+```
+
+What happens when we deploy this contract:
+- Complier reads them 1 by 1
+- Starts allocating space in storage for the values
+
+Let's walk through it:
+1. Variable x = 2 (uint8)
+- We don't have any other storage locations, so let's alloocate a new location where we can store the value of variable x
+- location allocated: slot 1
+    - in slot 1: x = 2
+    - space remaining: 248 bits = 256 (starting value of slot) - 8 (uint8 is 8 bits)
+
+2. Variable y = 17 (uint8)
+- Since this is also a uint8, we have space in slot 1 to store this
+    - Remember: Each slot is 32 bytes, so can store up to 256 bits
+- location allocated: slot 1
+    - in slot 1:
+        - x = 2
+        - y = 17
+    - space remaining: 240 bits = 256 (starting value of slot) - 2 * 8 (uint8 is 8 bits)
+
+Note: We just packed this variables together in 1 storage slot
+- If y was uint256, we would not have room to pack them in the same location!
+
+3. Variable z = 20 (uint256)
+- Since this is also a uint256, we DO NOT have space in slot 1 to store this
+    - Only 240 bits are remaining in slot 1, and a uint is 256 bits
+- location allocated: slot 1
+    - in slot 1:
+        - x = 2
+        - y = 17
+    - in slot 2:
+        - z = 20
+    - slot 1: space remaining: 240 bits
+    - slot 2: space remaining: 0 bits
+
+4. Variable w = 30 (uint128)
+- Since this is also a uint128, we DO NOT have space in slot 1 to store this
+    - Only 240 bits are remaining in slot 1, and a uint is 256 bits
+- location allocated: slot 1
+    - in slot 1:
+        - x = 2
+        - y = 17
+    - in slot 2:
+        - z = 20
+    - in slot 3:
+        - w = 30
+    - slot 1: space remaining: 240 bits
+    - slot 2: space remaining: 0 bits
+    - slot 3: space remaining: 128 bits
+
+Note: This was not optimal!
+- Slot 1 has 240 bits of space remaining, but because of the order that we declared variables, we are wasting space.
+
+Order we should have done:
+
+```
+contract Test {
+    uint8 x = 2; // 8 bits - slot 1
+    uint8 y = 17; // 8 bits - slot 1
+    int128 w = 30; // 128 bits - slot 1
+    uint256 z = 20; // 256 bits - slot 2
+}
+
+```
+
+We have optimized our gas usage by changing the order that we packed our variables!
+
+##### Delete Unused Variables
+
+Example to illustrate why we would Delete Unused Variables:
+
+```
+contract Test {
+    uint x = 10;
+
+    function delX() public {
+        delete x; // good! (gas refund)
+        x = ; // costs more gas...
+    }
+}
+
+```
+
+What is going on here:
+- Deleting x resets it back to original value of 0
+    - Using the delete keyword is different than setting it to x = 0
+        - `x = 0`: costs more case
+        - `delete x`: gives a gas refund!
+
+##### Don't Shrink Variables
+
+This is not necessarily intuitive, but you should not shrink variables unless you are packing them together
+- Shrink variables: Using a type smaller than the default type.
+    - default uint: uint256 == uint 
+    - 
+
+It is more efficient/gas effective to just use the regular uint/int
+- This has to do with how Solidity deals with these values for arithmetic/accessing them
+    - When you use a smaller value, you need to convert back from uint8 to uint
+        - Exception: A bunch of smaller values that can be packed
+
+When TO use uint8: 
+
+```
+contract Test {
+    uint8 x = 10;
+    uint8 y = 10;
+    uint8 z = 10;
+}
+
+```
+
+When NOT TO use uint8: 
+
+```
+contract Test {
+    uint x = 10;
+}
+
+```
+
+##### Use Events
+
+Events > Data on-chain:
+- Whenever you need to give a value to a user for some reason, you don't want to store it on the chain (if you don't have to)
+    - Better: emit it as an event
+        - This is not always possible - sometimes data needs to be stored in the smart contract for security purposes
+
+What you need to understand: If you can use an event, do it over storing it on-chain
+- Example: Array storing results of different function calls
+    - emit result as an event
+        - user can look at it in the event
+            - most cheaper than accessing from storage
+
+##### Use Libraries
+
+Libraries: 
+- Only important in larger projects
+
+Example: We have 5-6 smart contracts
+- They may share functionality / have code to be re-used
+    - Instead of putting it in all contracts, you would make a library and access the helper functions from each library
+
+Example: 
+
+```
+library Math {
+    function doMath() public {
+        ...
+    }
+}
+contract Test1 {
+    ...
+    Math.doMath();
+    ...
+}
+contract Test2 {
+    ...
+    Math.doMath();
+    ...
+}
+contract Test3 {
+    ...
+    Math.doMath();
+    ...
+}
+
+```
+
+Note: You need enough functions to make it worth-while
+- deploy cost is high
+
+##### Use Calldata
+
+Calldata > Memory:
+- If you don't need to mutate the parameter to your function, make it calldata
+- Remember: You can only use it for parameters
+
+This will save a lot of gas!
+
+##### Use Short Circuiting Rules
+
+Short Circuiting Rules:
+- Has to do with AND (&&) and OR (||)
+
+Steps that happen when you use one of these:
+1. You evaluate the left side
+2. You evaluate the right side
+
+How to optimize this:
+- OR: Make the thing that is more likely/should be true on the left
+- AND: Make the thing that is more less likely/should be false on the left
+
+
+Example where the right side is not even evaluated:
+
+```
+contract Test {
+    true || false; // accepted after the 1st true
+}
+
+```
+
+Example where the right side is not even evaluated:
+
+```
+contract Test {
+    false && true; // both sides need to be true
+}
+
+```
+
+
+This exists in many other programming languages!
+
+How to optimize, full example:
+
+```
+contract Test {
+    function check1() internal pure returns (bool) {
+        // returns true often
+        return true;
+    }
+
+    function check2() internal pure returns (bool) {
+        // hardly returns true
+        return false;
+    }
+
+    function test() pure public {
+        require(check1() && check2());
+    }
+}
+
+```
+
+Where this can become tricky: If checks use a drastically different amount of gas
+- Example: 1 doesn't use much gas, 2 uses a lot
+    - May re-order so that you only use the mass amount of gas if the first one is true
+- Another remedy: `require(`) statements
+
+##### Avoid Assignments
+
+Avoid Variable Assignment: Especially to storage!
+- It is cheaper to use default values, than to assign the default value
+
+```
+contract Test {
+    uint x; // good
+    uint x = 0; // bad - uses more gas
+    
+}
+
+```
+
+Next, avoid doing operations on storage.
+
+Here is an example:
+
+```
+contract Test {
+    // valid, this will work, but not good (issue: we are repeating an arithmetic operations with a storage variable - more gas than local variables)
+    uint count;
+    function countUpBad(uint countTo) external {
+        for (uint idx; idx < countTo; idx++) {
+            count += idx;
+        }
+    }
+
+    // better way: cache values, assign to storage variable 1x at end of iterations
+    uint _count = count;
+    function countUpGood() external {
+        for (uint idx; idx < _count; idx++) { // read from local variable, not the storage
+            _count += idx;
+        }
+        count = _count; // this is the difference!
+    }
+}
+
+```
+
+##### Use Fixed over Dynamic Arrays
+
+Fixed size > Dynamic size (Obvious, but just use it if you know the size)
+
+##### Mappings over Arrays
+
+Mappings > Arrays
+
+##### Use Bytes over String
+
+Bytes > String (Avoid string unless you need to return readable data to user)
+
+##### Use External over Public
+
+Why external is better than public:
+- public: can be called from inside AND externally
+    - compiler has to do more work to 'prepare' the function to execute
+    - it copies more values, uses more gas
+
+- external: can only be called from inside
+
+
+takeway: if you know it will only be used from outside, call it `external`!
+
+We will use all of these in the projects section!
