@@ -10771,3 +10771,40 @@ Why external is better than public:
 takeway: if you know it will only be used from outside, call it `external`!
 
 We will use all of these in the projects section!
+
+##### Practice Questions
+
+1. Which of the following code examples most optimally packs variables?
+
+My answer:
+
+```
+contract Packing {
+  uint64 x;
+  uint64 y;
+  uint128 z;
+  uint256 w;  
+}
+
+```
+
+Explanation: Packing variables occur when multiple variable values can be stored in the same storage slot.
+- In this case the best way to pack these variables is to include the two uint64 values and the single uint128 value in one storage slot.
+    - To achieve this these variables must be declared one after the other.
+
+2. When a function parameter is defined as calldata it must first be copied before it can be used in the function.
+- False
+
+Explanation: Marking a function parameter as calldata allows that value to be read directly from calldata, avoiding an unnecessary copy operation.
+- This often times makes it cheaper to use calldata than to use memory.
+
+3. What does short circuiting refer to? Select the best answer.
+- Using the rules of logical and (&&), and or (||) operators to avoiding evaluating unnecessary conditions.
+
+Explanation: If the left hand operand of an and (&&) or an or (||) operation results in the condition never returning true then the second operand will not be evaluated.
+
+4. Which data structure uses less gas?
+- Fixed-Sized Array
+
+5. Which data structure uses less gas?
+- bytes
