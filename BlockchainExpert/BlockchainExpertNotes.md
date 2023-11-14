@@ -9360,8 +9360,6 @@ Note: make sure you use the exact names and types specified above; otherwise, yo
 My answer:
 
 ```
-// Copyright © 2023 AlgoExpert LLC. All rights reserved.
-
 pragma solidity >=0.4.22 <=0.8.17;
 
 contract Item {
@@ -9591,8 +9589,6 @@ Note: Ensure that all your function names, visibility modifiers, parameters, and
 My answer:
 
 ```
-// Copyright © 2023 AlgoExpert LLC. All rights reserved.
-
 pragma solidity >=0.4.22 <=0.8.17;
 
 abstract contract SignUpBonus {
@@ -9848,8 +9844,6 @@ Note 2: there are no automated tests for this question. Please check your answer
 My answer:
 
 ```
-// Copyright © 2023 AlgoExpert LLC. All rights reserved.
-
 pragma solidity >=0.4.22 <=0.8.17;
 
 interface Comparable {
@@ -10137,8 +10131,6 @@ All of the above functions should be marked as public.
 My answer:
 
 ```
-// Copyright © 2023 AlgoExpert LLC. All rights reserved.
-
 pragma solidity >=0.4.22 <=0.8.17;
 
 library Array {
@@ -10808,3 +10800,488 @@ Explanation: If the left hand operand of an and (&&) or an or (||) operation res
 
 5. Which data structure uses less gas?
 - bytes
+
+#### Advanced Solidity Assessment
+
+1. Friend Requests
+
+Write a smart contract named `Friends` that allows users to send and accept friend requests. The following are rules this smart contract should adhere to:
+
+- A user cannot send more than 1 friend request to the same address.
+
+- A user cannot send a friend request to a user that sent them a friend request.
+
+- A user cannot send a friend request to a user they are already friends with.
+
+- A user cannot accept a friend request that doesn't exist or that they have already accepted. 
+
+- A user cannot send a friend request to themselves.
+
+Use advanced solidity features like modifiers and structs when implementing the functions defined below:
+
+- `getFriendRequests()`: returns `address[]` containing the addresses of users that have sent this user a request that they have yet to accept (ie. don't return accepted requests),
+
+- `getNumberOfFriends()`: returns a `uint` value representing the number of friends the calling user has.
+
+- `getFriends()`: returns `address[]` containing the addresses of the calling users friends.
+
+- `sendFriendRequest(address friend)`: sends a friend request to the provided `address`.
+
+- `acceptFriendRequest(address friend)`: accepts a pending friend request.
+
+Make sure all of the functions above are `public` and have the correct signature. You may add other functions, types, structs, enums, etc. as you like.
+
+My answer:
+
+```
+pragma solidity >=0.4.22 <=0.8.17;
+
+contract Friends {
+    struct Person {
+        address[] friends;
+        address[] requestsSent;
+        address[] requestsReceived;
+    }
+
+    mapping(address => Person) people;
+
+    function arrayContains(address[] memory array, address target)
+        internal
+        pure
+        returns (bool)
+    {
+        for (uint256 idx; idx < array.length; idx++) {
+            if (array[idx] == target) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function deleteFromArray(address[] storage array, address target) internal {
+        uint256 targetIdx;
+        for (uint256 idx; idx < array.length; idx++) {
+            if (array[idx] == target) {
+                targetIdx = idx;
+                break;
+            }
+        }
+
+        uint256 lastIdx = array.length - 1;
+        address lastValue = array[lastIdx];
+        array[lastIdx] = target;
+        array[targetIdx] = lastValue;
+        array.pop();
+    }
+
+    modifier requestNotSent(address friend) {
+        address[] memory requestsSent = people[msg.sender].requestsSent;
+        require(
+            !arrayContains(requestsSent, friend),
+            "you have already sent this user a request"
+        );
+        _;
+    }
+
+    modifier requestNotReceived(address friend) {
+        address[] memory requestsReceived = people[msg.sender].requestsReceived;
+        require(
+            !arrayContains(requestsReceived, friend),
+            "this user has already sent you a request"
+        );
+        _;
+    }
+
+    modifier requestExists(address friend) {
+        address[] memory requestsReceived = people[msg.sender].requestsReceived;
+        require(
+            arrayContains(requestsReceived, friend),
+            "this user has not sent you a request"
+        );
+        _;
+    }
+
+    modifier notAlreadyFriends(address friend) {
+        address[] memory friends = people[msg.sender].friends;
+        require(
+            !arrayContains(friends, friend),
+            "you are already friends with this user"
+        );
+        _;
+    }
+
+    modifier notSelf(address friend) {
+        require(
+            friend != msg.sender,
+            "you cannot send a friend request to yourself"
+        );
+        _;
+    }
+
+    function getFriendRequests() public view returns (address[] memory) {
+        return people[msg.sender].requestsReceived;
+    }
+
+    function getNumberOfFriends() public view returns (uint256) {
+        return people[msg.sender].friends.length;
+    }
+
+    function sendFriendRequest(address friend)
+        public
+        requestNotSent(friend)
+        requestNotReceived(friend)
+        notAlreadyFriends(friend)
+        notSelf(friend)
+    {
+        people[msg.sender].requestsSent.push(friend);
+        people[friend].requestsReceived.push(msg.sender);
+    }
+
+    function acceptFriendRequest(address friend) public requestExists(friend) {
+        deleteFromArray(people[msg.sender].requestsReceived, friend);
+        deleteFromArray(people[friend].requestsSent, msg.sender);
+        people[msg.sender].friends.push(friend);
+        people[friend].friends.push(msg.sender);
+    }
+
+    function getFriends() public view returns (address[] memory) {
+        return people[msg.sender].friends;
+    }
+}
+
+```
+
+
+2. Blockchain Workplace
+
+Write a smart contract named `Employee` and a smart contract that inherits from `Employee` named `Manager`. Managers shared all of the properties of employees but have subordinates which may be other managers or employees.
+
+Each Employee instance is initialized (using the constructor) by passing a `string firstName`, `string lastName`, `uint hourlyPay` and a `uint department`, in this order. Use an enum to represent the valid departments of `Gardening`, `Clothing` and `Tools`, in that order. Each `Manager` instance is initialized the same as an employee.
+
+The `Employee` contract should implement the following functions:
+
+- `getWeeklyPay(uint hoursWorked)`: returns a `uint` representing the amount this employee should be paid based on their hourly rate and the `hours` worked. This function should factor in overtime pay. For every hour beyond `40` that the employee works, they should be paid double their hourly rate. For example, if an employee makes $20/hour and works 42 hours, they are paid $880.
+
+- `getFirstName()` returns a `string` representing the first name of the employee.
+
+The `manager` contract should implement the following functions:
+
+- `addSubordinate(string firstName, string lastName, uint hourlyPay, Department department)`: this function takes the required arguments to create a new employee and adds this employee to this manager's subordinates.
+
+- `getSubordinates()`: this function should return a `string[]` containing the first names of all of its subordinates.
+
+Note: you do not need to handle any edge cases like managers having duplicate subordinates.
+
+My answer: 
+
+```
+pragma solidity >=0.4.22 <=0.8.17;
+
+contract Employee {
+    enum Depratment {
+        Gardening,
+        Clothing,
+        Tools
+    }
+
+    string firstName;
+    string lastName;
+    uint256 hourlyPay;
+    Depratment deprartment;
+
+    constructor(
+        string memory _firstName,
+        string memory _lastName,
+        uint256 _hourlyPay,
+        Depratment _department
+    ) {
+        firstName = _firstName;
+        lastName = _lastName;
+        hourlyPay = _hourlyPay;
+        deprartment = _department;
+    }
+
+    function getWeeklyPay(uint256 hoursWorked) public view returns (uint256) {
+        if (hoursWorked <= 40) {
+            return hourlyPay * hoursWorked;
+        }
+        uint256 overtimeHours = hoursWorked - 40;
+        return 40 * hourlyPay + (overtimeHours * 2 * hourlyPay);
+    }
+
+    function getFirstName() public view returns (string memory) {
+        return firstName;
+    }
+}
+
+contract Manager is Employee {
+    Employee[] subordinates;
+
+    constructor(
+        string memory _firstName,
+        string memory _lastName,
+        uint256 _hourlyPay,
+        Depratment _department
+    ) Employee(_firstName, _lastName, _hourlyPay, _department) {}
+
+    function addSubordinate(
+        string memory _firstName,
+        string memory _lastName,
+        uint256 _hourlyPay,
+        Depratment _department
+    ) public {
+        Employee employee = new Employee(
+            _firstName,
+            _lastName,
+            _hourlyPay,
+            _department
+        );
+        subordinates.push(employee);
+    }
+
+    function getSubordinates() public view returns (string[] memory) {
+        string[] memory names = new string[](subordinates.length);
+        for (uint256 idx; idx < subordinates.length; idx++) {
+            names[idx] = subordinates[idx].getFirstName();
+        }
+        return names;
+    }
+}
+
+```
+
+
+3. Score Tracker
+
+For this question you'll be asked to write a set of contracts that will allow you to track the winning teams across multiple types of games.
+
+Start by writing an `abstract` contract named `Game` that will implement the base functionality for all games. This contract should be initialized by passing the `string homeTeam` and the `string awayTeam`. It should also include the following functions:
+
+- `getHomeTeamScore()`: an abstract internal function that returns the `uint` score of the home team. This function should be overridden by any child contracts.
+
+- `getAwayTeamScore()`: an abstract internal function that returns the `uint` score of the away team. This function should be overridden by any child contracts.
+
+- `getWinningTeam()`: an public concrete function that returns the `string` name of the winning team for this game.
+
+After completing this contract, write the following two children contracts named `BasketballGame` and `SoccerGame` that inherit from `Game`.
+
+The `BasketballGame` contract should override the necessary functions from `Game` and implement the following additional functions:
+
+- `homeTeamScored(uint score)`: this external function should increment the home team's score by the passed `score`. The only valid scores are 1, 2 and 3. The function should fail if you pass an invalid score.
+
+- `awayTeamScored(uint score)`: this external function should increment the away team's score by the passed `score`. The only valid scores are 1, 2 and 3. The function should fail if you pass an invalid score.
+
+The `SoccerGame` contract should override the necessary functions from `Game` and implement the following additional functions:
+
+- `homeTeamScored()`: this external function should increment the home team's score by one.
+
+- `awayTeamScored()`: this external function should increment the away team's score by one.
+
+Make sure to use the correct function signatures, contract names, visibility modifiers, and parameter/return value types.
+
+My answer:
+
+```
+pragma solidity >=0.4.22 <=0.8.17;
+
+abstract contract Game {
+    string homeTeam;
+    string awayTeam;
+
+    constructor(string memory _homeTeam, string memory _awayTeam) {
+        homeTeam = _homeTeam;
+        awayTeam = _awayTeam;
+    }
+
+    function getHomeTeamScore() internal view virtual returns (uint256);
+
+    function getAwayTeamScore() internal view virtual returns (uint256);
+
+    function getWinningTeam() public view returns (string memory) {
+        if (getHomeTeamScore() > getAwayTeamScore()) {
+            return homeTeam;
+        } else {
+            return awayTeam;
+        }
+    }
+}
+
+contract BasketballGame is Game {
+    uint256 homeTeamScore;
+    uint256 awayTeamScore;
+
+    constructor(string memory _homeTeam, string memory _awayTeam)
+        Game(_homeTeam, _awayTeam)
+    {}
+
+    modifier validScore(uint256 score) {
+        require(score > 0 && score < 4, "invalid score");
+        _;
+    }
+
+    function getHomeTeamScore() internal view override returns (uint256) {
+        return homeTeamScore;
+    }
+
+    function getAwayTeamScore() internal view override returns (uint256) {
+        return awayTeamScore;
+    }
+
+    function homeTeamScored(uint256 score) external validScore(score) {
+        homeTeamScore += score;
+    }
+
+    function awayTeamScored(uint256 score) external validScore(score) {
+        awayTeamScore += score;
+    }
+}
+
+contract SoccerGame is Game {
+    uint256 homeTeamScore;
+    uint256 awayTeamScore;
+
+    constructor(string memory _homeTeam, string memory _awayTeam)
+        Game(_homeTeam, _awayTeam)
+    {}
+
+    function getHomeTeamScore() internal view override returns (uint256) {
+        return homeTeamScore;
+    }
+
+    function getAwayTeamScore() internal view override returns (uint256) {
+        return awayTeamScore;
+    }
+
+    function homeTeamScored() external {
+        homeTeamScore++;
+    }
+
+    function awayTeamScored() external {
+        awayTeamScore++;
+    }
+}
+
+```
+
+
+4. Blockchain Road Trip
+
+Write an interface named `Driveable` that defines the following functions. 
+
+Note: The descriptions for the functions are for when you implement them in a contract.
+
+Use the correct visibility modifiers based on your experience with interfaces.
+
+- `startEngine()`: a function that puts the driveable contract into the started state.
+
+- `stopEngine()`: a function that puts the driveable contract into the stopped state.
+
+- `fuelUp(uint litres)`: a function that adds the provided `litres` to the gas tank. This should only be callable when the driveable contract is in a stopped state. This function should fail if adding the provided `litres` causes the tank to exceed capacity.
+
+- `drive(uint kilometers)`: a function that drives the car `kilometers` distance and adjusts the remaining gas accordingly. This function should only be callable in the started state. This function should fail if the gas remaining is not sufficient to drive the provided `kilometers`. Assume the provided kilometers will always utilize a non-fractional number of litres (ie. no need to handle rounding errors when using division).
+
+- `kilometersRemaining() view returns (uint)`: a function that returns the driveable kilometers remaining based on the fuel level.
+
+Next, write an `abstract` contract named `GasVehicle` that implements the `Driveable` interface. This contract should also define the following abstract functions (ie. do not implement these functions).
+
+- `getKilometersPerLitre()`: a public function that returns a `uint` representing the number of kilometers that can be driven with one litre of gas.
+
+- `getFuelCapacity()`: a public function that returns a `uint` representing the maximum fuel tank capacity in litres.
+
+Lastly, write a `Car` contract that inherits from `GasVehicle` and is initialized by passing a `uint fuelTankSize` and a `uint kilometersPerLitre`, in that order. This contract should override the appropriate functions.
+
+Note: The `Car` should start with 0 litres of gas, and should be in the stopped state.
+
+My answer: 
+
+```
+pragma solidity >=0.4.22 <=0.8.17;
+
+interface Driveable {
+    function startEngine() external;
+
+    function stopEngine() external;
+
+    function fuelUp(uint256 litres) external;
+
+    function drive(uint256 kilometers) external;
+
+    function kilometersRemaining() external view returns (uint256);
+}
+
+abstract contract GasVehicle is Driveable {
+    uint256 litresRemaining;
+    bool started;
+
+    modifier sufficientTankSize(uint256 litres) {
+        require(litresRemaining + litres <= getFuelCapacity());
+        _;
+    }
+
+    modifier sufficientKilometersRemaining(uint256 kilometers) {
+        require(kilometersRemaining() >= litresRemaining);
+        _;
+    }
+
+    modifier notStarted() {
+        require(!started);
+        _;
+    }
+
+    modifier isStarted() {
+        require(started);
+        _;
+    }
+
+    function startEngine() external notStarted {
+        started = true;
+    }
+
+    function stopEngine() external isStarted {
+        started = false;
+    }
+
+    function fuelUp(uint256 litres)
+        external
+        sufficientTankSize(litres)
+        notStarted
+    {
+        litresRemaining += litres;
+    }
+
+    function drive(uint256 kilometers)
+        external
+        isStarted
+        sufficientKilometersRemaining(kilometers)
+    {
+        litresRemaining -= kilometers / getKilometersPerLitre();
+    }
+
+    function kilometersRemaining() public view returns (uint256) {
+        return litresRemaining * getKilometersPerLitre();
+    }
+
+    function getKilometersPerLitre() public view virtual returns (uint256);
+
+    function getFuelCapacity() public view virtual returns (uint256);
+}
+
+contract Car is GasVehicle {
+    uint256 fuelTankSize;
+    uint256 kilometersPerLitre;
+
+    constructor(uint256 _fuelTankSize, uint256 _kilometersPerLitre) {
+        fuelTankSize = _fuelTankSize;
+        kilometersPerLitre = _kilometersPerLitre;
+    }
+
+    function getKilometersPerLitre() public view override returns (uint256) {
+        return kilometersPerLitre;
+    }
+
+    function getFuelCapacity() public view override returns (uint256) {
+        return fuelTankSize;
+    }
+}
+
+```
