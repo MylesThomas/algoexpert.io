@@ -11285,3 +11285,17 @@ contract Car is GasVehicle {
 }
 
 ```
+
+---
+
+# 6 - Interacting With Smart Contracts
+
+Smart contracts might be smart, but they're not very useful if we can't interact with them. This course will teach you how to interact with smart contracts; it's time to make them useful!
+
+## Lessons
+
+### 1 - JavaScript Environment Setup
+
+Believe it or not, JavaScript plays an important role in the world of blockchain. This video will walk you through the necessary JavaScript setup to get started, and if you're hungry for more JavaScript content, be sure to check out [FrontendExpert](https://www.algoexpert.io/frontend/product).
+
+#### Notes from the video
